@@ -14,7 +14,8 @@ var (
 var App struct {
 	NAME    string
 	RUNMODE string
-	URL     string
+	APIURL  string
+	WEBURL  string
 }
 
 var DB struct {
@@ -49,7 +50,8 @@ func confApp() {
 	}
 	App.NAME = app.Key("APP_NAME").MustString("PDP")
 	App.RUNMODE = app.Key("APP_MODE").MustString("dev")
-	App.URL = app.Key("APP_URL").MustString("")
+	App.APIURL = app.Key("API_URL").MustString("")
+	App.WEBURL = app.Key("WEB_URL").MustString("")
 }
 func confDB() {
 	database, err := Cfg.GetSection("database")
