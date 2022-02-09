@@ -6,8 +6,8 @@ import (
 )
 
 type ReqPageSize struct {
-	Page int `json:"page" form:"page"`
-	Size int `json:"size" form:"size"`
+	Current  int `json:"current" form:"current"`
+	PageSize int `json:"pageSize" form:"pageSize"`
 }
 
 func (t *TableBase) Where(where ...interface{}) *TableBase {
@@ -23,17 +23,22 @@ func (t *TableBase) Request(data interface{}) *TableBase {
 func (t *TableBase) PageAndLimit(c *gin.Context) *TableBase {
 	var req ReqPageSize
 	var defaultSize = 100
-	err := c.ShouldBindJSON(&req)
+	var err error
+	if c.Request.Method == "GET" {
+		err = c.ShouldBindQuery(&req)
+	} else {
+		err = c.ShouldBindJSON(&req)
+	}
 	if err != nil {
 		t.Limit = defaultSize
 		t.Page = 0
 	} else {
-		if req.Size > 0 {
-			t.Limit = req.Size
+		if req.PageSize > 0 {
+			t.Limit = req.PageSize
 		} else {
 			t.Limit = defaultSize
 		}
-		t.Page = req.Page
+		t.Page = req.Current
 	}
 	return t
 }
@@ -57,7 +62,14 @@ func (t *TableBase) List(model interface{}, order ...string) {
 	}
 	return
 }
+func (t *TableBase) Total() (total int64) {
 
+	err = t.DB.Count(&total).Error
+	if failed(err) {
+		return
+	}
+	return
+}
 func (t *TableBase) One(model interface{}, order ...string) {
 	if len(order) > 0 {
 		err = t.DB.Order(order[0]).First(model).Error
@@ -90,6 +102,15 @@ func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 	}
 	if failed(err) {
 		return err
+	}
+	return nil
+}
+func (t *TableBase) Del(model interface{}) error {
+	if t.Id > 0 {
+		err = t.DB.Where("id", t.Id).Delete(model).Error
+		if failed(err) {
+			return err
+		}
 	}
 	return nil
 }
