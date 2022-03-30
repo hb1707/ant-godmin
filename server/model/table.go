@@ -118,3 +118,9 @@ func (t *TableBase) Del(model interface{}) error {
 	}
 	return nil
 }
+func (t *TableBase) UpdateRows() int {
+	if t.DB != nil {
+		return int(t.DB.RowsAffected)
+	}
+	return 0
+}
