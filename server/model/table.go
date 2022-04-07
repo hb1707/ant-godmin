@@ -24,8 +24,13 @@ func (t *TableBase) PageAndLimit(c *gin.Context) *TableBase {
 	var req ReqPageSize
 	var defaultSize = 100
 	var err error
+	pageSize, existSize := c.Get("pageSize")
+	current, existPage := c.Get("current")
 	if c.Request.Method == "GET" {
 		err = c.ShouldBindQuery(&req)
+	} else if existSize && existPage {
+		req.PageSize = pageSize.(int)
+		req.Current = current.(int)
 	} else {
 		err = c.ShouldBindJSON(&req)
 	}

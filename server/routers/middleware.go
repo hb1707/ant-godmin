@@ -1,9 +1,14 @@
 package routers
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"github.com/flosch/pongo2/v4"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
+	"github.com/hb1707/ant-godmin/model"
+	"io/ioutil"
 	"net/http"
 	"path"
 )
@@ -56,5 +61,19 @@ func (p *PongoHTML) WriteContentType(w http.ResponseWriter) {
 	header := w.Header()
 	if val := header["Content-Type"]; len(val) == 0 {
 		header["Content-Type"] = []string{"text/html; charset=utf-8"}
+	}
+}
+func MiddlewareSetPage() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		data, err := ctx.GetRawData()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		var req model.ReqPageSize
+		_ = json.Unmarshal(data, &req)
+		ctx.Set("pageSize", req.PageSize)
+		ctx.Set("current", req.Current)
+		ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+		ctx.Next()
 	}
 }
