@@ -27,7 +27,17 @@ var DB struct {
 	PRE         string
 	AUTOMIGRATE bool
 }
-
+var Upload struct {
+	LocalPath string
+}
+var AliyunOSS struct {
+	Endpoint        string
+	AccessKeyId     string
+	AccessKeySecret string
+	BucketName      string
+	BucketUrl       string
+	BasePath        string
+}
 var Log struct {
 	PATH string
 }
@@ -41,6 +51,7 @@ func init() {
 	}
 	confApp()
 	confDB()
+	confUpload()
 	confLog()
 }
 func confApp() {
@@ -65,6 +76,19 @@ func confDB() {
 	DB.PASSWORD = database.Key("DB_PASSWORD").MustString("")
 	DB.PRE = database.Key("DB_PRE").MustString("")
 	DB.AUTOMIGRATE = database.Key("DB_AUTO_MIGRATE").MustBool(false)
+}
+func confUpload() {
+	upload, err := Cfg.GetSection("upload")
+	if err != nil {
+		log.Fatalf("未找到配置 'database': %v", err)
+	}
+	Upload.LocalPath = upload.Key("LOCAL_PATH").MustString("")
+	AliyunOSS.Endpoint = upload.Key("ALIYUN_OSS_ENDPOINT").MustString("")
+	AliyunOSS.AccessKeyId = upload.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
+	AliyunOSS.AccessKeySecret = upload.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
+	AliyunOSS.BucketName = upload.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
+	AliyunOSS.BucketUrl = upload.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
+	AliyunOSS.BasePath = upload.Key("ALIYUN_OSS_BASE_PATH").MustString("")
 }
 
 func confLog() {

@@ -40,6 +40,7 @@ func List(isRelease bool) *gin.Engine {
 		{
 			systemGroup.GET("/auth/self", json.GetUser)
 			systemGroup.GET("/qywx-launch-code", json.WxGetLaunchCode)
+			systemGroup.POST("/file/upload/:path", json.UploadFile)
 		}
 	}
 
@@ -53,6 +54,7 @@ func List(isRelease bool) *gin.Engine {
 	{
 		logsGroup.POST("/add", json.AddLog)
 	}
+
 	return r
 }
 
