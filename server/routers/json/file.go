@@ -24,7 +24,7 @@ func UploadFile(c *gin.Context) {
 	var file model.Files
 	var req model.Files
 	pathStr := c.Param("path")
-	typeId, _ := strconv.Atoi(c.DefaultQuery("type_id", "0"))
+	typeId, _ := strconv.Atoi(c.DefaultPostForm("type_id", "0"))
 	photoId, _ := strconv.Atoi(c.DefaultPostForm("photo_id", "0"))
 	req.TypeId = uint(typeId)
 	uid, _ := auth.Identity(c)
