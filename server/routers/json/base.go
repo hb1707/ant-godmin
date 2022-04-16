@@ -17,6 +17,7 @@ func jsonResult(c *gin.Context, code int, data interface{}, other ...gin.H) {
 	}
 	okData["success"] = true
 	okData["data"] = data
+	okData["result"] = data //待删除
 	okData["status"] = "ok"
 	c.JSON(code, okData)
 }

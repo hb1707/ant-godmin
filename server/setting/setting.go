@@ -79,16 +79,15 @@ func confDB() {
 }
 func confUpload() {
 	upload, err := Cfg.GetSection("upload")
-	if err != nil {
-		log.Fatalf("未找到配置 'database': %v", err)
+	if err == nil {
+		Upload.LocalPath = upload.Key("LOCAL_PATH").MustString("")
+		AliyunOSS.Endpoint = upload.Key("ALIYUN_OSS_ENDPOINT").MustString("")
+		AliyunOSS.AccessKeyId = upload.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
+		AliyunOSS.AccessKeySecret = upload.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
+		AliyunOSS.BucketName = upload.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
+		AliyunOSS.BucketUrl = upload.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
+		AliyunOSS.BasePath = upload.Key("ALIYUN_OSS_BASE_PATH").MustString("")
 	}
-	Upload.LocalPath = upload.Key("LOCAL_PATH").MustString("")
-	AliyunOSS.Endpoint = upload.Key("ALIYUN_OSS_ENDPOINT").MustString("")
-	AliyunOSS.AccessKeyId = upload.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
-	AliyunOSS.AccessKeySecret = upload.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
-	AliyunOSS.BucketName = upload.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
-	AliyunOSS.BucketUrl = upload.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
-	AliyunOSS.BasePath = upload.Key("ALIYUN_OSS_BASE_PATH").MustString("")
 }
 
 func confLog() {
