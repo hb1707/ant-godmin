@@ -37,6 +37,9 @@ type Token struct {
 var CacheAuth = make(map[int]*Auth)
 
 func Middleware() *jwt.GinJWTMiddleware {
+	if Realm == "" {
+		log.Fatal("Realm未配置！")
+	}
 	m, err := NewMiddleware()
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())
@@ -170,6 +173,8 @@ func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 }
 func CheckTokenUser(c *gin.Context) {
 	sub, exists := c.Get(identityKey)
+
+	log.Warning("zxxxxx", sub)
 	if exists {
 		uid := sub.(int)
 		if uid > 0 {

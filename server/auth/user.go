@@ -39,21 +39,14 @@ type BindPost struct {
 	WxOpenid string
 }
 
-func TokenGenerator(appid string, u *model.SysUsers) (map[string]interface{}, error) {
-	user := new(TokenUser)
-	user.UUID = u.UUID
-	user.Appid = appid
-	user.AuthorityId = u.AuthorityId
-	//user.Username = u.Username
-	//user.RealName = u.RealName
-	user.ID = u.Id
+func TokenGenerator(appid string, user *TokenUser) (map[string]interface{}, error) {
 	userToken, expire, err := Middleware().TokenGenerator(user)
 	if err != nil {
 		return nil, err
 	}
 	return map[string]interface{}{
-		"uid":         u.Id,
-		"nickName":    u.RealName,
+		//"uid":         user.ID,
+		//"nickName":    user.RealName,
 		"token":       userToken,
 		"tokenExpire": expire,
 	}, nil
