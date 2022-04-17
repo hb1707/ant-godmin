@@ -173,8 +173,6 @@ func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 }
 func CheckTokenUser(c *gin.Context) {
 	sub, exists := c.Get(identityKey)
-
-	log.Warning("zxxxxx", sub)
 	if exists {
 		uid := sub.(int)
 		if uid > 0 {
@@ -193,7 +191,14 @@ func CheckTokenUser(c *gin.Context) {
 	})
 	return
 }
-func GetUID(c *gin.Context) int {
+func GetUserUID(c *gin.Context) int {
+	sub, exists := c.Get("user_uid")
+	if exists {
+		return sub.(int)
+	}
+	return 0
+}
+func GetAdmUID(c *gin.Context) int {
 	sub, exists := c.Get("adm_uid")
 	if exists {
 		return sub.(int)
@@ -208,7 +213,7 @@ func GetAuthID(c *gin.Context) string {
 	return ""
 }
 func Identity(c *gin.Context) (int, string) {
-	uid := GetUID(c)
+	uid := GetAdmUID(c)
 	authId := GetAuthID(c)
 	return uid, authId
 }
