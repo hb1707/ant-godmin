@@ -64,7 +64,13 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 				up.NickName = user.Alias
 				auth.Update(oldUser.Id, &up)
 			}
-			data, err := auth.TokenGenerator("", oldUser)
+			data, err := auth.TokenGenerator(&auth.TokenUser{
+				UUID:        oldUser.UUID,
+				ID:          oldUser.Id,
+				Appid:       "",
+				AuthorityId: oldUser.AuthorityId,
+				AdmLv:       0,
+			})
 			if err != nil {
 				jsonErr(c, http.StatusBadRequest, err)
 				return
@@ -81,7 +87,13 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 					Password: req.Password,
 				})
 				if checkUser != nil {
-					data, err := auth.TokenGenerator("", oldUser)
+					data, err := auth.TokenGenerator(&auth.TokenUser{
+						UUID:        oldUser.UUID,
+						ID:          oldUser.Id,
+						Appid:       "",
+						AuthorityId: oldUser.AuthorityId,
+						AdmLv:       0,
+					})
 					if err != nil {
 						jsonErr(c, http.StatusBadRequest, err)
 						return
@@ -97,7 +109,7 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 }
 
 func GetUser(c *gin.Context) {
-	uid := auth.GetUID(c)
+	uid := auth.GetAdmUID(c)
 	if uid > 0 {
 		exist, user := auth.GetSelf(uid)
 		if exist {

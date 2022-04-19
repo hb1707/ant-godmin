@@ -28,7 +28,13 @@ func WxGetWorkUser(c *gin.Context) {
 	}
 	if res.UserID != "" {
 		oldUser := model.NewSysUser("qywx_userid = ?", res.UserID).One("")
-		data, err := auth.TokenGenerator(appid, oldUser)
+		data, err := auth.TokenGenerator(&auth.TokenUser{
+			UUID:        oldUser.UUID,
+			ID:          oldUser.Id,
+			Appid:       appid,
+			AuthorityId: oldUser.AuthorityId,
+			AdmLv:       0,
+		})
 		if err != nil {
 			jsonErr(c, http.StatusBadRequest, err)
 			return
@@ -58,7 +64,7 @@ func WxGetLaunchCode(c *gin.Context) {
 	if appid == "" {
 		appid = setting.AdminAppid
 	}
-	userID := auth.GetUID(c)
+	userID := auth.GetAdmUID(c)
 	if userID > 0 {
 		oldUser := model.NewSysUser("id = ?", userID).One("")
 		if oldUser.Id > 0 {
@@ -115,7 +121,13 @@ func WorkRegister(c *gin.Context) {
 			return
 		}
 	}
-	data, err := auth.TokenGenerator(appid, u)
+	data, err := auth.TokenGenerator(&auth.TokenUser{
+		UUID:        u.UUID,
+		ID:          u.Id,
+		Appid:       appid,
+		AuthorityId: u.AuthorityId,
+		AdmLv:       0,
+	})
 	if err != nil {
 		jsonErr(c, http.StatusBadRequest, err)
 		return

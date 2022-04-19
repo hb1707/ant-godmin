@@ -39,7 +39,7 @@ type BindPost struct {
 	WxOpenid string
 }
 
-func TokenGenerator(appid string, user *TokenUser) (map[string]interface{}, error) {
+func TokenGenerator(user *TokenUser) (map[string]interface{}, error) {
 	userToken, expire, err := Middleware().TokenGenerator(user)
 	if err != nil {
 		return nil, err
