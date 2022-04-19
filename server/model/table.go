@@ -94,13 +94,13 @@ func (t *TableBase) DataMap(data map[string]interface{}) {
 func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 	if t.Data != nil {
 		if t.Id > 0 {
-			err = t.DB.Where("id", t.Id).Updates(t.Data).Error
+			err = t.DB.Where("id = ?", t.Id).Updates(t.Data).Error
 		} else {
 			err = t.DB.Create(t.Data).Error
 		}
 	} else {
 		if t.Id > 0 {
-			t.DB.Where("id", t.Id)
+			t.DB.Where("id = ?", t.Id)
 			if len(must) > 0 {
 				t.DB.Select(must[0], must[1:]...)
 			}
@@ -116,7 +116,7 @@ func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 }
 func (t *TableBase) Del(model interface{}) error {
 	if t.Id > 0 {
-		err = t.DB.Where("id", t.Id).Delete(model).Error
+		err = t.DB.Where("id = ?", t.Id).Delete(model).Error
 		if failed(err) {
 			return err
 		}
