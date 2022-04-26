@@ -101,11 +101,14 @@ func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 	} else {
 		if t.Id > 0 {
 			t.DB.Where("id = ?", t.Id)
-			if len(must) > 0 {
+			if len(must) > 0 && must[0] != "" {
 				t.DB.Select(must[0], must[1:]...)
 			}
 			err = t.DB.Updates(t.Req).Error
 		} else {
+			if len(must) > 0 && must[0] != "" {
+				t.DB.Select(must[0], must[1:]...)
+			}
 			err = t.DB.Create(t.Req).Error
 		}
 	}
