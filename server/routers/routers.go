@@ -10,12 +10,12 @@ import (
 )
 
 // List 路由列表设定
-func List(isRelease bool) *gin.Engine {
+func List(isRelease bool, allowOrigins []string) *gin.Engine {
 	r := gin.New()
 	config := cors.DefaultConfig()
 	//config.AllowAllOrigins = true
 	config.AllowCredentials = true
-	config.AllowOrigins = []string{"http://localhost:3000", "http://localhost:8000"}
+	config.AllowOrigins = allowOrigins
 	config.AddAllowHeaders("Authorization,x-requested-with,withcredentials")
 	r.Use(gin.Logger(), gin.Recovery(), cors.New(config))
 	if isRelease {

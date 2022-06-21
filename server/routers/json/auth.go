@@ -32,7 +32,7 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 		}
 
 		if res.UserID != "" {
-			oldUser := model.NewSysUser("qywx_userid = ?", res.UserID).One("id desc")
+			oldUser := model.NewSysUser("qywx_userid = ?", res.UserID).GetOne("id desc")
 			if oldUser.Id == 0 {
 				user, err := auth.GetQyUser(setting.AdminAppid, res.UserID)
 				if err != nil {
@@ -79,7 +79,7 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 			return
 		}
 	} else {
-		oldUser := model.NewSysUser("username = ?", req.Username).One("")
+		oldUser := model.NewSysUser("username = ?", req.Username).GetOne("")
 		if oldUser.Id > 0 {
 			if req.Password != "" && req.Username != "" {
 				checkUser := auth.LoginCheckPw(&auth.LoginPost{

@@ -53,7 +53,7 @@ func TokenGenerator(user *TokenUser) (map[string]interface{}, error) {
 }
 
 func LoginCheckPw(p *LoginPost) *model.SysUsers {
-	oldUser := model.NewSysUser("username = ?", p.Username).One("")
+	oldUser := model.NewSysUser("username = ?", p.Username).GetOne("")
 	postPW := Cryptosystem(p.Password, oldUser.Salt)
 	if p.Password != "" && postPW == oldUser.Password {
 		return oldUser
@@ -73,13 +73,13 @@ func UpdateQywxUserid(uid uint, userid string) {
 	u := model.NewSysUser()
 	u.Id = uid
 	u.QywxUserid = userid
-	u.AddOrUpdate()
+	u.Edit()
 }
 func UpdateWxUnionId(uid uint, unionId string) {
 	u := model.NewSysUser()
 	u.Id = uid
 	u.WxUnionId = unionId
-	u.AddOrUpdate()
+	u.Edit()
 }
 
 func Update(uid uint, up *UpdatePost) {
@@ -93,7 +93,7 @@ func Update(uid uint, up *UpdatePost) {
 	u.HeaderImg = up.Avatar
 	u.Username = up.Username
 	u.NickName = up.NickName
-	u.AddOrUpdate()
+	u.Edit()
 }
 
 func (u *TokenUser) IsAdmin() bool {

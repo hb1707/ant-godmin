@@ -27,7 +27,7 @@ func WxGetWorkUser(c *gin.Context) {
 		return
 	}
 	if res.UserID != "" {
-		oldUser := model.NewSysUser("qywx_userid = ?", res.UserID).One("")
+		oldUser := model.NewSysUser("qywx_userid = ?", res.UserID).GetOne("")
 		data, err := auth.TokenGenerator(&auth.TokenUser{
 			UUID:        oldUser.UUID,
 			ID:          oldUser.Id,
@@ -66,7 +66,7 @@ func WxGetLaunchCode(c *gin.Context) {
 	}
 	userID := auth.GetAdmUID(c)
 	if userID > 0 {
-		oldUser := model.NewSysUser("id = ?", userID).One("")
+		oldUser := model.NewSysUser("id = ?", userID).GetOne("")
 		if oldUser.Id > 0 {
 			user, err := auth.GetQyLaunchCode(appid, oldUser.QywxUserid, req.UserId)
 			if err != nil {
@@ -108,7 +108,7 @@ func WorkRegister(c *gin.Context) {
 		jsonErr(c, http.StatusBadRequest, consts.ErrEmptyUnionID)
 		return
 	}
-	oldUser := model.NewSysUser("username = ?", user.Mobile).One("")
+	oldUser := model.NewSysUser("username = ?", user.Mobile).GetOne("")
 	var u *model.SysUsers
 	user.Userid = res.UserID
 	if oldUser.Id > 0 {
