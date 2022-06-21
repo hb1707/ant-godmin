@@ -22,10 +22,10 @@ func (f *FileService) UploadFile(header *multipart.FileHeader, pathType string, 
 	if err != nil {
 		return err, model.Files{}
 	}
-	if req.PhotoId > 0 {
+	if req.FileId > 0 {
 		var temp model.FilesTemp
 		sql := model.NewFileTemp()
-		temp.PhotoId = req.PhotoId
+		temp.FileId = req.FileId
 		temp.Url = filePath
 		temp.Key = key
 		sql.Request(&temp)

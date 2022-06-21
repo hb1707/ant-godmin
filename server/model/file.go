@@ -10,13 +10,13 @@ type Files struct {
 	Key       string `json:"key" gorm:"type:varchar(255) not null;default:'';comment:编号"`                 // 编号
 	TempExist bool   `json:"temp_exist" gorm:"type:tinyint UNSIGNED not null;default:0;comment:临时文件是否存在"` // 临时文件是否存在
 	Author    string `json:"author" gorm:"-"`
-	PhotoId   uint   `json:"photo_id" gorm:"-"`
+	FileId    uint   `json:"file_id" gorm:"-"`
 	TableBase
 }
 type FilesTemp struct {
-	PhotoId uint   `json:"photo_id" gorm:"type:int UNSIGNED not null;default:0;comment:源照片id"` //源照片id
-	Url     string `json:"url" gorm:"type:varchar(255) not null;default:'';comment:文件地址"`      //文件地址
-	Key     string `json:"key" gorm:"type:varchar(255) not null;default:'';comment:编号"`        // 编号
+	FileId uint   `json:"file_id" gorm:"type:int UNSIGNED not null;default:0;comment:源照片id"` //源照片id
+	Url    string `json:"url" gorm:"type:varchar(255) not null;default:'';comment:文件地址"`     //文件地址
+	Key    string `json:"key" gorm:"type:varchar(255) not null;default:'';comment:编号"`       // 编号
 	TableBase
 }
 

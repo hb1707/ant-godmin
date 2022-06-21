@@ -25,12 +25,17 @@ func UploadFile(c *gin.Context) {
 	var req model.Files
 	pathStr := c.Param("path")
 	typeId, _ := strconv.Atoi(c.DefaultPostForm("type_id", "0"))
-	photoId, _ := strconv.Atoi(c.DefaultPostForm("photo_id", "0"))
+	photoId, _ := strconv.Atoi(c.DefaultPostForm("photo_id", "0")) //todo: 20220621之后准备废弃
+	fileId, _ := strconv.Atoi(c.DefaultPostForm("file_id", "0"))
 	req.TypeId = uint(typeId)
 	uid, _ := auth.Identity(c)
 	req.Uid = uint(uid)
 	req.From = "T"
-	req.PhotoId = uint(photoId)
+	if photoId > 0 {
+		req.FileId = uint(photoId)
+	} else {
+		req.FileId = uint(fileId)
+	}
 	_, header, err := c.Request.FormFile("file")
 	if err != nil {
 		log.Error("接收文件失败!", err)
