@@ -4,6 +4,7 @@ import "mime/multipart"
 
 type Cloud interface {
 	Upload(file *multipart.FileHeader, pathType string, newFileName string) (string, string, error)
+	Download(url string, pathType string, newFileName string) (string, string, error)
 	Delete(key string) error
 }
 

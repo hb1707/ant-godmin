@@ -41,6 +41,7 @@ func List(isRelease bool, allowOrigins []string) *gin.Engine {
 			systemGroup.GET("/auth/self", json.GetUser)
 			systemGroup.GET("/qywx-launch-code", json.WxGetLaunchCode)
 			systemGroup.POST("/file/upload/:path", json.UploadFile)
+			systemGroup.POST("/file/download/:path", json.DownloadFile)
 		}
 	}
 

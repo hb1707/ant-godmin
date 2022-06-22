@@ -6,6 +6,7 @@ import (
 	"github.com/hb1707/exfun/fun"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"path"
 	"regexp"
@@ -28,7 +29,7 @@ func (*Local) Upload(file *multipart.FileHeader, pathType string, newFileName st
 		return "", "", errors.New("Local.Upload().os.MkdirAll() Error:" + err.Error())
 	}
 	pathNew := setting.Upload.LocalPath + "/" + newFileName
-	match, _ := regexp.MatchString(`^[A-Za-z]+$`, pathType)
+	match, _ := regexp.MatchString(`^[A-Za-z0-9]+$`, pathType)
 	if match && pathType != "" {
 		pathNew = setting.Upload.LocalPath + "/" + pathType + "/" + newFileName
 	}
@@ -48,7 +49,33 @@ func (*Local) Upload(file *multipart.FileHeader, pathType string, newFileName st
 	}
 	return pathNew, newFileName, nil
 }
+func (*Local) Download(url string, pathType string, newFileName string) (string, string, error) {
+	if newFileName == "" {
+		newFileName = time.Now().Format("20060102150405")
+	}
+	err := os.MkdirAll(setting.Upload.LocalPath, os.ModePerm)
+	if err != nil {
+		return "", "", errors.New("Local.Upload().os.MkdirAll() Error:" + err.Error())
+	}
+	pathNew := setting.Upload.LocalPath + "/" + newFileName
+	match, _ := regexp.MatchString(`^[A-Za-z0-9]+$`, pathType)
+	if match && pathType != "" {
+		pathNew = setting.Upload.LocalPath + "/" + pathType + "/" + newFileName
+	}
 
+	out, err := os.Create(pathNew)
+	if err != nil {
+		return "", "", errors.New("Local.Upload().os.Create() Error:" + err.Error())
+	}
+	defer out.Close()
+	res, _ := http.Get(url)
+	f := io.Reader(res.Body)
+	_, err = io.Copy(out, f)
+	if err != nil {
+		return "", "", errors.New("Local.Upload().io.Copy() Error:" + err.Error())
+	}
+	return pathNew, newFileName, nil
+}
 func (*Local) Delete(key string) error {
 	filePath := setting.Upload.LocalPath + "/" + key
 	if strings.Contains(filePath, setting.Upload.LocalPath) {

@@ -47,3 +47,24 @@ func (f *FileService) UploadFile(header *multipart.FileHeader, pathType string, 
 		return err, newFile
 	}
 }
+func (f *FileService) DownloadFile(pathType string, req model.Files) (err error, file model.Files) {
+	oss := upload.NewUpload(upload.AliyunOss)
+	newFileName := req.Name
+	filePath, key, err := oss.Download(req.From, pathType, newFileName)
+	if err != nil {
+		return err, model.Files{}
+	}
+	newFile := model.Files{
+		TypeId: req.TypeId,
+		From:   req.From,
+		Uid:    req.Uid,
+		Url:    filePath,
+		Name:   newFileName,
+		Tag:    req.Tag,
+		Key:    key,
+	}
+	sql := model.NewFile()
+	sql.Request(&newFile)
+	err = sql.AddOrUpdate()
+	return err, newFile
+}
