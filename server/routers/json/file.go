@@ -27,6 +27,7 @@ func UploadFile(c *gin.Context) {
 	typeId, _ := strconv.Atoi(c.DefaultPostForm("type_id", "0"))
 	photoId, _ := strconv.Atoi(c.DefaultPostForm("photo_id", "0")) //todo: 20220621之后准备废弃
 	fileId, _ := strconv.Atoi(c.DefaultPostForm("file_id", "0"))
+	fileName := c.DefaultPostForm("file_name", "")
 	req.TypeId = uint(typeId)
 	uid, _ := auth.Identity(c)
 	req.Uid = uint(uid)
@@ -45,9 +46,12 @@ func UploadFile(c *gin.Context) {
 	hookReq := hook.GenerateFileTag(c)
 	req.Tag = hookReq.Tag
 	ext := path.Ext(header.Filename)
-	name := strings.TrimSuffix(header.Filename, ext)
-	name = fun.MD5(name)
-	req.Name = name + "_" + time.Now().Format("20060102150405") + ext
+	if fileName == "" {
+		name := strings.TrimSuffix(header.Filename, ext)
+		name = fun.MD5(name)
+		fileName = name + "_" + time.Now().Format("20060102150405")
+	}
+	req.Name = fileName + ext
 	err, file = service.NewFileService().UploadFile(header, pathStr, req) // 文件上传后拿到文件路径
 	if err != nil {
 		log.Error("修改数据库链接失败!", err)

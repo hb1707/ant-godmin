@@ -23,18 +23,18 @@ type FilesTemp struct {
 func NewFile(where ...interface{}) *Files {
 	var t = new(Files)
 	if len(where) > 0 {
-		t.DB = DB.Table("files").Model(&Files{}).Where(where[0], where[1:]...)
+		t.DB = DB.Model(&Files{}).Where(where[0], where[1:]...)
 	} else {
-		t.DB = DB.Table("files").Model(&Files{})
+		t.DB = DB.Model(&Files{})
 	}
 	return t
 }
 func NewFileTemp(where ...interface{}) *FilesTemp {
 	var t = new(FilesTemp)
 	if len(where) > 0 {
-		t.DB = DB.Table("files_temps").Model(&FilesTemp{}).Where(where[0], where[1:]...)
+		t.DB = DB.Model(&FilesTemp{}).Where(where[0], where[1:]...)
 	} else {
-		t.DB = DB.Table("files_temps").Model(&FilesTemp{})
+		t.DB = DB.Model(&FilesTemp{})
 	}
 	return t
 }
