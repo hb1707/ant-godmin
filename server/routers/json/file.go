@@ -24,10 +24,10 @@ func UploadFile(c *gin.Context) {
 	var file model.Files
 	var req model.Files
 	pathStr := c.Param("path")
-	typeId, _ := strconv.Atoi(c.DefaultPostForm("type_id", "0"))
-	photoId, _ := strconv.Atoi(c.DefaultPostForm("photo_id", "0")) //todo: 20220621之后准备废弃
-	fileId, _ := strconv.Atoi(c.DefaultPostForm("file_id", "0"))
-	fileName := c.DefaultPostForm("file_name", "")
+	typeId, _ := strconv.Atoi(c.DefaultQuery("type_id", "0"))
+	photoId, _ := strconv.Atoi(c.DefaultQuery("photo_id", "0")) //todo: 20220621之后准备废弃
+	fileId, _ := strconv.Atoi(c.DefaultQuery("file_id", "0"))
+	fileName := c.DefaultQuery("file_name", "")
 	req.TypeId = uint(typeId)
 	uid, _ := auth.Identity(c)
 	req.Uid = uint(uid)
@@ -49,7 +49,7 @@ func UploadFile(c *gin.Context) {
 	if fileName == "" {
 		name := strings.TrimSuffix(header.Filename, ext)
 		name = fun.MD5(name)
-		fileName = name + "_" + time.Now().Format("20060102150405")
+		fileName = time.Now().Format("2006-01-02") + "/" + name + "_" + time.Now().Format("20060102150405")
 	}
 	req.Name = fileName + ext
 	err, file = service.NewFileService().UploadFile(header, pathStr, req) // 文件上传后拿到文件路径

@@ -15,9 +15,6 @@ func NewFileService() *FileService {
 func (f *FileService) UploadFile(header *multipart.FileHeader, pathType string, req model.Files) (err error, file model.Files) {
 	oss := upload.NewUpload(upload.AliyunOss)
 	newFileName := req.Name
-	if newFileName == header.Filename {
-		newFileName = "" //自动生成
-	}
 	filePath, key, err := oss.Upload(header, pathType, newFileName)
 	if err != nil {
 		return err, model.Files{}

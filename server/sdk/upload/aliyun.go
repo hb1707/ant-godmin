@@ -6,7 +6,6 @@ import (
 	"github.com/hb1707/ant-godmin/setting"
 	"mime/multipart"
 	"regexp"
-	"time"
 )
 
 type AliyunOSS struct{}
@@ -24,10 +23,10 @@ func (*AliyunOSS) Upload(file *multipart.FileHeader, pathType string, newFileNam
 	if newFileName == "" {
 		newFileName = file.Filename
 	}
-	ossPath := setting.AliyunOSS.BasePath + time.Now().Format("2006-01-02") + "/" + newFileName
+	ossPath := setting.AliyunOSS.BasePath + newFileName
 	match, _ := regexp.MatchString(`^[A-Za-z]+$`, pathType)
 	if match && pathType != "" {
-		ossPath = setting.AliyunOSS.BasePath + pathType + "/" + time.Now().Format("2006-01-02") + "/" + newFileName
+		ossPath = setting.AliyunOSS.BasePath + pathType + "/" + newFileName
 	}
 	err = bucket.PutObject(ossPath, f)
 	if err != nil {
