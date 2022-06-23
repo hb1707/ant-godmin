@@ -55,7 +55,7 @@ func UploadFile(c *gin.Context) {
 		fileName = time.Now().Format("2006-01-02") + "/" + name + "_" + time.Now().Format("20060102150405")
 	}
 	req.Name = fileName + ext
-	err, file = service.NewFileService().UploadFile(header, pathStr, req) // 文件上传后拿到文件路径
+	err, file = service.NewFileService(pathStr).UploadToOSS(header, req) // 文件上传后拿到文件路径
 	if err != nil {
 		log.Error("修改数据库链接失败!", err)
 		jsonErr(c, http.StatusInternalServerError, err)
@@ -92,7 +92,43 @@ func DownloadFile(c *gin.Context) {
 	hookReq := hook.GenerateFileTag(c)
 	up.Tag = hookReq.Tag
 	up.Name = req.FileName
-	err, file = service.NewFileService().DownloadFile(req.Path, up) // 文件上传后拿到文件路径
+	err, file = service.NewFileService(req.Path).DownloadFile(up) // 文件上传后拿到文件路径
+	if err != nil {
+		log.Error("修改数据库链接失败!", err)
+		jsonErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	if file.Id > 0 {
+		jsonResult(c, http.StatusOK, map[string]interface{}{
+			"file": file,
+		})
+		return
+	} else {
+		jsonResult(c, http.StatusOK, map[string]interface{}{})
+		return
+	}
+}
+func AddIPFS(c *gin.Context) {
+	var file model.Files
+	var up model.Files
+	var req struct {
+		FileName string `json:"file_name"`
+		Path     string `json:"path"`
+		Url      string `json:"url"`
+	}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		jsonErr(c, http.StatusInternalServerError, ErrUploadFail)
+		return
+	}
+	up.FileType = consts.FileTypeJson
+	uid, _ := auth.Identity(c)
+	up.Uid = uint(uid)
+	up.From = "./temp.json"
+	hookReq := hook.GenerateFileTag(c)
+	up.Tag = hookReq.Tag
+	up.Name = req.FileName
+	err, file = service.NewFileService(req.Path).IPFSAdd(up) // 文件上传后拿到文件路径
 	if err != nil {
 		log.Error("修改数据库链接失败!", err)
 		jsonErr(c, http.StatusInternalServerError, err)

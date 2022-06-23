@@ -33,3 +33,11 @@ const (
 	FileTypeImage FileType = 1
 	FileTypeJson  FileType = 2
 )
+
+type CloudType int
+
+const (
+	CloudTypeLocal  CloudType = 0
+	CloudTypeAliyun CloudType = 1
+	CloudTypeIPFS   CloudType = 2
+)

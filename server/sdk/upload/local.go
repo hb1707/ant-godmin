@@ -3,78 +3,50 @@ package upload
 import (
 	"errors"
 	"github.com/hb1707/ant-godmin/setting"
-	"github.com/hb1707/exfun/fun"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"os"
-	"path"
-	"regexp"
 	"strings"
 	"time"
 )
 
 type Local struct{}
 
-func (*Local) Upload(file *multipart.FileHeader, pathType string, newFileName string) (string, string, error) {
-
-	if newFileName == "" {
-		ext := path.Ext(file.Filename)
-		name := strings.TrimSuffix(file.Filename, ext)
-		name = fun.MD5(name)
-		newFileName = name + "_" + time.Now().Format("20060102150405") + ext
-	}
-	err := os.MkdirAll(setting.Upload.LocalPath, os.ModePerm)
-	if err != nil {
-		return "", "", errors.New("Local.Upload().os.MkdirAll() Error:" + err.Error())
-	}
+func (*Local) Upload(file io.Reader, newFileName string) (string, error) {
 	pathNew := setting.Upload.LocalPath + "/" + newFileName
-	match, _ := regexp.MatchString(`^[A-Za-z0-9]+$`, pathType)
-	if match && pathType != "" {
-		pathNew = setting.Upload.LocalPath + "/" + pathType + "/" + newFileName
-	}
-	f, err := file.Open()
-	if err != nil {
-		return "", "", errors.New("Local.Upload().file.Open() Error:" + err.Error())
-	}
-	defer f.Close()
 	out, err := os.Create(pathNew)
 	if err != nil {
-		return "", "", errors.New("Local.Upload().os.Create() Error:" + err.Error())
+		return "", errors.New("Local.Upload().os.Create() Error:" + err.Error())
 	}
 	defer out.Close()
-	_, err = io.Copy(out, f)
+	_, err = io.Copy(out, file)
 	if err != nil {
-		return "", "", errors.New("Local.Upload().io.Copy() Error:" + err.Error())
+		return "", errors.New("Local.Upload().io.Copy() Error:" + err.Error())
 	}
-	return pathNew, newFileName, nil
+	return pathNew, nil
 }
-func (*Local) Download(url string, pathType string, newFileName string) (string, string, error) {
-	if newFileName == "" {
-		newFileName = time.Now().Format("20060102150405")
+func (*Local) Download(url string, localFileName string) (string, error) {
+	if localFileName == "" {
+		localFileName = time.Now().Format("20060102150405")
 	}
 	err := os.MkdirAll(setting.Upload.LocalPath, os.ModePerm)
 	if err != nil {
-		return "", "", errors.New("Local.Upload().os.MkdirAll() Error:" + err.Error())
+		return "", errors.New("Local.Download().os.MkdirAll() Error:" + err.Error())
 	}
-	pathNew := setting.Upload.LocalPath + "/" + newFileName
-	match, _ := regexp.MatchString(`^[A-Za-z0-9]+$`, pathType)
-	if match && pathType != "" {
-		pathNew = setting.Upload.LocalPath + "/" + pathType + "/" + newFileName
-	}
-
+	pathNew := setting.Upload.LocalPath + "/" + localFileName
 	out, err := os.Create(pathNew)
 	if err != nil {
-		return "", "", errors.New("Local.Upload().os.Create() Error:" + err.Error())
+		return "", errors.New("Local.Download().os.Create() Error:" + err.Error())
 	}
 	defer out.Close()
 	res, _ := http.Get(url)
-	f := io.Reader(res.Body)
-	_, err = io.Copy(out, f)
+	defer res.Body.Close()
+	//f := io.Reader(res.Body)
+	_, err = io.Copy(out, res.Body)
 	if err != nil {
-		return "", "", errors.New("Local.Upload().io.Copy() Error:" + err.Error())
+		return "", errors.New("Local.Download().io.Copy() Error:" + err.Error())
 	}
-	return pathNew, newFileName, nil
+	return pathNew, nil
 }
 func (*Local) Delete(key string) error {
 	filePath := setting.Upload.LocalPath + "/" + key

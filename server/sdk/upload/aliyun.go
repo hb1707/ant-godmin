@@ -5,55 +5,25 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/hb1707/ant-godmin/setting"
 	"io"
-	"mime/multipart"
-	"net/http"
-	"regexp"
 )
 
 type AliyunOSS struct{}
 
-func (*AliyunOSS) Upload(file *multipart.FileHeader, pathType string, newFileName string) (string, string, error) {
+func (*AliyunOSS) Upload(file io.Reader, newFileName string) (string, error) {
 	bucket, err := NewBucket()
 	if err != nil {
-		return "", "", errors.New("AliyunOSS.Upload().NewBucket Error:" + err.Error())
-	}
-	f, err := file.Open()
-	if err != nil {
-		return "", "", errors.New("AliyunOSS.Upload().NewBucket.file.Open() Error:" + err.Error())
-	}
-	defer f.Close()
-	if newFileName == "" {
-		newFileName = file.Filename
+		return "", errors.New("AliyunOSS.Upload().NewBucket Error:" + err.Error())
 	}
 	ossPath := setting.AliyunOSS.BasePath + newFileName
-	match, _ := regexp.MatchString(`^[A-Za-z0-9]+$`, pathType)
-	if match && pathType != "" {
-		ossPath = setting.AliyunOSS.BasePath + pathType + "/" + newFileName
-	}
-	err = bucket.PutObject(ossPath, f)
+	err = bucket.PutObject(ossPath, file)
 	if err != nil {
-		return "", "", errors.New("AliyunOSS.Upload().bucket.PutObject() Error:" + err.Error())
+		return "", errors.New("AliyunOSS.Upload().bucket.PutObject() Error:" + err.Error())
 	}
 
-	return setting.AliyunOSS.BucketUrl + "/" + ossPath, ossPath, nil
+	return ossPath, nil
 }
-func (*AliyunOSS) Download(url string, pathType string, newFileName string) (string, string, error) {
-	bucket, err := NewBucket()
-	if err != nil {
-		return "", "", errors.New("AliyunOSS.Download().NewBucket Error:" + err.Error())
-	}
-	res, _ := http.Get(url)
-	f := io.Reader(res.Body)
-	ossPath := setting.AliyunOSS.BasePath + newFileName
-	match, _ := regexp.MatchString(`^[A-Za-z0-9]+$`, pathType)
-	if match && pathType != "" {
-		ossPath = setting.AliyunOSS.BasePath + pathType + "/" + newFileName
-	}
-	err = bucket.PutObject(ossPath, f)
-	if err != nil {
-		return "", "", errors.New("AliyunOSS.Upload().bucket.PutObject() Error:" + err.Error())
-	}
-	return setting.AliyunOSS.BucketUrl + "/" + ossPath, ossPath, nil
+func (*AliyunOSS) Download(url string, localFileName string) (string, error) {
+	return "", errors.New("AliyunOSS.Download() Not Support")
 }
 
 func (*AliyunOSS) Delete(key string) error {

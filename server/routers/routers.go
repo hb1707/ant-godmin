@@ -42,6 +42,7 @@ func List(isRelease bool, allowOrigins []string) *gin.Engine {
 			systemGroup.GET("/qywx-launch-code", json.WxGetLaunchCode)
 			systemGroup.POST("/file/upload/:path", json.UploadFile)
 			systemGroup.POST("/file/download/:path", json.DownloadFile)
+			systemGroup.POST("/file/ipfs/:path", json.AddIPFS)
 		}
 	}
 

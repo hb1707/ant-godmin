@@ -1,21 +1,27 @@
 package upload
 
-import "mime/multipart"
+import (
+	"io"
+)
 
 type Cloud interface {
-	Upload(file *multipart.FileHeader, pathType string, newFileName string) (string, string, error)
-	Download(url string, pathType string, newFileName string) (string, string, error)
+	Upload(file io.Reader, newFileName string) (string, error)
+	Download(url string, localPath string) (string, error)
 	Delete(key string) error
 }
 
 const (
-	AliyunOss = "aliyun_oss"
+	TypeLocal     = "local"
+	TypeAliyunOss = "aliyun_oss"
+	TypeIpfs      = "ipfs"
 )
 
 func NewUpload(cloudType string) Cloud {
 	switch cloudType {
-	case AliyunOss:
+	case TypeAliyunOss:
 		return &AliyunOSS{}
+	case TypeIpfs:
+		return &IPFS{}
 	default:
 		return &Local{}
 	}

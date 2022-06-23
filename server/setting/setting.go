@@ -28,7 +28,9 @@ var DB struct {
 	AUTOMIGRATE bool
 }
 var Upload struct {
-	LocalPath string
+	LocalPath    string
+	IpfsEndpoint string
+	IpfsGateway  string
 }
 var AliyunOSS struct {
 	Endpoint        string
@@ -81,6 +83,8 @@ func confUpload() {
 	upload, err := Cfg.GetSection("upload")
 	if err == nil {
 		Upload.LocalPath = upload.Key("LOCAL_PATH").MustString("")
+		Upload.IpfsEndpoint = upload.Key("IPFS_ENDPOINT").MustString("")
+		Upload.IpfsGateway = upload.Key("IPFS_GATEWAY").MustString("")
 		AliyunOSS.Endpoint = upload.Key("ALIYUN_OSS_ENDPOINT").MustString("")
 		AliyunOSS.AccessKeyId = upload.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
 		AliyunOSS.AccessKeySecret = upload.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
