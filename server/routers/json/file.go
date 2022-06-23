@@ -57,7 +57,7 @@ func UploadFile(c *gin.Context) {
 	req.Name = fileName + ext
 	err, file = service.NewFileService(pathStr).UploadToOSS(header, req) // 文件上传后拿到文件路径
 	if err != nil {
-		log.Error("修改数据库链接失败!", err)
+		log.Error("上传文件到OSS失败!", err)
 		jsonErr(c, http.StatusInternalServerError, err)
 		return
 	}
@@ -92,9 +92,9 @@ func DownloadFile(c *gin.Context) {
 	hookReq := hook.GenerateFileTag(c)
 	up.Tag = hookReq.Tag
 	up.Name = req.FileName
-	err, file = service.NewFileService(req.Path).DownloadFile(up) // 文件上传后拿到文件路径
+	err, file = service.NewFileService(req.Path).DownloadFile(up, false) // 文件上传后拿到文件路径
 	if err != nil {
-		log.Error("修改数据库链接失败!", err)
+		log.Error("远程文件下载失败!", err)
 		jsonErr(c, http.StatusInternalServerError, err)
 		return
 	}
@@ -124,13 +124,20 @@ func AddIPFS(c *gin.Context) {
 	up.FileType = consts.FileTypeJson
 	uid, _ := auth.Identity(c)
 	up.Uid = uint(uid)
-	up.From = "./temp.json"
 	hookReq := hook.GenerateFileTag(c)
 	up.Tag = hookReq.Tag
 	up.Name = req.FileName
-	err, file = service.NewFileService(req.Path).IPFSAdd(up) // 文件上传后拿到文件路径
+	up.From = req.Url
+	err, localFile := service.NewFileService(req.Path).DownloadFile(up, false) // 文件上传后拿到文件路径
 	if err != nil {
-		log.Error("修改数据库链接失败!", err)
+		log.Error("远程文件下载失败!", err)
+		jsonErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	up.From = localFile.Url
+	err, file = service.NewFileService(req.Path).IPFSAdd(up) //本地文件上传到IPFS
+	if err != nil {
+		log.Error("本地文件上传到IPFS!", err)
 		jsonErr(c, http.StatusInternalServerError, err)
 		return
 	}

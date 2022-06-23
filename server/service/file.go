@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -57,6 +58,7 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files)
 	} else {
 		newFile := model.Files{
 			CloudType: consts.CloudTypeAliyun,
+			FileType:  req.FileType,
 			TypeId:    req.TypeId,
 			From:      req.From,
 			Uid:       req.Uid,
@@ -84,6 +86,7 @@ func (f *FileService) UploadRemote(req model.Files) (err error, outFile model.Fi
 	}
 	newFile := model.Files{
 		CloudType: consts.CloudTypeAliyun,
+		FileType:  req.FileType,
 		TypeId:    req.TypeId,
 		From:      req.From,
 		Uid:       req.Uid,
@@ -123,6 +126,7 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files) (
 	}
 	newFile := model.Files{
 		CloudType: consts.CloudTypeAliyun,
+		FileType:  req.FileType,
 		TypeId:    req.TypeId,
 		From:      req.From,
 		Uid:       req.Uid,
@@ -136,7 +140,7 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files) (
 	err = sql.AddOrUpdate()
 	return err, newFile
 }
-func (f *FileService) DownloadFile(req model.Files) (err error, file model.Files) {
+func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, file model.Files) {
 	local := upload.NewUpload(upload.TypeLocal)
 	newFileName := req.Name
 	newFileName = f.prevPathType(newFileName)
@@ -146,17 +150,20 @@ func (f *FileService) DownloadFile(req model.Files) (err error, file model.Files
 	}
 	newFile := model.Files{
 		CloudType: consts.CloudTypeLocal,
+		FileType:  req.FileType,
 		TypeId:    req.TypeId,
 		From:      req.From,
 		Uid:       req.Uid,
 		Url:       filePath,
-		Name:      newFileName,
+		Name:      filepath.Base(newFileName),
 		Tag:       req.Tag,
 		Key:       newFileName,
 	}
-	sql := model.NewFile()
-	sql.Request(&newFile)
-	err = sql.AddOrUpdate()
+	if saveSql {
+		sql := model.NewFile()
+		sql.Request(&newFile)
+		err = sql.AddOrUpdate()
+	}
 	return err, newFile
 }
 func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) {
@@ -177,11 +184,12 @@ func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) 
 	}
 	newFile := model.Files{
 		CloudType: consts.CloudTypeIPFS,
+		FileType:  req.FileType,
 		TypeId:    req.TypeId,
 		From:      req.From,
 		Uid:       req.Uid,
 		Url:       filePath,
-		Name:      newFileName,
+		Name:      filepath.Base(newFileName),
 		Tag:       req.Tag,
 		Key:       key,
 	}

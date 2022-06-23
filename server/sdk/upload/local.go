@@ -29,7 +29,9 @@ func (*Local) Download(url string, localFileName string) (string, error) {
 	if localFileName == "" {
 		localFileName = time.Now().Format("20060102150405")
 	}
-	err := os.MkdirAll(setting.Upload.LocalPath, os.ModePerm)
+	//获取文件目录路径
+	localFilePath := strings.Split(localFileName, "/")
+	err := os.MkdirAll(setting.Upload.LocalPath+"/"+strings.Join(localFilePath[0:len(localFilePath)-1], "/"), os.ModePerm)
 	if err != nil {
 		return "", errors.New("Local.Download().os.MkdirAll() Error:" + err.Error())
 	}
