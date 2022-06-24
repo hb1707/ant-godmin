@@ -101,7 +101,7 @@ func (f *FileService) UploadRemote(req model.Files) (err error, outFile model.Fi
 	return err, newFile
 }
 
-func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files) (err error, outFile model.Files) {
+func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, saveTemp bool) (err error, outFile model.Files) {
 	local := upload.NewUpload(upload.TypeLocal)
 	newFileName := req.Name
 	if newFileName == "" {
@@ -110,35 +110,47 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files) (
 		name = fun.MD5(name)
 		newFileName = name + "_" + time.Now().Format("20060102150405") + ext
 	}
-	err = os.MkdirAll(setting.Upload.LocalPath, os.ModePerm)
-	if err != nil {
-		return err, model.Files{}
-	}
 	file, err := head.Open()
 	if err != nil {
 		return err, model.Files{}
 	}
 	defer file.Close()
 	newFileName = f.prevPathType(newFileName)
-	filePath, err := local.Upload(file, newFileName)
+	newFileName, err = local.Upload(file, newFileName)
+	filePath := setting.App.APIURL + "/upload/" + newFileName
 	if err != nil {
 		return err, model.Files{}
 	}
-	newFile := model.Files{
-		CloudType: consts.CloudTypeAliyun,
-		FileType:  req.FileType,
-		TypeId:    req.TypeId,
-		From:      req.From,
-		Uid:       req.Uid,
-		Url:       filePath,
-		Name:      newFileName,
-		Tag:       req.Tag,
-		Key:       newFileName,
+	if saveTemp {
+		var temp model.FilesTemp
+		sql := model.NewFileTemp()
+		temp.FileId = req.FileId
+		temp.Url = filePath
+		temp.Key = newFileName
+		sql.Request(&temp)
+		err := sql.AddOrUpdate()
+		req.Name = newFileName
+		req.TempExist = true
+		req.Url = filePath
+		req.Id = temp.Id
+		return err, req
+	} else {
+		newFile := model.Files{
+			CloudType: consts.CloudTypeAliyun,
+			FileType:  req.FileType,
+			TypeId:    req.TypeId,
+			From:      req.From,
+			Uid:       req.Uid,
+			Url:       filePath,
+			Name:      newFileName,
+			Tag:       req.Tag,
+			Key:       "",
+		}
+		sql := model.NewFile()
+		sql.Request(&newFile)
+		err = sql.AddOrUpdate()
+		return err, newFile
 	}
-	sql := model.NewFile()
-	sql.Request(&newFile)
-	err = sql.AddOrUpdate()
-	return err, newFile
 }
 func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, file model.Files) {
 	local := upload.NewUpload(upload.TypeLocal)
@@ -155,9 +167,9 @@ func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, fi
 		From:      req.From,
 		Uid:       req.Uid,
 		Url:       filePath,
-		Name:      filepath.Base(newFileName),
+		Name:      newFileName,
 		Tag:       req.Tag,
-		Key:       newFileName,
+		Key:       "",
 	}
 	if saveSql {
 		sql := model.NewFile()
@@ -168,7 +180,9 @@ func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, fi
 }
 func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) {
 	ipfs := upload.NewUpload(upload.TypeIpfs)
-	localPath := req.From
+	var fSql model.Files
+	model.NewFile("url = ?", req.From).One(&fSql, "created_at desc")
+	localPath := setting.Upload.LocalPath + "/" + fSql.Name
 	file, err := os.Open(localPath)
 	if err != nil {
 		return err, model.Files{}
@@ -198,7 +212,48 @@ func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) 
 	err = sql.AddOrUpdate()
 	return err, newFile
 }
+func (f *FileService) OSSAdd(req model.Files) (err error, outFile model.Files) {
+	oss := upload.NewUpload(upload.TypeAliyunOss)
+	var ipfsSql model.Files
+	model.NewFile("url = ?", req.From).One(&ipfsSql, "created_at desc")
+	var localSql model.Files
+	model.NewFile("url = ?", ipfsSql.From).One(&localSql, "created_at desc")
+	localPath := setting.Upload.LocalPath + "/" + localSql.Name
+	file, err := os.Open(localPath)
+	if err != nil {
+		return err, model.Files{}
+	}
+	defer file.Close()
 
+	newFileName := ipfsSql.Key
+	contentType := ""
+	if req.FileType > consts.FileTypeOther {
+		newFileName = newFileName + path.Ext(ipfsSql.From)
+	} else {
+		contentType = "application/json; charset=utf-8"
+	}
+	newFileName = f.prevPathType(newFileName)
+	key, err := oss.Upload(file, newFileName, contentType)
+	filePath := setting.AliyunOSS.BucketUrl + "/" + newFileName
+	if err != nil {
+		return err, model.Files{}
+	}
+	newFile := model.Files{
+		CloudType: consts.CloudTypeAliyun,
+		FileType:  req.FileType,
+		TypeId:    req.TypeId,
+		From:      req.From,
+		Uid:       req.Uid,
+		Url:       filePath,
+		Name:      filepath.Base(newFileName),
+		Tag:       req.Tag,
+		Key:       key,
+	}
+	sql := model.NewFile()
+	sql.Request(&newFile)
+	err = sql.AddOrUpdate()
+	return err, newFile
+}
 func (f *FileService) prevPathType(filename string) (newFileName string) {
 	pathType := f.PathType
 	match, _ := regexp.MatchString(`^[A-Za-z0-9]+$`, pathType)

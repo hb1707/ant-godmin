@@ -6,6 +6,7 @@ import (
 	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/routers/html"
 	"github.com/hb1707/ant-godmin/routers/json"
+	"github.com/hb1707/ant-godmin/setting"
 	"net/http"
 )
 
@@ -23,7 +24,7 @@ func List(isRelease bool, allowOrigins []string) *gin.Engine {
 	} else {
 		gin.SetMode(gin.DebugMode) //debug
 	}
-
+	r.Static("/upload", setting.Upload.LocalPath)
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
 	})
@@ -40,9 +41,11 @@ func List(isRelease bool, allowOrigins []string) *gin.Engine {
 		{
 			systemGroup.GET("/auth/self", json.GetUser)
 			systemGroup.GET("/qywx-launch-code", json.WxGetLaunchCode)
-			systemGroup.POST("/file/upload/:path", json.UploadFile)
+			systemGroup.POST("/file/upload/:path", json.UploadOSS)
 			systemGroup.POST("/file/download/:path", json.DownloadFile)
-			systemGroup.POST("/file/ipfs/:path", json.AddIPFS)
+			systemGroup.POST("/file/local-ipfs/:path", json.AddIPFS)
+			systemGroup.POST("/file/local-oss/:path", json.AddOSS)
+			systemGroup.POST("/file/local/:path", json.UploadLocal)
 		}
 	}
 

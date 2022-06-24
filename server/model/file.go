@@ -5,7 +5,7 @@ import "github.com/hb1707/ant-godmin/consts"
 type Files struct {
 	TypeId    uint             `json:"type_id" gorm:"type:tinyint UNSIGNED not null;default:0;comment:分类id"`        //分类id
 	CloudType consts.CloudType `json:"cloud_type" gorm:"type:tinyint UNSIGNED not null;default:0;comment:云类型"`      //云类型
-	FileType  consts.FileType  `json:"file_type" gorm:"type:tinyint UNSIGNED not null;default:0;comment:文件类型"`      //文件类型，1 图片，2 JSON
+	FileType  consts.FileType  `json:"file_type" gorm:"type:tinyint UNSIGNED not null;default:0;comment:文件类型"`      //文件类型,0 未知，1 图片，2 JSON
 	Uid       uint             `json:"uid" gorm:"type:int UNSIGNED not null;default:0;comment:用户id"`                //用户id
 	From      string           `json:"from" gorm:"type:varchar(255) not null;default:'';comment:用户来源"`              //用户来源
 	Name      string           `json:"name" gorm:"type:varchar(255) not null;default:'';comment:文件名"`               // 文件名
@@ -18,7 +18,7 @@ type Files struct {
 	TableBase
 }
 type FilesTemp struct {
-	FileId uint   `json:"file_id" gorm:"type:int UNSIGNED not null;default:0;comment:源照片id"` //源照片id
+	FileId uint   `json:"file_id" gorm:"type:int UNSIGNED not null;default:0;comment:源文件id"` //源文件id
 	Url    string `json:"url" gorm:"type:varchar(255) not null;default:'';comment:文件地址"`     //文件地址
 	Key    string `json:"key" gorm:"type:varchar(255) not null;default:'';comment:编号"`       // 编号
 	TableBase

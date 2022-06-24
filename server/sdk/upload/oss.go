@@ -5,7 +5,7 @@ import (
 )
 
 type Cloud interface {
-	Upload(file io.Reader, newFileName string) (string, error)
+	Upload(file io.Reader, newFileName string, other ...string) (string, error)
 	Download(url string, localPath string) (string, error)
 	Delete(key string) error
 }

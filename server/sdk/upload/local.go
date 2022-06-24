@@ -12,8 +12,14 @@ import (
 
 type Local struct{}
 
-func (*Local) Upload(file io.Reader, newFileName string) (string, error) {
-	pathNew := setting.Upload.LocalPath + "/" + newFileName
+func (*Local) Upload(file io.Reader, localFileName string, other ...string) (string, error) {
+	localPath := setting.Upload.LocalPath
+	localFilePath := strings.Split(localFileName, "/")
+	err := os.MkdirAll(localPath+"/"+strings.Join(localFilePath[0:len(localFilePath)-1], "/"), os.ModePerm)
+	if err != nil {
+		return "", errors.New("Local.Upload().os.MkdirAll() Error:" + err.Error())
+	}
+	pathNew := localPath + "/" + localFileName
 	out, err := os.Create(pathNew)
 	if err != nil {
 		return "", errors.New("Local.Upload().os.Create() Error:" + err.Error())
@@ -23,19 +29,20 @@ func (*Local) Upload(file io.Reader, newFileName string) (string, error) {
 	if err != nil {
 		return "", errors.New("Local.Upload().io.Copy() Error:" + err.Error())
 	}
-	return pathNew, nil
+	return localFileName, nil
 }
 func (*Local) Download(url string, localFileName string) (string, error) {
 	if localFileName == "" {
 		localFileName = time.Now().Format("20060102150405")
 	}
 	//获取文件目录路径
+	localPath := setting.Upload.LocalPath
 	localFilePath := strings.Split(localFileName, "/")
-	err := os.MkdirAll(setting.Upload.LocalPath+"/"+strings.Join(localFilePath[0:len(localFilePath)-1], "/"), os.ModePerm)
+	err := os.MkdirAll(localPath+"/"+strings.Join(localFilePath[0:len(localFilePath)-1], "/"), os.ModePerm)
 	if err != nil {
 		return "", errors.New("Local.Download().os.MkdirAll() Error:" + err.Error())
 	}
-	pathNew := setting.Upload.LocalPath + "/" + localFileName
+	pathNew := localPath + "/" + localFileName
 	out, err := os.Create(pathNew)
 	if err != nil {
 		return "", errors.New("Local.Download().os.Create() Error:" + err.Error())
@@ -51,8 +58,9 @@ func (*Local) Download(url string, localFileName string) (string, error) {
 	return pathNew, nil
 }
 func (*Local) Delete(key string) error {
-	filePath := setting.Upload.LocalPath + "/" + key
-	if strings.Contains(filePath, setting.Upload.LocalPath) {
+	localPath := setting.Upload.LocalPath
+	filePath := localPath + "/" + key
+	if strings.Contains(filePath, localPath) {
 		if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
 			return errors.New("Local.Delete().Remove() Error:" + err.Error())
 		}

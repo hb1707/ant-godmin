@@ -39,15 +39,25 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 					jsonErr(c, http.StatusBadRequest, err)
 					return
 				}
-				if user.Mobile == "" {
+				/*if user.Mobile == "" {
 					jsonErr(c, http.StatusBadRequest, consts.ErrEmptyMoblie)
 					return
-				}
+				}*/
 				oldUser, err = auth.RegisterHandler(setting.AdminAppid, user)
 				if err != nil {
 					jsonErr(c, http.StatusBadRequest, err)
 					return
 				}
+			} else if oldUser.Username != "" {
+				user, err := auth.GetQyUser(setting.AdminAppid, res.UserID)
+				if err != nil {
+					jsonErr(c, http.StatusBadRequest, err)
+					return
+				}
+				var up auth.UpdatePost
+				up.Avatar = user.Avatar
+				up.NickName = user.Alias
+				auth.Update(oldUser.Id, &up)
 			} else {
 				user, err := auth.GetQyUser(setting.AdminAppid, res.UserID)
 				if err != nil {

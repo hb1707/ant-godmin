@@ -21,7 +21,7 @@ var (
 	ErrUploadFail = errors.New("接收文件失败")
 )
 
-func UploadFile(c *gin.Context) {
+func UploadOSS(c *gin.Context) {
 	var file model.Files
 	var req model.Files
 	pathStr := c.Param("path")
@@ -71,7 +71,40 @@ func UploadFile(c *gin.Context) {
 		return
 	}
 }
-
+func UploadLocal(c *gin.Context) {
+	var file model.Files
+	var req model.Files
+	pathStr := c.Param("path")
+	typeId, _ := strconv.Atoi(c.DefaultQuery("type_id", "0"))
+	fileType, _ := strconv.Atoi(c.DefaultQuery("file_type", "1"))
+	req.TypeId = uint(typeId)
+	req.FileType = consts.FileType(fileType)
+	uid, _ := auth.Identity(c)
+	req.Uid = uint(uid)
+	_, header, err := c.Request.FormFile("file")
+	if err != nil {
+		log.Error("接收文件失败!", err)
+		jsonErr(c, http.StatusInternalServerError, ErrUploadFail)
+		return
+	}
+	hookReq := hook.GenerateFileTag(c)
+	req.Tag = hookReq.Tag
+	err, file = service.NewFileService(pathStr).UploadLocal(header, req, false) // 文件上传后拿到文件路径
+	if err != nil {
+		log.Error("上传文件到服务器失败!", err)
+		jsonErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	if file.Id > 0 {
+		jsonResult(c, http.StatusOK, map[string]interface{}{
+			"file": file,
+		})
+		return
+	} else {
+		jsonResult(c, http.StatusOK, map[string]interface{}{})
+		return
+	}
+}
 func DownloadFile(c *gin.Context) {
 	var file model.Files
 	var up model.Files
@@ -92,7 +125,7 @@ func DownloadFile(c *gin.Context) {
 	hookReq := hook.GenerateFileTag(c)
 	up.Tag = hookReq.Tag
 	up.Name = req.FileName
-	err, file = service.NewFileService(req.Path).DownloadFile(up, false) // 文件上传后拿到文件路径
+	err, file = service.NewFileService(req.Path).DownloadFile(up, true) // 文件上传后拿到文件路径
 	if err != nil {
 		log.Error("远程文件下载失败!", err)
 		jsonErr(c, http.StatusInternalServerError, err)
@@ -112,32 +145,63 @@ func AddIPFS(c *gin.Context) {
 	var file model.Files
 	var up model.Files
 	var req struct {
-		FileName string `json:"file_name"`
-		Path     string `json:"path"`
-		Url      string `json:"url"`
+		FileName string          `json:"file_name"`
+		Path     string          `json:"path"`
+		FileUrl  string          `json:"file_url"`
+		FileType consts.FileType `json:"file_type"`
 	}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		jsonErr(c, http.StatusInternalServerError, ErrUploadFail)
 		return
 	}
-	up.FileType = consts.FileTypeJson
+	up.FileType = req.FileType
 	uid, _ := auth.Identity(c)
 	up.Uid = uint(uid)
 	hookReq := hook.GenerateFileTag(c)
 	up.Tag = hookReq.Tag
 	up.Name = req.FileName
-	up.From = req.Url
-	err, localFile := service.NewFileService(req.Path).DownloadFile(up, false) // 文件上传后拿到文件路径
-	if err != nil {
-		log.Error("远程文件下载失败!", err)
-		jsonErr(c, http.StatusInternalServerError, err)
-		return
-	}
-	up.From = localFile.Url
+	up.From = req.FileUrl
 	err, file = service.NewFileService(req.Path).IPFSAdd(up) //本地文件上传到IPFS
 	if err != nil {
 		log.Error("本地文件上传到IPFS!", err)
+		jsonErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	if file.Id > 0 {
+		jsonResult(c, http.StatusOK, map[string]interface{}{
+			"file": file,
+		})
+		return
+	} else {
+		jsonResult(c, http.StatusOK, map[string]interface{}{})
+		return
+	}
+}
+func AddOSS(c *gin.Context) {
+	var file model.Files
+	var up model.Files
+	var req struct {
+		FileName string          `json:"file_name"`
+		Path     string          `json:"path"`
+		FileUrl  string          `json:"file_url"`
+		FileType consts.FileType `json:"file_type"`
+	}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		jsonErr(c, http.StatusInternalServerError, ErrUploadFail)
+		return
+	}
+	up.FileType = req.FileType
+	uid, _ := auth.Identity(c)
+	up.Uid = uint(uid)
+	hookReq := hook.GenerateFileTag(c)
+	up.Tag = hookReq.Tag
+	up.Name = req.FileName
+	up.From = req.FileUrl
+	err, file = service.NewFileService(req.Path).OSSAdd(up) //本地文件上传到IPFS
+	if err != nil {
+		log.Error("本地文件上传到OSS!", err)
 		jsonErr(c, http.StatusInternalServerError, err)
 		return
 	}

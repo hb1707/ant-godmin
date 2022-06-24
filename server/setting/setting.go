@@ -12,10 +12,11 @@ var (
 )
 
 var App struct {
-	NAME    string
-	RUNMODE string
-	APIURL  string
-	WEBURL  string
+	NAME           string
+	RUNMODE        string
+	APIURL         string
+	WEBURL         string
+	QyWxAdminAppId string
 }
 
 var DB struct {
@@ -65,6 +66,7 @@ func confApp() {
 	App.RUNMODE = app.Key("APP_MODE").MustString("dev")
 	App.APIURL = app.Key("API_URL").MustString("")
 	App.WEBURL = app.Key("WEB_URL").MustString("")
+	App.QyWxAdminAppId = app.Key("QYWX_ADM_APPID").MustString(AdminAppid)
 }
 func confDB() {
 	database, err := Cfg.GetSection("database")
@@ -82,7 +84,7 @@ func confDB() {
 func confUpload() {
 	upload, err := Cfg.GetSection("upload")
 	if err == nil {
-		Upload.LocalPath = upload.Key("LOCAL_PATH").MustString("")
+		Upload.LocalPath = "." + upload.Key("LOCAL_PATH").MustString("")
 		Upload.IpfsEndpoint = upload.Key("IPFS_ENDPOINT").MustString("")
 		Upload.IpfsGateway = upload.Key("IPFS_GATEWAY").MustString("")
 		AliyunOSS.Endpoint = upload.Key("ALIYUN_OSS_ENDPOINT").MustString("")

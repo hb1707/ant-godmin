@@ -18,7 +18,7 @@ type IpfsRespBSN struct {
 	Size string `json:"Size"`
 }
 
-func (*IPFS) Upload(file io.Reader, newFileName string) (string, error) {
+func (*IPFS) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	extraParams := map[string]string{}
 	request, err := uploadRequest(setting.Upload.IpfsEndpoint+"/api/v0/add", file, "arg", filepath.Base(newFileName), extraParams)
 	if err != nil {

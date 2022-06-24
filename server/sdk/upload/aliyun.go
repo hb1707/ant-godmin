@@ -9,13 +9,17 @@ import (
 
 type AliyunOSS struct{}
 
-func (*AliyunOSS) Upload(file io.Reader, newFileName string) (string, error) {
+func (*AliyunOSS) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	bucket, err := NewBucket()
 	if err != nil {
 		return "", errors.New("AliyunOSS.Upload().NewBucket Error:" + err.Error())
 	}
 	ossPath := setting.AliyunOSS.BasePath + newFileName
-	err = bucket.PutObject(ossPath, file)
+	if len(other) > 0 {
+		err = bucket.PutObject(ossPath, file, oss.ContentType(other[0]))
+	} else {
+		err = bucket.PutObject(ossPath, file)
+	}
 	if err != nil {
 		return "", errors.New("AliyunOSS.Upload().bucket.PutObject() Error:" + err.Error())
 	}
