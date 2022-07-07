@@ -39,6 +39,7 @@ func List(isRelease bool, allowOrigins []string) *gin.Engine {
 		systemGroup.POST("/logout", m.LogoutHandler)
 		systemGroup.Use(m.MiddlewareFunc(), auth.CheckTokenUser)
 		{
+			systemGroup.GET("/auth/refresh", json.RefreshToken)
 			systemGroup.GET("/auth/self", json.GetUser)
 			systemGroup.GET("/qywx-launch-code", json.WxGetLaunchCode)
 			systemGroup.POST("/file/upload/:path", json.UploadOSS)

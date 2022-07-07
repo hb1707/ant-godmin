@@ -131,3 +131,8 @@ func GetUser(c *gin.Context) {
 		}
 	}
 }
+
+func RefreshToken(c *gin.Context) {
+	auth.Middleware().RefreshHandler(c)
+	return
+}

@@ -16,6 +16,8 @@ var App struct {
 	RUNMODE        string
 	APIURL         string
 	WEBURL         string
+	SHAREURL       string
+	WWWURL         string
 	QyWxAdminAppId string
 }
 
@@ -66,6 +68,8 @@ func confApp() {
 	App.RUNMODE = app.Key("APP_MODE").MustString("dev")
 	App.APIURL = app.Key("API_URL").MustString("")
 	App.WEBURL = app.Key("WEB_URL").MustString("")
+	App.WWWURL = app.Key("WWW_URL").MustString(App.WEBURL)
+	App.SHAREURL = app.Key("SHARE_URL").MustString(App.WWWURL)
 	App.QyWxAdminAppId = app.Key("QYWX_ADM_APPID").MustString(AdminAppid)
 }
 func confDB() {
