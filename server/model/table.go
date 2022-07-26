@@ -132,3 +132,13 @@ func (t *TableBase) UpdateRows() int {
 	}
 	return 0
 }
+func (t *TableBase) UpdateField(id uint, field string, value interface{}) {
+	if t.DB != nil {
+		t.DB.Where("id = ?", id).Update(field, value)
+	}
+}
+func (t *TableBase) UpdateExpr(id uint, field string, expr string, value interface{}) {
+	if t.DB != nil {
+		t.DB.Where("id = ?", id).UpdateColumn(field, gorm.Expr(expr, value))
+	}
+}

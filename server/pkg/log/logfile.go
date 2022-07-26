@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"log"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 var (
 	LPath = ""
+	Mode  = setting.App.RUNMODE
 )
 
 func Fatal(er interface{}, lev ...int) {
@@ -43,7 +45,6 @@ func Error(er ...interface{}) {
 	_ = log.Output(2, s+"")
 }
 func Warning(er ...interface{}) {
-
 	log.SetPrefix("[ WARNING ]")
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
@@ -59,7 +60,9 @@ func Warning(er ...interface{}) {
 }
 
 func Info(er ...interface{}) {
-
+	if Mode != "dev" {
+		return
+	}
 	log.SetPrefix("[ INFO ]")
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 

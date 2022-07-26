@@ -14,7 +14,7 @@ import (
 var (
 	identityKey = "ID"
 	maxRefresh  = time.Hour * 24
-	tokenMaxAge = time.Hour * 24 * 7 //Second
+	tokenMaxAge = time.Hour * 24 * 30 //Second
 	Realm       string
 	Key         string
 )
@@ -119,9 +119,18 @@ func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 			//u = claims.(TokenUser) //对应PayloadFunc -> jwt.MapClaims
 			//_ = json.Unmarshal([]byte(sub), &u)
 			if claims["AuthorityId"].(string) == "" {
+				if staffId, ok := claims["StaffId"].(float64); staffId > 0 && ok {
+					c.Set("staff_id", staffId)
+				}
 				c.Set("is_user", true)
 			} else {
+				c.Set("is_user", false)
 				c.Set("authority_id", claims["AuthorityId"].(string))
+			}
+			if tester, ok := claims["Tester"].(float64); tester > 0 && ok {
+				c.Set("tester_lev", uint(tester))
+			} else {
+				c.Set("tester_lev", uint(0))
 			}
 			return int(claims[identityKey].(float64)) //对应下文Authorizator 接收的参数
 		},
@@ -211,6 +220,20 @@ func GetAuthID(c *gin.Context) string {
 		return sub.(string)
 	}
 	return ""
+}
+func GetStaffID(c *gin.Context) uint {
+	sub, exists := c.Get("staff_id")
+	if exists {
+		return uint(sub.(float64))
+	}
+	return 0
+}
+func GetTesterLev(c *gin.Context) uint {
+	sub, exists := c.Get("tester_lev")
+	if exists {
+		return sub.(uint)
+	}
+	return 0
 }
 func Identity(c *gin.Context) (int, string) {
 	uid := GetAdmUID(c)

@@ -21,7 +21,9 @@ type TokenUser struct {
 	ID          uint
 	Appid       string
 	AuthorityId string
+	StaffId     uint
 	AdmLv       int
+	Tester      uint
 	jwt.MapClaims
 }
 
