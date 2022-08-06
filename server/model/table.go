@@ -134,11 +134,16 @@ func (t *TableBase) UpdateRows() int {
 }
 func (t *TableBase) UpdateField(id uint, field string, value interface{}) {
 	if t.DB != nil {
-		t.DB.Where("id = ?", id).Update(field, value)
+		t.DB.Where("id = ?", id).Select(field).Update(field, value)
+	}
+}
+func (t *TableBase) UpdateFieldNotId(field string, value interface{}) {
+	if t.DB != nil {
+		t.DB.Select(field).Update(field, value)
 	}
 }
 func (t *TableBase) UpdateExpr(id uint, field string, expr string, value interface{}) {
 	if t.DB != nil {
-		t.DB.Where("id = ?", id).UpdateColumn(field, gorm.Expr(expr, value))
+		t.DB.Where("id = ?", id).Update(field, gorm.Expr(expr, value))
 	}
 }
