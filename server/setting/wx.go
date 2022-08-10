@@ -15,3 +15,17 @@ var (
 	WxAppConfig   = map[string]WxApp{}
 	QyWxAppConfig = map[string]QyWxApp{}
 )
+
+func init() {
+	confQyWxAdmin()
+}
+func confQyWxAdmin() {
+	app, err := Cfg.GetSection("wx")
+	if err == nil {
+		Corpid = app.Key("QYWX_CORPID").MustString("")
+		QyWxAppConfig[AdminAppid] = QyWxApp{
+			AgentId: app.Key("QYWX_AGENT_ID").MustString(""),
+			Secret:  app.Key("QYWX_SECRET").MustString(""),
+		}
+	}
+}
