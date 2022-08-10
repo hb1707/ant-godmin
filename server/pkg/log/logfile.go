@@ -33,7 +33,7 @@ func Fatal(er interface{}, lev ...int) {
 	_ = log.Output(depth, s+" [程序被终止]")
 	funcName, _, line, ok := runtime.Caller(1)
 	if ok {
-		s = fmt.Sprintf("[ FATAL ] %s %s:%d %s", time.Now().Local().Format("2006/01/02/ 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
+		s = fmt.Sprintf("[ FATAL ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
 	}
 	go Notice(s)
 	os.Exit(1)
@@ -52,7 +52,7 @@ func Error(er ...interface{}) {
 	_ = log.Output(2, s)
 	funcName, _, line, ok := runtime.Caller(1)
 	if ok {
-		s = fmt.Sprintf("[ ERROR ] %s %s:%d %s", time.Now().Local().Format("2006/01/02/ 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
+		s = fmt.Sprintf("[ ERROR ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
 	}
 	go Notice(s)
 }
@@ -70,7 +70,7 @@ func ErrorLev(lev int, er ...interface{}) {
 	_ = log.Output(lev+1, s)
 	funcName, _, line, ok := runtime.Caller(lev)
 	if ok {
-		s = fmt.Sprintf("[ ERROR ] %s %s:%d %s", time.Now().Local().Format("2006/01/02/ 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
+		s = fmt.Sprintf("[ ERROR ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
 	}
 	go Notice(s)
 }
@@ -89,7 +89,7 @@ func Warning(er ...interface{}) {
 	_ = log.Output(2, s)
 	funcName, _, line, ok := runtime.Caller(1)
 	if ok {
-		s = fmt.Sprintf("[ WARNING ] %s %s:%d %s", time.Now().Local().Format("2006/01/02/ 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
+		s = fmt.Sprintf("[ WARNING ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
 	}
 	go Notice(s)
 }

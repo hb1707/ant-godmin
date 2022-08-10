@@ -1,6 +1,6 @@
 module github.com/hb1707/ant-godmin
 
-go 1.17
+go 1.18
 
 require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.2+incompatible
