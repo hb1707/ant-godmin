@@ -6,12 +6,14 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 	"time"
 )
 
 var (
-	LPath = ""
-	Mode  = setting.App.RUNMODE
+	LPath  = ""
+	Mode   = setting.App.RUNMODE
+	Notice = func(er string) {}
 )
 
 func Fatal(er interface{}, lev ...int) {
@@ -29,6 +31,11 @@ func Fatal(er interface{}, lev ...int) {
 	log.SetOutput(io.MultiWriter(os.Stdout, file))
 	s := fmt.Sprint(er)
 	_ = log.Output(depth, s+" [程序被终止]")
+	funcName, _, line, ok := runtime.Caller(1)
+	if ok {
+		s = fmt.Sprintf("[ FATAL ] %s %s:%d %s", time.Now().Local().Format("2006/01/02/ 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
+	}
+	go Notice(s)
 	os.Exit(1)
 }
 func Error(er ...interface{}) {
@@ -42,12 +49,35 @@ func Error(er ...interface{}) {
 	defer func(file *os.File) { _ = file.Close() }(file)
 	log.SetOutput(io.MultiWriter(os.Stdout, file))
 	s := fmt.Sprint(er)
-	_ = log.Output(2, s+"")
+	_ = log.Output(2, s)
+	funcName, _, line, ok := runtime.Caller(1)
+	if ok {
+		s = fmt.Sprintf("[ ERROR ] %s %s:%d %s", time.Now().Local().Format("2006/01/02/ 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
+	}
+	go Notice(s)
 }
-func Warning(er ...interface{}) {
-	log.SetPrefix("[ WARNING ]")
+func ErrorLev(lev int, er ...interface{}) {
+	log.SetPrefix("[ ERROR ]")
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
+	file, err := os.OpenFile(LPath+"error_"+time.Now().Format("200601")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
+	if err != nil {
+		log.Fatalln("打开日志文件失败：", err)
+	}
+	defer func(file *os.File) { _ = file.Close() }(file)
+	log.SetOutput(io.MultiWriter(os.Stdout, file))
+	s := fmt.Sprint(er)
+	_ = log.Output(lev+1, s)
+	funcName, _, line, ok := runtime.Caller(lev)
+	if ok {
+		s = fmt.Sprintf("[ ERROR ] %s %s:%d %s", time.Now().Local().Format("2006/01/02/ 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
+	}
+	go Notice(s)
+}
+func Warning(er ...interface{}) {
+
+	log.SetPrefix("[ WARNING ]")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	file, err := os.OpenFile(LPath+"warning_"+time.Now().Format("20060102")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
 	if err != nil {
 		log.Fatalln("打开日志文件失败：", err)
@@ -57,10 +87,15 @@ func Warning(er ...interface{}) {
 
 	s := fmt.Sprint(er)
 	_ = log.Output(2, s)
+	funcName, _, line, ok := runtime.Caller(1)
+	if ok {
+		s = fmt.Sprintf("[ WARNING ] %s %s:%d %s", time.Now().Local().Format("2006/01/02/ 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
+	}
+	go Notice(s)
 }
 
 func Info(er ...interface{}) {
-	if Mode != "dev" {
+	if setting.App.RUNMODE != "dev" {
 		return
 	}
 	log.SetPrefix("[ INFO ]")

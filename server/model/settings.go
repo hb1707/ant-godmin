@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/hb1707/ant-godmin/pkg/log"
+	"time"
 )
 
 type Settings struct {
@@ -38,4 +39,26 @@ func (t *Settings) Edit() *Settings {
 		log.Error(err)
 	}
 	return &user
+}
+
+var SettingsCache = map[string]string{}
+var cacheTime = time.Now()
+
+func reLoad() {
+	list := NewSettings().All("id desc")
+	for _, settings := range list {
+		SettingsCache[settings.Key] = settings.Value
+	}
+	cacheTime = time.Now()
+}
+
+func SettingGet(k string) string {
+	if _, exist := SettingsCache[k]; exist || cacheTime.Add(time.Minute*10).Before(time.Now()) {
+		reLoad()
+	}
+	return SettingsCache[k]
+}
+func SettingSet(k string, v string) {
+	NewSettings("setting_key = ?", k).UpdateFieldNotId("setting_value", v)
+	SettingsCache[k] = v
 }

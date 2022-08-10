@@ -28,15 +28,17 @@ type DatelineMap struct {
 }
 
 type TableBase struct {
-	Id        uint                   `json:"id" form:"id" gorm:"type:int(10) UNSIGNED not null AUTO_INCREMENT;primaryKey;"`
-	CreatedAt time.Time              `json:"created_at"`
-	UpdatedAt time.Time              `json:"updated_at"`
-	DeletedAt gorm.DeletedAt         `gorm:"index" json:"-"` // 删除时间
-	DB        *gorm.DB               `json:"-" form:"-" gorm:"-"`
-	Req       interface{}            `json:"-" form:"-" gorm:"-"`
-	Data      map[string]interface{} `json:"-" form:"-" gorm:"-"`
-	Limit     int                    `json:"-" form:"-" gorm:"-"`
-	Page      int                    `json:"-" form:"-" gorm:"-"`
+	Id                 uint                   `json:"id" form:"id" gorm:"type:int(10) UNSIGNED not null AUTO_INCREMENT;primaryKey;"`
+	CreatedAt          time.Time              `json:"created_at"`
+	UpdatedAt          time.Time              `json:"updated_at"`
+	DeletedAt          gorm.DeletedAt         `gorm:"index" json:"-"` // 删除时间
+	DB                 *gorm.DB               `json:"-" form:"-" gorm:"-"`
+	Req                interface{}            `json:"-" form:"-" gorm:"-"`
+	Data               map[string]interface{} `json:"-" form:"-" gorm:"-"`
+	updateByFieldName  string                 `json:"-" form:"-" gorm:"-"`
+	updateByFieldValue interface{}            `json:"-" form:"-" gorm:"-"`
+	Limit              int                    `json:"-" form:"-" gorm:"-"`
+	Page               int                    `json:"-" form:"-" gorm:"-"`
 }
 
 func init() {
@@ -125,7 +127,7 @@ func failedType(err error) SqlErrType {
 		} else if fun.Stripos(err.Error(), "UNIQUE constraint failed") > -1 || fun.Stripos(err.Error(), "Error 1062: Duplicate entry") > -1 {
 			return ErrExist
 		}
-		log.Error(err)
+		log.ErrorLev(4, err)
 		return ErrSql
 	} else {
 		return ErrNil

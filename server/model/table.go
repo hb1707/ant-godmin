@@ -90,17 +90,28 @@ func (t *TableBase) One(model interface{}, order ...string) {
 func (t *TableBase) DataMap(data map[string]interface{}) {
 	t.Data = data
 }
-
+func (t *TableBase) UpdateByField(fieldName string, value interface{}) {
+	t.updateByFieldName = fieldName
+	t.updateByFieldValue = value
+}
 func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 	if t.Data != nil {
 		if t.Id > 0 {
 			err = t.DB.Where("id = ?", t.Id).Updates(t.Data).Error
+		} else if t.updateByFieldName != "" && t.updateByFieldValue != nil {
+			err = t.DB.Where(t.updateByFieldName+" = ?", t.updateByFieldValue).Updates(t.Data).Error
 		} else {
 			err = t.DB.Create(t.Data).Error
 		}
 	} else {
 		if t.Id > 0 {
 			t.DB.Where("id = ?", t.Id)
+			if len(must) > 0 && must[0] != "" {
+				t.DB.Select(must[0], must[1:]...)
+			}
+			err = t.DB.Updates(t.Req).Error
+		} else if t.updateByFieldName != "" && t.updateByFieldValue != nil {
+			t.DB.Where(t.updateByFieldName+" = ?", t.updateByFieldValue)
 			if len(must) > 0 && must[0] != "" {
 				t.DB.Select(must[0], must[1:]...)
 			}
