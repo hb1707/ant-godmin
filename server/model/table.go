@@ -2,6 +2,8 @@ package model
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/hb1707/ant-godmin/pkg/log"
+	"github.com/hb1707/ant-godmin/setting"
 	"gorm.io/gorm"
 )
 
@@ -63,6 +65,9 @@ func (t *TableBase) List(model interface{}, order ...string) {
 	}
 	err = dt.Find(model).Error
 	if failed(err) {
+		if setting.App.RUNMODE == "dev" {
+			log.ErrorLev(2, err)
+		}
 		return
 	}
 	return
@@ -71,6 +76,9 @@ func (t *TableBase) Total() (total int64) {
 
 	err = t.DB.Count(&total).Error
 	if failed(err) {
+		if setting.App.RUNMODE == "dev" {
+			log.ErrorLev(2, err)
+		}
 		return
 	}
 	return
@@ -82,6 +90,9 @@ func (t *TableBase) One(model interface{}, order ...string) {
 		err = t.DB.First(model).Error
 	}
 	if failed(err) {
+		if setting.App.RUNMODE == "dev" {
+			log.ErrorLev(2, err)
+		}
 		return
 	}
 	return
