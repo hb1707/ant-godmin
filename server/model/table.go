@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
+	"github.com/hb1707/exfun/fun"
 	"gorm.io/gorm"
 )
 
@@ -24,7 +25,7 @@ func (t *TableBase) Request(data interface{}) *TableBase {
 }
 func (t *TableBase) PageAndLimit(c *gin.Context) *TableBase {
 	var req ReqPageSize
-	var defaultSize = 100
+	var defaultSize = fun.If2Int(t.Limit > 0, t.Limit, 100)
 	var err error
 	pageSize, existSize := c.Get("pageSize")
 	current, existPage := c.Get("current")
@@ -157,6 +158,11 @@ func (t *TableBase) UpdateRows() int {
 func (t *TableBase) UpdateField(id uint, field string, value interface{}) {
 	if t.DB != nil {
 		t.DB.Where("id = ?", id).Select(field).Update(field, value)
+	}
+}
+func (t *TableBase) UpdateFields(id uint, fields map[string]any) {
+	if t.DB != nil {
+		t.DB.Where("id = ?", id).Updates(fields)
 	}
 }
 func (t *TableBase) UpdateFieldNotId(field string, value interface{}) {

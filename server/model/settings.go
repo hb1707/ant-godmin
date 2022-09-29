@@ -14,9 +14,9 @@ type Settings struct {
 func NewSettings(where ...interface{}) *Settings {
 	var t = new(Settings)
 	if len(where) > 0 {
-		t.DB = DB.Table("sys_users").Model(&Settings{}).Where(where[0], where[1:]...).Select("setting_key,setting_value")
+		t.DB = DB.Model(&Settings{}).Where(where[0], where[1:]...).Select("setting_key,setting_value")
 	} else {
-		t.DB = DB.Table("sys_users").Model(&Settings{}).Select("setting_key,setting_value")
+		t.DB = DB.Model(&Settings{}).Select("setting_key,setting_value")
 	}
 	return t
 }
@@ -53,7 +53,7 @@ func reLoad() {
 }
 
 func SettingGet(k string) string {
-	if _, exist := SettingsCache[k]; exist || cacheTime.Add(time.Minute*10).Before(time.Now()) {
+	if _, exist := SettingsCache[k]; !exist || cacheTime.Add(time.Minute*10).Before(time.Now()) {
 		reLoad()
 	}
 	return SettingsCache[k]

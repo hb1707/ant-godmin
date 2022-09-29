@@ -92,7 +92,7 @@ func OpenDB() {
 }
 func CreatTable(dst ...interface{}) {
 	if confDB.PRE != "" && confDB.AUTOMIGRATE {
-		dst = append(dst, &Files{}, &FilesTemp{})
+		dst = append(dst, &Files{}, &FilesTemp{}, &Settings{})
 		err := DB.AutoMigrate(dst...)
 		if err != nil {
 			log.Fatal(err)
