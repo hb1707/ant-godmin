@@ -55,7 +55,7 @@ func UploadOSS(c *gin.Context) {
 		fileName = time.Now().Format("2006-01-02") + "/" + name + "_" + time.Now().Format("20060102150405")
 	}
 	req.Name = fileName + ext
-	err, file = service.NewFileService(pathStr).UploadToOSS(header, req) // 文件上传后拿到文件路径
+	err, file = service.NewFileService(pathStr).UploadToOSS(header, req, false) // 文件上传后拿到文件路径
 	if err != nil {
 		log.Error("上传文件到OSS失败!", err)
 		jsonErr(c, http.StatusInternalServerError, err)
@@ -199,7 +199,7 @@ func AddOSS(c *gin.Context) {
 	up.Tag = hookReq.Tag
 	up.Name = req.FileName
 	up.From = req.FileUrl
-	err, file = service.NewFileService(req.Path).OSSAdd(up) //本地文件上传到IPFS
+	err, file = service.NewFileService(req.Path).OSSAdd(up, false) //本地文件上传到IPFS
 	if err != nil {
 		log.Error("本地文件上传到OSS!", err)
 		jsonErr(c, http.StatusInternalServerError, err)

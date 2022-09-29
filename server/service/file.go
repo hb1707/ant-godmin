@@ -26,8 +26,13 @@ func NewFileService(pathType string) *FileService {
 	fs.PathType = pathType
 	return fs
 }
-func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files) (err error, outFile model.Files) {
-	oss := upload.NewUpload(upload.TypeAliyunOss)
+func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files, isEnc bool) (err error, outFile model.Files) {
+	var oss upload.Cloud
+	if isEnc {
+		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
+	} else {
+		oss = upload.NewUpload(upload.TypeAliyunOss)
+	}
 	newFileName := req.Name
 	file, err := header.Open()
 	if err != nil {
@@ -73,8 +78,13 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files)
 		return err, newFile
 	}
 }
-func (f *FileService) UploadRemote(req model.Files) (err error, outFile model.Files) {
-	oss := upload.NewUpload(upload.TypeAliyunOss)
+func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outFile model.Files) {
+	var oss upload.Cloud
+	if isEnc {
+		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
+	} else {
+		oss = upload.NewUpload(upload.TypeAliyunOss)
+	}
 	newFileName := req.Name
 	res, _ := http.Get(req.From)
 	file := io.Reader(res.Body)
@@ -169,7 +179,7 @@ func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, fi
 		Url:       filePath,
 		Name:      newFileName,
 		Tag:       req.Tag,
-		Key:       "",
+		Key:       req.Key,
 	}
 	if saveSql {
 		sql := model.NewFile()
@@ -212,8 +222,13 @@ func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) 
 	err = sql.AddOrUpdate()
 	return err, newFile
 }
-func (f *FileService) OSSAdd(req model.Files) (err error, outFile model.Files) {
-	oss := upload.NewUpload(upload.TypeAliyunOss)
+func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile model.Files) {
+	var oss upload.Cloud
+	if isEnc {
+		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
+	} else {
+		oss = upload.NewUpload(upload.TypeAliyunOss)
+	}
 	var ipfsSql model.Files
 	model.NewFile("url = ?", req.From).One(&ipfsSql, "created_at desc")
 	var localSql model.Files

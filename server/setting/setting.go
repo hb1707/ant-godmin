@@ -11,6 +11,8 @@ var (
 	Cfg *ini.File
 )
 
+var IsTest = false
+
 var App struct {
 	NAME           string
 	RUNMODE        string
@@ -44,13 +46,27 @@ var AliyunOSS struct {
 	BucketUrl       string
 	BasePath        string
 }
+var AliyunOSSEnc struct {
+	Endpoint        string
+	AccessKeyId     string
+	AccessKeySecret string
+	BucketName      string
+	BucketUrl       string
+	BasePath        string
+}
 var Log struct {
 	PATH string
 }
 
 func init() {
 	var err error
-	Cfg, err = ini.Load("./config/.env")
+	var envPath = "./config/.env"
+	if os.Getenv("APP_ENV") == "dev" {
+		fmt.Println("DEV模式开启")
+		envPath = "./config/.env.dev"
+		IsTest = true
+	}
+	Cfg, err = ini.Load(envPath)
 	if err != nil {
 		fmt.Printf("找不到配置文件: %v", err)
 		os.Exit(1)
@@ -100,6 +116,16 @@ func confUpload() {
 		AliyunOSS.BucketUrl = upload.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
 		AliyunOSS.BasePath = upload.Key("ALIYUN_OSS_BASE_PATH").MustString("")
 	}
+	uploadEnc, err := Cfg.GetSection("upload_encryption")
+	if err == nil {
+		AliyunOSSEnc.Endpoint = uploadEnc.Key("ALIYUN_OSS_ENDPOINT").MustString("")
+		AliyunOSSEnc.AccessKeyId = uploadEnc.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
+		AliyunOSSEnc.AccessKeySecret = uploadEnc.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
+		AliyunOSSEnc.BucketName = uploadEnc.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
+		AliyunOSSEnc.BucketUrl = uploadEnc.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
+		AliyunOSSEnc.BasePath = uploadEnc.Key("ALIYUN_OSS_BASE_PATH").MustString("")
+	}
+
 }
 
 func confLog() {
