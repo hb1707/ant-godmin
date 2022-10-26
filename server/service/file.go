@@ -229,10 +229,8 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 	} else {
 		oss = upload.NewUpload(upload.TypeAliyunOss)
 	}
-	var ipfsSql model.Files
-	model.NewFile("url = ?", req.From).One(&ipfsSql, "created_at desc")
 	var localSql model.Files
-	model.NewFile("url = ?", ipfsSql.From).One(&localSql, "created_at desc")
+	model.NewFile("url = ?", req.From).One(&localSql, "created_at desc")
 	localPath := setting.Upload.LocalPath + "/" + localSql.Name
 	file, err := os.Open(localPath)
 	if err != nil {
@@ -240,10 +238,10 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 	}
 	defer file.Close()
 
-	newFileName := ipfsSql.Key
+	newFileName := req.Name
 	contentType := ""
 	if req.FileType > consts.FileTypeOther {
-		newFileName = newFileName + path.Ext(ipfsSql.From)
+		newFileName = newFileName + path.Ext(localSql.From)
 	} else {
 		contentType = "application/json; charset=utf-8"
 	}

@@ -160,6 +160,11 @@ func (t *TableBase) UpdateField(id uint, field string, value interface{}) {
 		t.DB.Where("id = ?", id).Select(field).Update(field, value)
 	}
 }
+func (t *TableBase) UpdateFieldOnly(id uint, field string, value interface{}) {
+	if t.DB != nil {
+		t.DB.Where("id = ?", id).Select(field).UpdateColumn(field, value)
+	}
+}
 func (t *TableBase) UpdateFields(id uint, fields map[string]any) {
 	if t.DB != nil {
 		t.DB.Where("id = ?", id).Updates(fields)

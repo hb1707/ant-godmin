@@ -26,6 +26,9 @@ func (*AliyunOSSEnc) Upload(file io.Reader, newFileName string, other ...string)
 
 	return ossPath, nil
 }
+func (*AliyunOSSEnc) Copy(ori string, new string) error {
+	return errors.New("AliyunOSSEnc.Copy() Not Support")
+}
 func (*AliyunOSSEnc) Download(url string, localFileName string) (string, error) {
 	return "", errors.New("AliyunOSSEnc.Download() Not Support")
 }

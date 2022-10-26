@@ -46,7 +46,9 @@ func (*IPFS) Upload(file io.Reader, newFileName string, other ...string) (string
 		return respBody.Hash, nil
 	}
 }
-
+func (*IPFS) Copy(ori string, new string) error {
+	return nil
+}
 func (*IPFS) Download(path string, localFileName string) (string, error) {
 	return "", nil
 }

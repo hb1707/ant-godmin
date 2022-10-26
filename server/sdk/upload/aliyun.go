@@ -26,6 +26,17 @@ func (*AliyunOSS) Upload(file io.Reader, newFileName string, other ...string) (s
 
 	return ossPath, nil
 }
+func (*AliyunOSS) Copy(ori string, new string) error {
+	bucket, err := NewBucket()
+	if err != nil {
+		return errors.New("AliyunOSS.Copy().NewBucket() Error:" + err.Error())
+	}
+	_, err = bucket.CopyObject(new, ori)
+	if err != nil {
+		return errors.New("AliyunOSS.Copy().CopyObject() Error:" + err.Error())
+	}
+	return nil
+}
 func (*AliyunOSS) Download(url string, localFileName string) (string, error) {
 	return "", errors.New("AliyunOSS.Download() Not Support")
 }

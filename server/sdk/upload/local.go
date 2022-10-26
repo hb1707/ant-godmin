@@ -31,6 +31,9 @@ func (*Local) Upload(file io.Reader, localFileName string, other ...string) (str
 	}
 	return localFileName, nil
 }
+func (*Local) Copy(ori string, new string) error {
+	return nil
+}
 func (*Local) Download(url string, localFileName string) (string, error) {
 	if localFileName == "" {
 		localFileName = time.Now().Format("20060102150405")
