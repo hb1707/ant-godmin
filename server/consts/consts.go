@@ -42,3 +42,17 @@ const (
 	CloudTypeAliyun CloudType = 1
 	CloudTypeIPFS   CloudType = 2
 )
+
+type LogActionType string
+
+const (
+	LogActionAdd    LogActionType = "ADD"
+	LogActionUpdate LogActionType = "UPD"
+	LogActionDelete LogActionType = "DEL"
+)
+
+var LogActionMap = map[LogActionType]string{
+	LogActionAdd:    "新增",
+	LogActionUpdate: "修改",
+	LogActionDelete: "删除",
+}
