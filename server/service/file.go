@@ -240,10 +240,10 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 
 	newFileName := req.Name
 	contentType := ""
-	if req.FileType > consts.FileTypeOther {
-		newFileName = newFileName + path.Ext(localSql.From)
-	} else {
+	if req.FileType == consts.FileTypeJson {
 		contentType = "application/json; charset=utf-8"
+	} else {
+		newFileName = newFileName + path.Ext(localSql.From)
 	}
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName, contentType)
@@ -269,7 +269,7 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 }
 func (f *FileService) prevPathType(filename string) (newFileName string) {
 	pathType := f.PathType
-	match, _ := regexp.MatchString(`^[A-Za-z0-9]+$`, pathType)
+	match, _ := regexp.MatchString(`^[A-Za-z0-9_]+$`, pathType)
 	if match && pathType != "" {
 		filename = pathType + "/" + filename
 	}
