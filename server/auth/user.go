@@ -3,9 +3,9 @@ package auth
 import (
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/exfun/fun"
-	"github.com/satori/go.uuid"
 	"github.com/silenceper/wechat/v2/work/user"
 	"strconv"
 	"time"
@@ -53,7 +53,18 @@ func TokenGenerator(user *TokenUser) (map[string]interface{}, error) {
 		"tokenExpire": expire,
 	}, nil
 }
-
+func TokenClear(user *TokenUser) (map[string]interface{}, error) {
+	userToken, expire, err := Middleware().TokenGenerator(user)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		//"uid":         user.ID,
+		//"nickName":    user.RealName,
+		"token":       userToken,
+		"tokenExpire": expire,
+	}, nil
+}
 func LoginCheckPw(p *LoginPost) *model.SysUsers {
 	oldUser := model.NewSysUser("username = ?", p.Username).GetOne("")
 	postPW := Cryptosystem(p.Password, oldUser.Salt)

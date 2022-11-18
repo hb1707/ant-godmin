@@ -1,8 +1,8 @@
 package model
 
 import (
+	"github.com/google/uuid"
 	"github.com/hb1707/ant-godmin/pkg/log"
-	"github.com/satori/go.uuid"
 )
 
 type SysUsers struct {
