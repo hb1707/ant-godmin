@@ -3,7 +3,6 @@ package auth
 import (
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/hb1707/ant-godmin/consts"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/exfun/fun"
@@ -133,10 +132,10 @@ func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 			} else {
 				c.Set("tester_lev", uint(0))
 			}
-			if uuidStr, ok := claims["UUID"].(string); uuidStr != "" && ok {
-				c.Set("UUID", uuidStr)
+			if uuidStr, ok := claims["uid_hash"].(string); uuidStr != "" && ok {
+				c.Set("uid_hash", uuidStr)
 			} else {
-				c.Set("UUID", "")
+				c.Set("uid_hash", "")
 			}
 			return int(claims[identityKey].(float64)) //对应下文Authorizator 接收的参数
 		},
@@ -213,16 +212,13 @@ func GetUserUID(c *gin.Context) int {
 	}
 	return 0
 }
-func GetUUID(c *gin.Context) uuid.UUID {
-	sub, exists := c.Get("UUID")
+func GetUidHash(c *gin.Context) string {
+	sub, exists := c.Get("uid_hash")
 	if exists {
-		parse, err := uuid.Parse(sub.(string))
-		if err != nil {
-			return uuid.Nil
-		}
+		parse := sub.(string)
 		return parse
 	}
-	return uuid.Nil
+	return ""
 }
 func GetAdmUID(c *gin.Context) int {
 	sub, exists := c.Get("adm_uid")
