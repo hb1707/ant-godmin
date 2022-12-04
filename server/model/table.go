@@ -175,6 +175,11 @@ func (t *TableBase) UpdateFieldNotId(field string, value interface{}) {
 		t.DB.Select(field).Update(field, value)
 	}
 }
+func (t *TableBase) UpdateFieldNotIdOnly(field string, value interface{}) {
+	if t.DB != nil {
+		t.DB.Select(field).UpdateColumn(field, value)
+	}
+}
 func (t *TableBase) UpdateExpr(id uint, field string, expr string, value interface{}) {
 	if t.DB != nil {
 		t.DB.Where("id = ?", id).Update(field, gorm.Expr(expr, value))
