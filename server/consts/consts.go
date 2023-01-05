@@ -33,6 +33,7 @@ const (
 	FileTypeImage FileType = 1
 	FileTypeJson  FileType = 2
 	FileTypeAsset FileType = 3
+	FileTypeFile  FileType = 4
 )
 
 type CloudType int

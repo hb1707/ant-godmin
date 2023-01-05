@@ -140,7 +140,10 @@ func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 	}
 	return nil
 }
-func (t *TableBase) Del(model interface{}) error {
+func (t *TableBase) Del(model interface{}, id ...uint) error {
+	if len(id) > 0 {
+		t.Id = id[0]
+	}
 	if t.Id > 0 {
 		err = t.DB.Where("id = ?", t.Id).Delete(model).Error
 		if failed(err) {
@@ -168,6 +171,11 @@ func (t *TableBase) UpdateFieldOnly(id uint, field string, value interface{}) {
 func (t *TableBase) UpdateFields(id uint, fields map[string]any) {
 	if t.DB != nil {
 		t.DB.Where("id = ?", id).Updates(fields)
+	}
+}
+func (t *TableBase) UpdateFieldsOnly(id uint, fields map[string]any) {
+	if t.DB != nil {
+		t.DB.Where("id = ?", id).UpdateColumns(fields)
 	}
 }
 func (t *TableBase) UpdateFieldNotId(field string, value interface{}) {

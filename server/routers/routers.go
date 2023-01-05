@@ -17,6 +17,7 @@ func List(isRelease bool, allowOrigins []string) *gin.Engine {
 	//config.AllowAllOrigins = true
 	config.AllowCredentials = true
 	config.AllowOrigins = allowOrigins
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	config.AddAllowHeaders("Authorization,x-requested-with,withcredentials")
 	r.Use(gin.Logger(), gin.Recovery(), cors.New(config))
 	if isRelease {

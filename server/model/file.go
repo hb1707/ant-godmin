@@ -3,7 +3,7 @@ package model
 import "github.com/hb1707/ant-godmin/consts"
 
 type Files struct {
-	TypeId    uint             `json:"type_id" gorm:"type:tinyint UNSIGNED not null;default:0;comment:分类id"`        //分类id 0 图片 2其他
+	TypeId    uint             `json:"type_id" gorm:"type:tinyint UNSIGNED not null;default:0;comment:分类id"`        //分类id 0 图片 2其他 3证件 4APK
 	CloudType consts.CloudType `json:"cloud_type" gorm:"type:tinyint UNSIGNED not null;default:0;comment:云类型"`      //云类型
 	FileType  consts.FileType  `json:"file_type" gorm:"type:tinyint UNSIGNED not null;default:0;comment:文件类型"`      //文件类型,0 未知，1 图片，2 JSON
 	Uid       uint             `json:"uid" gorm:"type:int UNSIGNED not null;default:0;comment:用户id"`                //用户id
