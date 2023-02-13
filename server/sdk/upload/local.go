@@ -51,7 +51,10 @@ func (*Local) Download(url string, localFileName string) (string, error) {
 		return "", errors.New("Local.Download().os.Create() Error:" + err.Error())
 	}
 	defer out.Close()
-	res, _ := http.Get(url)
+	res, err := http.Get(url)
+	if err != nil {
+		return "", errors.New("Local.Download().http.Get() Error:" + err.Error())
+	}
 	defer res.Body.Close()
 	//f := io.Reader(res.Body)
 	_, err = io.Copy(out, res.Body)
