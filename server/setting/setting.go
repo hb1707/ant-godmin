@@ -136,7 +136,7 @@ func confUpload() {
 }
 
 func confTencentYun() {
-	tx, err := Cfg.GetSection("tx_yun")
+	tx, err := Cfg.GetSection("txyun")
 	if err == nil {
 		TencentYun.SecretId = tx.Key("SECRET_ID").MustString("")
 		TencentYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
