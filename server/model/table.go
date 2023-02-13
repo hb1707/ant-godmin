@@ -84,6 +84,7 @@ func (t *TableBase) Total() (total int64) {
 	}
 	return
 }
+
 func (t *TableBase) One(model interface{}, order ...string) {
 	if len(order) > 0 {
 		err = t.DB.Order(order[0]).First(model).Error
@@ -152,6 +153,18 @@ func (t *TableBase) Del(model interface{}, id ...uint) error {
 	}
 	return nil
 }
+func (t *TableBase) DelCancel(model interface{}, id ...uint) error {
+	if len(id) > 0 {
+		t.Id = id[0]
+	}
+	if t.Id > 0 {
+		err = t.DB.Where("id = ?", t.Id).Unscoped().Update("deleted_at", nil).Error
+		if failed(err) {
+			return err
+		}
+	}
+	return nil
+}
 func (t *TableBase) UpdateRows() int {
 	if t.DB != nil {
 		return int(t.DB.RowsAffected)
@@ -188,8 +201,18 @@ func (t *TableBase) UpdateFieldNotIdOnly(field string, value interface{}) {
 		t.DB.Select(field).UpdateColumn(field, value)
 	}
 }
+func (t *TableBase) UpdateFieldsNotIdOnly(fields map[string]any) {
+	if t.DB != nil {
+		t.DB.UpdateColumns(fields)
+	}
+}
 func (t *TableBase) UpdateExpr(id uint, field string, expr string, value interface{}) {
 	if t.DB != nil {
-		t.DB.Where("id = ?", id).Update(field, gorm.Expr(expr, value))
+		t.DB.Where("id = ?", id).Unscoped().Update(field, gorm.Expr(expr, value))
+	}
+}
+func (t *TableBase) UpdateExprOnly(id uint, field string, expr string, value interface{}) {
+	if t.DB != nil {
+		t.DB.Where("id = ?", id).Unscoped().UpdateColumn(field, gorm.Expr(expr, value))
 	}
 }
