@@ -13,8 +13,8 @@ import (
 
 var (
 	identityKey = "ID"
-	maxRefresh  = time.Hour * 24
-	tokenMaxAge = time.Hour * 24 * 30 //Second
+	maxRefresh  = time.Hour * 24 * 30
+	tokenMaxAge = time.Hour * 24 * 90 //Second
 	Realm       string
 	Key         string
 )
@@ -52,7 +52,7 @@ func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 	return jwt.New(&jwt.GinJWTMiddleware{
 		Realm:             Realm,              //HTTP Basic Auth 账号密码作用域
 		Key:               []byte(Key),        //服务端密钥
-		Timeout:           time.Hour * 24 * 7, //token 过期时间
+		Timeout:           tokenMaxAge, 		//token 过期时间
 		MaxRefresh:        maxRefresh,         //token 允许更新时间
 		SendAuthorization: true,
 		SendCookie:        false,
