@@ -54,6 +54,12 @@ var AliyunOSSEnc struct {
 	BucketUrl       string
 	BasePath        string
 }
+
+var TencentYun struct {
+	SecretId  string
+	SecretKey string
+}
+
 var Log struct {
 	PATH string
 }
@@ -75,6 +81,7 @@ func init() {
 	confDB()
 	confUpload()
 	confLog()
+	confTencentYun()
 }
 func confApp() {
 	app, err := Cfg.GetSection("app")
@@ -126,6 +133,14 @@ func confUpload() {
 		AliyunOSSEnc.BasePath = uploadEnc.Key("ALIYUN_OSS_BASE_PATH").MustString("")
 	}
 
+}
+
+func confTencentYun() {
+	tx, err := Cfg.GetSection("tx_yun")
+	if err == nil {
+		TencentYun.SecretId = tx.Key("SECRET_ID").MustString("")
+		TencentYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
+	}
 }
 
 func confLog() {
