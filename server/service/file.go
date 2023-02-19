@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"github.com/hb1707/ant-godmin/consts"
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/ant-godmin/sdk/upload"
@@ -190,9 +191,19 @@ func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, fi
 }
 func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) {
 	ipfs := upload.NewUpload(upload.TypeIpfs)
-	var fSql model.Files
-	model.NewFile("url = ?", req.From).One(&fSql, "created_at desc")
-	localPath := setting.Upload.LocalPath + "/" + fSql.Name
+	var localSql model.Files
+	var sq = model.NewFile()
+	localPath := ""
+	if req.Id > 0 {
+		sq.Where("id = ?", req.Id)
+		sq.One(&localSql, "created_at desc")
+		localPath = setting.Upload.LocalPath + "/" + localSql.Name
+	} else {
+		localPath = req.From
+	}
+	if fun.Stripos(localPath, setting.Upload.LocalPath) == -1 {
+		return errors.New("非本地文件无法处理：" + localPath), model.Files{}
+	}
 	file, err := os.Open(localPath)
 	if err != nil {
 		return err, model.Files{}
@@ -230,14 +241,23 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 		oss = upload.NewUpload(upload.TypeAliyunOss)
 	}
 	var localSql model.Files
-	model.NewFile("url = ?", req.From).One(&localSql, "created_at desc")
-	localPath := setting.Upload.LocalPath + "/" + localSql.Name
+	var sq = model.NewFile()
+	localPath := ""
+	if req.Id > 0 {
+		sq.Where("id = ?", req.Id)
+		sq.One(&localSql, "created_at desc")
+		localPath = setting.Upload.LocalPath + "/" + localSql.Name
+	} else {
+		localPath = req.From
+	}
+	if fun.Stripos(localPath, setting.Upload.LocalPath) == -1 {
+		return errors.New("非本地文件无法处理：" + localPath), model.Files{}
+	}
 	file, err := os.Open(localPath)
 	if err != nil {
 		return err, model.Files{}
 	}
 	defer file.Close()
-
 	newFileName := req.Name
 	contentType := ""
 	if req.FileType == consts.FileTypeJson {

@@ -145,10 +145,11 @@ func AddIPFS(c *gin.Context) {
 	var file model.Files
 	var up model.Files
 	var req struct {
-		FileName string          `json:"file_name"`
-		Path     string          `json:"path"`
-		FileUrl  string          `json:"file_url"`
-		FileType consts.FileType `json:"file_type"`
+		FileName  string          `json:"file_name"`
+		Path      string          `json:"path"`
+		RemoteUrl string          `json:"remote_url"`
+		LocalId   uint            `json:"local_id"`
+		FileType  consts.FileType `json:"file_type"`
 	}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -161,7 +162,18 @@ func AddIPFS(c *gin.Context) {
 	hookReq := hook.GenerateFileTag(c)
 	up.Tag = hookReq.Tag
 	up.Name = req.FileName
-	up.From = req.FileUrl
+	if req.RemoteUrl != "" {
+		up.From = req.RemoteUrl
+		err, fileLocal := service.NewFileService(req.Path).DownloadFile(up, false) // 文件上传后拿到文件路径
+		if err != nil {
+			log.Error("远程文件下载失败!", err)
+			jsonErr(c, http.StatusInternalServerError, err)
+			return
+		}
+		up.From = fileLocal.Url
+	} else {
+		up.Id = req.LocalId
+	}
 	err, file = service.NewFileService(req.Path).IPFSAdd(up) //本地文件上传到IPFS
 	if err != nil {
 		log.Error("本地文件上传到IPFS!", err)
@@ -182,10 +194,11 @@ func AddOSS(c *gin.Context) {
 	var file model.Files
 	var up model.Files
 	var req struct {
-		FileName string          `json:"file_name"`
-		Path     string          `json:"path"`
-		FileUrl  string          `json:"file_url"`
-		FileType consts.FileType `json:"file_type"`
+		FileName  string          `json:"file_name"`
+		Path      string          `json:"path"`
+		RemoteUrl string          `json:"remote_url"`
+		LocalId   uint            `json:"local_id"`
+		FileType  consts.FileType `json:"file_type"`
 	}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -198,7 +211,18 @@ func AddOSS(c *gin.Context) {
 	hookReq := hook.GenerateFileTag(c)
 	up.Tag = hookReq.Tag
 	up.Name = req.FileName
-	up.From = req.FileUrl
+	if req.RemoteUrl != "" {
+		up.From = req.RemoteUrl
+		err, fileLocal := service.NewFileService(req.Path).DownloadFile(up, false) // 文件上传后拿到文件路径
+		if err != nil {
+			log.Error("远程文件下载失败!", err)
+			jsonErr(c, http.StatusInternalServerError, err)
+			return
+		}
+		up.From = fileLocal.Url
+	} else {
+		up.Id = req.LocalId
+	}
 	err, file = service.NewFileService(req.Path).OSSAdd(up, false) //本地文件上传到IPFS
 	if err != nil {
 		log.Error("本地文件上传到OSS!", err)

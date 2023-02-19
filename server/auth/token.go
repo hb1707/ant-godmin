@@ -132,7 +132,7 @@ func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 			} else {
 				c.Set("tester_lev", uint(0))
 			}
-			if uuidStr, ok := claims["uid_hash"].(string); uuidStr != "" && ok {
+			if uuidStr, ok := claims["UidHash"].(string); uuidStr != "" && ok {
 				c.Set("uid_hash", uuidStr)
 			} else {
 				c.Set("uid_hash", "")
