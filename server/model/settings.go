@@ -7,7 +7,7 @@ import (
 
 type Settings struct {
 	Key   string `json:"key" gorm:"column:setting_key;type:varchar(100) not null;uniqueIndex:idx_key;default:'';comment:键"` //键
-	Value string `json:"value" gorm:"column:setting_value;type:varchar(128) not null;"`
+	Value string `json:"value" gorm:"column:setting_value;type:varchar(256) not null;"`
 	TableBase
 }
 

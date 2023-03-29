@@ -42,7 +42,7 @@ type TableBase struct {
 }
 
 func init() {
-	if DB == nil {
+	if DB == nil && confDB.HOST != "" {
 		OpenDB()
 	}
 }

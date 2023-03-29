@@ -11,14 +11,18 @@ import (
 )
 
 // List 路由列表设定
-func List(isRelease bool, allowOrigins []string) *gin.Engine {
+func List(isRelease bool, allowOrigins []string,allowHeader []string) *gin.Engine {
 	r := gin.New()
 	config := cors.DefaultConfig()
 	//config.AllowAllOrigins = true
 	config.AllowCredentials = true
 	config.AllowOrigins = allowOrigins
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
-	config.AddAllowHeaders("Authorization,x-requested-with,withcredentials")
+	if len(allowHeader) > 0 {
+		config.AddAllowHeaders(allowHeader...)
+	}else {
+		config.AddAllowHeaders("Authorization,x-requested-with,withcredentials")
+	}
 	r.Use(gin.Logger(), gin.Recovery(), cors.New(config))
 	if isRelease {
 		gin.SetMode(gin.ReleaseMode)

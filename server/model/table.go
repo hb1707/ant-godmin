@@ -61,6 +61,8 @@ func (t *TableBase) List(model interface{}, order ...string) {
 	if t.Limit > 0 {
 		if t.Page > 0 {
 			t.Page--
+		} else if t.Page < 0 {
+			t.Page = 0
 		}
 		dt = dt.Offset(t.Page * t.Limit).Limit(t.Limit)
 	}
@@ -87,7 +89,11 @@ func (t *TableBase) Total() (total int64) {
 
 func (t *TableBase) One(model interface{}, order ...string) {
 	if len(order) > 0 {
-		err = t.DB.Order(order[0]).First(model).Error
+		if len(order) > 1 {
+			err = t.DB.Order(order[0]).Select(order[1]).First(model).Error
+		} else {
+			err = t.DB.Order(order[0]).First(model).Error
+		}
 	} else {
 		err = t.DB.First(model).Error
 	}
@@ -107,6 +113,8 @@ func (t *TableBase) UpdateByField(fieldName string, value interface{}) {
 	t.updateByFieldName = fieldName
 	t.updateByFieldValue = value
 }
+// AddOrUpdate 新增或更新
+// 新增时返回 t.Id > 0
 func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 	if t.Data != nil {
 		if t.Id > 0 {
@@ -134,6 +142,8 @@ func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 				t.DB.Select(must[0], must[1:]...)
 			}
 			err = t.DB.Create(t.Req).Error
+			kv := fun.Struct2Map(t.Req,"")
+			t.Id =kv["TableBase"].(TableBase).Id
 		}
 	}
 	if failed(err) {
@@ -214,5 +224,10 @@ func (t *TableBase) UpdateExpr(id uint, field string, expr string, value interfa
 func (t *TableBase) UpdateExprOnly(id uint, field string, expr string, value interface{}) {
 	if t.DB != nil {
 		t.DB.Where("id = ?", id).Unscoped().UpdateColumn(field, gorm.Expr(expr, value))
+	}
+}
+func (t *TableBase) UpdateExprNotIdOnly(field string, expr string, value interface{}) {
+	if t.DB != nil {
+		t.DB.UpdateColumn(field, gorm.Expr(expr, value))
 	}
 }
