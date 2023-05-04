@@ -4,8 +4,10 @@ import (
 	"errors"
 	"github.com/hb1707/ant-godmin/setting"
 	"io"
+	"mime"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -46,21 +48,35 @@ func (*Local) Download(url string, localFileName string) (string, error) {
 		return "", errors.New("Local.Download().os.MkdirAll() Error:" + err.Error())
 	}
 	pathNew := localPath + "/" + localFileName
-	out, err := os.Create(pathNew)
-	if err != nil {
-		return "", errors.New("Local.Download().os.Create() Error:" + err.Error())
-	}
-	defer out.Close()
+
 	res, err := http.Get(url)
 	if err != nil {
 		return "", errors.New("Local.Download().http.Get() Error:" + err.Error())
 	}
 	defer res.Body.Close()
+
+	ext := filepath.Ext(pathNew)
+	if ext == "" {
+		extArr, err := mime.ExtensionsByType(res.Header.Get("Content-Type"))
+		if err != nil {
+			return "", err
+		}
+		if len(extArr) > 0 {
+			pathNewExt := pathNew + extArr[0]
+			pathNew = pathNewExt
+		}
+	}
+	out, err := os.Create(pathNew)
+	if err != nil {
+		return "", errors.New("Local.Download().os.Create() Error:" + err.Error())
+	}
+	defer out.Close()
 	//f := io.Reader(res.Body)
 	_, err = io.Copy(out, res.Body)
 	if err != nil {
 		return "", errors.New("Local.Download().io.Copy() Error:" + err.Error())
 	}
+
 	return pathNew, nil
 }
 func (*Local) Delete(key string) error {

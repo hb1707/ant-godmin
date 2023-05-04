@@ -25,7 +25,7 @@ func (t *TableBase) Request(data interface{}) *TableBase {
 }
 func (t *TableBase) PageAndLimit(c *gin.Context) *TableBase {
 	var req ReqPageSize
-	var defaultSize = fun.If2Int(t.Limit > 0, t.Limit, 100)
+	var defaultSize = fun.If2Int(t.Limit > 0, t.Limit, 20)
 	var err error
 	pageSize, existSize := c.Get("pageSize")
 	current, existPage := c.Get("current")

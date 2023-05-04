@@ -50,10 +50,12 @@ const (
 	LogActionAdd    LogActionType = "ADD"
 	LogActionUpdate LogActionType = "UPD"
 	LogActionDelete LogActionType = "DEL"
+	LogActionTest   LogActionType = "TEST"
 )
 
 var LogActionMap = map[LogActionType]string{
 	LogActionAdd:    "新增",
 	LogActionUpdate: "修改",
 	LogActionDelete: "删除",
+	LogActionTest:   "测试",
 }
