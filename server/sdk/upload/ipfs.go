@@ -18,6 +18,11 @@ type IpfsRespBSN struct {
 	Size string `json:"Size"`
 }
 
+// AllObjects 列举所有文件的信息
+func (*IPFS) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
+
+	return
+}
 func (*IPFS) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	extraParams := map[string]string{}
 	request, err := uploadRequest(setting.Upload.IpfsEndpoint+"/api/v0/add", file, "arg", filepath.Base(newFileName), extraParams)

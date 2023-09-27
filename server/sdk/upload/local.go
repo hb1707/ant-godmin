@@ -14,6 +14,11 @@ import (
 
 type Local struct{}
 
+// AllObjects 列举所有文件的信息
+func (*Local) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
+
+	return
+}
 func (*Local) Upload(file io.Reader, localFileName string, other ...string) (string, error) {
 	localPath := setting.Upload.LocalPath
 	localFilePath := strings.Split(localFileName, "/")

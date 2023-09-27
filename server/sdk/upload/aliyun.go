@@ -5,9 +5,51 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/hb1707/ant-godmin/setting"
 	"io"
+	"strconv"
 )
 
 type AliyunOSS struct{}
+
+// AllObjects 列举所有文件的信息
+func (*AliyunOSS) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
+	bucket, err := NewBucket()
+	if err != nil {
+		return
+	}
+	continueToken := continuation
+	if continuation == "all" {
+		continueToken = ""
+	}
+	for {
+		var lsRes oss.ListObjectsResultV2
+		lsRes, err = bucket.ListObjectsV2(oss.ContinuationToken(continueToken), oss.Prefix(path))
+		if err != nil {
+			return
+		}
+		// 打印列举结果。默认情况下，一次返回100条记录。
+		for _, object := range lsRes.Objects {
+			pathList = append(pathList, map[string]string{
+				"key":           object.Key,
+				"type":          object.Type,
+				"size":          strconv.FormatInt(object.Size, 10),
+				"etag":          object.ETag,
+				"last_modified": object.LastModified.Format("2006-01-02 15:04:05"),
+				"storage_class": object.StorageClass,
+			})
+		}
+		if lsRes.IsTruncated {
+			continueToken = lsRes.NextContinuationToken
+			if continuation != "all" {
+				next = continueToken
+				break
+			}
+		} else {
+			next = ""
+			break
+		}
+	}
+	return
+}
 
 func (*AliyunOSS) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	bucket, err := NewBucket()
