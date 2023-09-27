@@ -13,8 +13,8 @@ import (
 
 var (
 	identityKey = "ID"
-	maxRefresh  = time.Hour * 24 * 30
-	tokenMaxAge = time.Hour * 24 * 90 //Second
+	maxRefresh  = time.Hour * 24*90
+	tokenMaxAge = time.Hour * 24*30 //Second
 	Realm       string
 	Key         string
 )

@@ -110,3 +110,22 @@ func Info(er ...interface{}) {
 	s := fmt.Sprint(er)
 	_ = log.Output(2, s)
 }
+
+func Debug(er ...interface{}) {
+	log.SetPrefix("[ DEBUG ]")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	file, err := os.OpenFile(LPath+"debug_"+time.Now().Format("20060102")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
+	if err != nil {
+		log.Fatalln("打开日志文件失败：", err)
+	}
+	defer func(file *os.File) { _ = file.Close() }(file)
+	log.SetOutput(io.MultiWriter(os.Stdout, file))
+
+	s := fmt.Sprint(er)
+	_ = log.Output(2, s)
+	funcName, _, line, ok := runtime.Caller(1)
+	if ok {
+		s = fmt.Sprintf("[ DEBUG ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
+	}
+	go Notice(s)
+}

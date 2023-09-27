@@ -87,6 +87,7 @@ func (t *TableBase) Total() (total int64) {
 	return
 }
 
+
 func (t *TableBase) One(model interface{}, order ...string) {
 	if len(order) > 0 {
 		if len(order) > 1 {

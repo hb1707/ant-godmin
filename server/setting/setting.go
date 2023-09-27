@@ -55,9 +55,13 @@ var AliyunOSSEnc struct {
 	BasePath        string
 }
 
+var Email struct {
+	PWD string
+}
+
 var TencentYun struct {
-	SecretId  string
-	SecretKey string
+	SecretId      string
+	SecretKey     string
 }
 
 var Log struct {
@@ -142,7 +146,12 @@ func confTencentYun() {
 		TencentYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
 	}
 }
-
+func confEmail() {
+	tx, err := Cfg.GetSection("email")
+	if err == nil {
+		Email.PWD = tx.Key("MAIL_SYS_PWD").MustString("")
+	}
+}
 func confLog() {
 	clog, err := Cfg.GetSection("log")
 	if err != nil {
