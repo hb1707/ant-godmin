@@ -50,6 +50,11 @@ func (*AliyunOSSEnc) AllObjects(path string, continuation string) (pathList []ma
 	}
 	return
 }
+
+// GetInfo 文件的信息
+func (*AliyunOSSEnc) GetInfo(key string) (info map[string]string, err error) {
+	return
+}
 func (*AliyunOSSEnc) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	bucket, err := NewBucketEnc()
 	if err != nil {

@@ -19,6 +19,11 @@ func (*Local) AllObjects(path string, continuation string) (pathList []map[strin
 
 	return
 }
+
+// GetInfo 文件的信息
+func (*Local) GetInfo(key string) (info map[string]string, err error) {
+	return
+}
 func (*Local) Upload(file io.Reader, localFileName string, other ...string) (string, error) {
 	localPath := setting.Upload.LocalPath
 	localFilePath := strings.Split(localFileName, "/")

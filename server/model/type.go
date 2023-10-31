@@ -85,3 +85,30 @@ func (j Config) Value() (driver.Value, error) {
 	}
 	return b, nil
 }
+
+type FileOther struct {
+	Width  int `json:"w"`
+	Height int `json:"h"`
+}
+
+func (j *FileOther) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+	}
+
+	result := FileOther{}
+	err := json.Unmarshal(bytes, &result)
+	*j = result
+	return err
+}
+func (j FileOther) Value() (driver.Value, error) {
+	b, err := json.Marshal(&j)
+	if err != nil {
+		return nil, err
+	}
+	if len(b) == 0 {
+		return nil, nil
+	}
+	return b, nil
+}

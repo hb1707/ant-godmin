@@ -13,6 +13,7 @@ type Files struct {
 	Tag       string           `json:"tag" gorm:"type:varchar(255) not null;default:'';comment:文件标签"`               // 文件标签
 	Key       string           `json:"key" gorm:"type:varchar(255) not null;default:'';comment:编号"`                 // 编号
 	TempExist bool             `json:"temp_exist" gorm:"type:tinyint UNSIGNED not null;default:0;comment:临时文件是否存在"` // 临时文件是否存在
+	Other     FileOther        `json:"other" gorm:"type:json;comment:其他信息"`                                         //其他信息
 	Author    string           `json:"author" gorm:"-"`
 	FileId    uint             `json:"file_id" gorm:"-"`
 	TableBase

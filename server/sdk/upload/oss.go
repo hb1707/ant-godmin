@@ -8,6 +8,7 @@ import (
 
 type Cloud interface {
 	AllObjects(path string, next string) ([]map[string]string, string, error)
+	GetInfo(key string) (map[string]string, error)
 	Upload(file io.Reader, newFileName string, other ...string) (string, error)
 	Copy(ori string, new string) error
 	Download(url string, localPath string) (string, error)

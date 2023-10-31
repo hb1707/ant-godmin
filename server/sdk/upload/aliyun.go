@@ -1,14 +1,44 @@
 package upload
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/hb1707/ant-godmin/setting"
+	"github.com/hb1707/exfun/fun/curl"
 	"io"
 	"strconv"
 )
 
-type AliyunOSS struct{}
+type ObjectInfo struct {
+	FileSize struct {
+		Value string `json:"value"`
+	} `json:"FileSize"`
+	Format struct {
+		Value string `json:"value"`
+	} `json:"Format"`
+	FrameCount struct {
+		Value string `json:"value"`
+	} `json:"FrameCount"`
+	ImageHeight struct {
+		Value string `json:"value"`
+	} `json:"ImageHeight"`
+	ImageWidth struct {
+		Value string `json:"value"`
+	} `json:"ImageWidth"`
+	ResolutionUnit struct {
+		Value string `json:"value"`
+	} `json:"ResolutionUnit"`
+	XResolution struct {
+		Value string `json:"value"`
+	} `json:"XResolution"`
+	YResolution struct {
+		Value string `json:"value"`
+	} `json:"YResolution"`
+}
+
+type AliyunOSS struct {
+}
 
 // AllObjects 列举所有文件的信息
 func (*AliyunOSS) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
@@ -47,6 +77,37 @@ func (*AliyunOSS) AllObjects(path string, continuation string) (pathList []map[s
 			next = ""
 			break
 		}
+	}
+	return
+}
+
+// GetInfo 文件的信息
+func (*AliyunOSS) GetInfo(key string) (info map[string]string, err error) {
+	var resp ObjectInfo
+	body, status, err := curl.GET(setting.AliyunOSS.BucketUrl+"/"+key, map[string]string{
+		"x-oss-process": "image/info",
+	})
+	if err != nil {
+		return
+	}
+	if status != 200 {
+		err = errors.New("AliyunOSS.GetInfo().curl.GET() Error:" + string(body))
+		return
+	}
+	err = json.Unmarshal(body, &resp)
+	if err != nil {
+		return
+	}
+	info = map[string]string{
+		"key":             key,
+		"size":            resp.FileSize.Value,
+		"format":          resp.Format.Value,
+		"frame_count":     resp.FrameCount.Value,
+		"image_height":    resp.ImageHeight.Value,
+		"image_width":     resp.ImageWidth.Value,
+		"resolution_unit": resp.ResolutionUnit.Value,
+		"x_resolution":    resp.XResolution.Value,
+		"y_resolution":    resp.YResolution.Value,
 	}
 	return
 }
@@ -102,7 +163,7 @@ func (*AliyunOSS) Copy(ori string, new string) error {
 	}
 
 	// 使用指定的元信息覆盖源文件的元信息。
-	_, err = bucket.CopyObject(ori,new,  options...)
+	_, err = bucket.CopyObject(ori, new, options...)
 	if err != nil {
 		return errors.New("AliyunOSS.Copy().CopyObject() Error:" + err.Error())
 	}
