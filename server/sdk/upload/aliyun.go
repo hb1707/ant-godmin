@@ -86,7 +86,7 @@ func (*AliyunOSS) Copy(ori string, new string) error {
 		// 指定OSS创建目标Object时使用的服务器端加密算法。
 		// oss.ServerSideEncryption("AES256"),
 		// 指定复制源Object的元数据到目标Object。
-		//oss.MetadataDirective(oss.MetaCopy),
+		oss.MetadataDirective(oss.MetaCopy),
 		// 指定CopyObject操作时是否覆盖同名目标Object。此处设置为true，表示禁止覆盖同名Object。
 		// oss.ForbidOverWrite(true),
 		// 如果源Object的ETag值和您提供的ETag相等，则执行拷贝操作，并返回200 OK。
@@ -102,7 +102,7 @@ func (*AliyunOSS) Copy(ori string, new string) error {
 	}
 
 	// 使用指定的元信息覆盖源文件的元信息。
-	_, err = bucket.CopyObject(new, ori, options...)
+	_, err = bucket.CopyObject(ori,new,  options...)
 	if err != nil {
 		return errors.New("AliyunOSS.Copy().CopyObject() Error:" + err.Error())
 	}

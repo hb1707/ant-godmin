@@ -27,6 +27,7 @@ func NewFileService(pathType string) *FileService {
 	fs.PathType = pathType
 	return fs
 }
+//UploadToOSS 从客户端上传到OSS
 func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files, isEnc bool) (err error, outFile model.Files) {
 	var oss upload.Cloud
 	if isEnc {
@@ -79,6 +80,7 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 		return err, newFile
 	}
 }
+//UploadRemote 从远程同步到OSS
 func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outFile model.Files) {
 	var oss upload.Cloud
 	if isEnc {
@@ -111,7 +113,7 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	err = sql.AddOrUpdate()
 	return err, newFile
 }
-
+//UploadLocal 客户端上传到服务器本地
 func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, saveTemp bool) (err error, outFile model.Files) {
 	local := upload.NewUpload(upload.TypeLocal)
 	newFileName := req.Name
@@ -163,6 +165,7 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 		return err, newFile
 	}
 }
+//DownloadFile 下载文件到服务器本地
 func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, file model.Files) {
 	local := upload.NewUpload(upload.TypeLocal)
 	newFileName := req.Name
@@ -189,6 +192,7 @@ func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, fi
 	}
 	return err, newFile
 }
+//IPFSAdd 服务器本地同步到IPFS
 func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) {
 	ipfs := upload.NewUpload(upload.TypeIpfs)
 	var localSql model.Files
@@ -233,6 +237,7 @@ func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) 
 	err = sql.AddOrUpdate()
 	return err, newFile
 }
+//OSSAdd 服务器本地同步到OSS
 func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile model.Files) {
 	var oss upload.Cloud
 	if isEnc {
