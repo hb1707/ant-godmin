@@ -86,6 +86,7 @@ func init() {
 	confUpload()
 	confLog()
 	confTencentYun()
+	confEmail()
 }
 func confApp() {
 	app, err := Cfg.GetSection("app")
