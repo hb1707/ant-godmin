@@ -11,6 +11,7 @@ import (
 type ReqPageSize struct {
 	Current  int `json:"current" form:"current"`
 	PageSize int `json:"pageSize" form:"pageSize"`
+	Next     int `json:"next" form:"next"`
 }
 
 func (t *TableBase) Where(where ...interface{}) *TableBase {
@@ -37,6 +38,12 @@ func (t *TableBase) PageAndLimit(c *gin.Context) *TableBase {
 	} else {
 		err = c.ShouldBindJSON(&req)
 	}
+	if req.Next == 0 {
+		req.Next = 1
+	}
+	if req.Next > 0 {
+		t.Page = req.Next
+	}
 	if err != nil {
 		t.Limit = defaultSize
 		t.Page = 0
@@ -46,7 +53,11 @@ func (t *TableBase) PageAndLimit(c *gin.Context) *TableBase {
 		} else {
 			t.Limit = defaultSize
 		}
-		t.Page = req.Current
+		if req.Current > 0 {
+			t.Page = req.Current
+		} else if req.Next > 0 {
+			t.Page = req.Next
+		}
 	}
 	return t
 }
