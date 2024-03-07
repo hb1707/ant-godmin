@@ -7,11 +7,40 @@ import (
 	"github.com/silenceper/wechat/v2/cache"
 	"github.com/silenceper/wechat/v2/miniprogram/auth"
 	miniConfig "github.com/silenceper/wechat/v2/miniprogram/config"
+	offConfig "github.com/silenceper/wechat/v2/officialaccount/config"
+	offJS "github.com/silenceper/wechat/v2/officialaccount/js"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
-	"github.com/silenceper/wechat/v2/work/js"
+	workJS "github.com/silenceper/wechat/v2/work/js"
 	"github.com/silenceper/wechat/v2/work/oauth"
 	"github.com/silenceper/wechat/v2/work/user"
 )
+
+func GetMpAccessToken(appId string) (string, error) {
+	wc := wechat.NewWechat()
+	memory := cache.NewMemory()
+	cfg := &offConfig.Config{
+		AppID:     appId,
+		AppSecret: setting.WxAppConfig[appId].AppSecret,
+		Cache:     memory,
+	}
+	official := wc.GetOfficialAccount(cfg)
+	res, err := official.GetAccessToken()
+	return res, err
+}
+
+func GetMpJsConfig(appId, url string) (*offJS.Config, error) {
+	wc := wechat.NewWechat()
+	memory := cache.NewMemory()
+	cfg := &offConfig.Config{
+		AppID:     appId,
+		AppSecret: setting.WxAppConfig[appId].AppSecret,
+		Cache:     memory,
+	}
+	official := wc.GetOfficialAccount(cfg)
+	js := official.GetJs()
+	config, err := js.GetConfig(url)
+	return config, err
+}
 
 func GetOpenID(appid, code string) (auth.ResCode2Session, error) {
 	wc := wechat.NewWechat()
@@ -54,7 +83,7 @@ func GetQyWxUserID(appid, code string) (oauth.ResUserInfo, error) {
 	res, err := wxAuth.UserFromCode(code)
 	return res, err
 }
-func GetQyWxConfig(appid, url string) (conf *js.Config) {
+func GetQyWxConfig(appid, url string) (conf *workJS.Config) {
 	wc := wechat.NewWechat()
 	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
@@ -71,7 +100,7 @@ func GetQyWxConfig(appid, url string) (conf *js.Config) {
 	}
 	return
 }
-func GetQyWxAgentConfig(appid, url string) (conf *js.Config) {
+func GetQyWxAgentConfig(appid, url string) (conf *workJS.Config) {
 	wc := wechat.NewWechat()
 	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
