@@ -56,6 +56,13 @@ func SettingGet(k string) string {
 	if _, exist := SettingsCache[k]; !exist || cacheTime.Add(time.Minute*10).Before(time.Now()) {
 		reLoad()
 	}
+	if _, exist := SettingsCache[k]; !exist {
+		sql := NewSettings()
+		sql.Key = k
+		sql.Value = ""
+		sql.AddOrUpdate()
+		SettingsCache[k] = ""
+	}
 	return SettingsCache[k]
 }
 func SettingSet(k string, v string) {
