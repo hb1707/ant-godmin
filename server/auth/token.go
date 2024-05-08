@@ -13,8 +13,8 @@ import (
 
 var (
 	identityKey = "ID"
-	maxRefresh  = time.Hour * 24*90
-	tokenMaxAge = time.Hour * 24*30 //Second
+	maxRefresh  = time.Hour * 24 * 365
+	tokenMaxAge = time.Hour * 24 * 30 //Second
 	Realm       string
 	Key         string
 )
@@ -50,10 +50,10 @@ func Middleware() *jwt.GinJWTMiddleware {
 func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 	// the jwt middleware
 	return jwt.New(&jwt.GinJWTMiddleware{
-		Realm:             Realm,              //HTTP Basic Auth 账号密码作用域
-		Key:               []byte(Key),        //服务端密钥
-		Timeout:           tokenMaxAge, 		//token 过期时间
-		MaxRefresh:        maxRefresh,         //token 允许更新时间
+		Realm:             Realm,       //HTTP Basic Auth 账号密码作用域
+		Key:               []byte(Key), //服务端密钥
+		Timeout:           tokenMaxAge, //token 过期时间
+		MaxRefresh:        maxRefresh,  //token 允许更新时间
 		SendAuthorization: true,
 		SendCookie:        false,
 		IdentityKey:       identityKey,
@@ -148,10 +148,15 @@ func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 		},
 		//5. 验证失败后设置错误信息
 		Unauthorized: func(c *gin.Context, code int, message string) {
+			path := c.Request.URL.Path
+
 			errData := make(gin.H)
 			errData["success"] = false
 			errData["errorCode"] = strconv.Itoa(code)
 			errData["errorMessage"] = message
+			if message == jwt.ErrExpiredToken.Error() && path == "/api/nft/user/fresh" {
+				errData["message"] = "refresh successfully"
+			}
 			errData["status"] = "error"
 			c.JSON(code, errData)
 		},

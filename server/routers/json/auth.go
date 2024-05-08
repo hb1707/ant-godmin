@@ -7,6 +7,8 @@ import (
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/ant-godmin/setting"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type ReqLogin struct {
@@ -133,6 +135,24 @@ func GetUser(c *gin.Context) {
 }
 
 func RefreshToken(c *gin.Context) {
-	auth.Middleware().RefreshHandler(c)
+	ver := c.GetHeader("version")
+	verArr := strings.Split(ver, ".")
+	var isNew = false
+	var versionOld = []int{1, 1, 18}
+	if len(verArr) > 0 {
+		if len(verArr) == 3 {
+			ver1, _ := strconv.Atoi(verArr[0])
+			ver2, _ := strconv.Atoi(verArr[1])
+			ver3, _ := strconv.Atoi(verArr[2])
+			if ver1 > versionOld[0] || (ver1 == versionOld[0] && ver2 > versionOld[1]) || (ver1 == versionOld[0] && ver2 == versionOld[1] && ver3 >= versionOld[2]) {
+				isNew = true
+			}
+		}
+	}
+	md := auth.Middleware()
+	if !isNew {
+		md.MaxRefresh = md.MaxRefresh * 4
+	}
+	md.RefreshHandler(c)
 	return
 }
