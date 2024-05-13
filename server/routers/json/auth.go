@@ -2,13 +2,16 @@ package json
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/consts"
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/ant-godmin/setting"
+	"github.com/hb1707/exfun/fun"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ReqLogin struct {
@@ -36,16 +39,42 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 		if res.UserID != "" {
 			oldUser := model.NewSysUser("qywx_userid = ?", res.UserID).GetOne("id desc")
 			if oldUser.Id == 0 {
-				user, err := auth.GetQyUser(setting.AdminAppid, res.UserID)
+				userQyWx, err := auth.GetQyUser(setting.AdminAppid, res.UserID)
 				if err != nil {
 					jsonErr(c, http.StatusBadRequest, err)
 					return
 				}
-				/*if user.Mobile == "" {
+				/*if userQyWx.Mobile == "" {
 					jsonErr(c, http.StatusBadRequest, consts.ErrEmptyMoblie)
 					return
 				}*/
-				oldUser, err = auth.RegisterHandler(setting.AdminAppid, user)
+				var reg = new(auth.UserReg)
+				reg.Userid = userQyWx.UserID
+				reg.Username = userQyWx.Alias
+				reg.RealName = userQyWx.Name
+				reg.Mobile = userQyWx.Mobile
+				reg.Avatar = userQyWx.Avatar
+				reg, err = auth.RegisterHandler(setting.AdminAppid, reg)
+				if reg.Password1 != reg.Password2 {
+					jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
+					return
+				}
+				u := model.NewSysUser()
+				u.UUID = uuid.New()
+				reg.Password1 = "e053cc3b86e072868bfaf1be0be78331" //123456edu_we
+				reg.Password2 = reg.Password1
+
+				u.QywxUserid = userQyWx.UserID
+				u.HeaderImg = reg.Avatar
+				u.NickName = reg.Username
+				u.Username = reg.Username
+				u.RealName = reg.RealName
+				u.AuthorityId = consts.AuthorityIdStaff
+				salt := fun.SubStr(fun.MD5(strconv.Itoa(int(time.Now().UnixNano()))), 0, 4)
+				u.Salt = salt
+				u.Password = auth.Cryptosystem(reg.Password1, salt)
+				u.Edit()
+				oldUser = u
 				if err != nil {
 					jsonErr(c, http.StatusBadRequest, err)
 					return

@@ -11,10 +11,10 @@ import (
 	offConfig "github.com/silenceper/wechat/v2/officialaccount/config"
 	offJS "github.com/silenceper/wechat/v2/officialaccount/js"
 	"github.com/silenceper/wechat/v2/util"
+	"github.com/silenceper/wechat/v2/work/addresslist"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	workJS "github.com/silenceper/wechat/v2/work/js"
 	"github.com/silenceper/wechat/v2/work/oauth"
-	"github.com/silenceper/wechat/v2/work/user"
 	"time"
 )
 
@@ -134,6 +134,7 @@ func GetQyWxUserID(appid, code string) (oauth.ResUserInfo, error) {
 	res, err := wxAuth.UserFromCode(code)
 	return res, err
 }
+
 func GetQyWxConfig(appid, url string) (conf *workJS.Config) {
 	wc := wechat.NewWechat()
 	memory := cache.NewMemory()
@@ -179,7 +180,7 @@ func GetQyWxAgentConfig(appid, url string) (conf *workJS.Config) {
 	cacheQyWxAgentConfig[cacheKey] = conf
 	return
 }
-func GetQyUser(appid, userID string) (*user.Info, error) {
+func GetQyUser(appid, userID string) (*addresslist.UserGetResponse, error) {
 	wc := wechat.NewWechat()
 	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
@@ -189,16 +190,19 @@ func GetQyUser(appid, userID string) (*user.Info, error) {
 		Cache:      memory,
 	}
 	miniapp := wc.GetWork(cfg)
-	wxUser := miniapp.GetUser()
-	res, err := wxUser.GetUserInfo(userID)
-	return res, err
+	wxUser := miniapp.GetAddressList()
+	userInfo, err := wxUser.UserGet(userID)
+	if err != nil {
+		return nil, err
+	}
+	return userInfo, nil
 }
 
 type ReqLaunchCode struct {
 	UserId string `json:"userId" form:"userId"`
 }
 
-func GetQyLaunchCode(appid, userID, other string) (*user.RespLaunchCode, error) {
+func GetQyLaunchCode(appid, userID, other string) (*oauth.RespLaunchCode, error) {
 	wc := wechat.NewWechat()
 	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
@@ -208,7 +212,7 @@ func GetQyLaunchCode(appid, userID, other string) (*user.RespLaunchCode, error) 
 		Cache:      memory,
 	}
 	miniapp := wc.GetWork(cfg)
-	wxUser := miniapp.GetUser()
+	wxUser := miniapp.GetOauth()
 	res, err := wxUser.GetLaunchCode(userID, other)
 	return res, err
 }

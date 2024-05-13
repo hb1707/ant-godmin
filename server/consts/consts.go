@@ -24,7 +24,10 @@ var (
 	ErrUnregistered         = errors.New(`unregistered`)
 )
 
-const AuthorityIdAdmin string = "101"
+const AuthorityIdSuperAdmin string = "100" //超级管理员
+const AuthorityIdAdmin string = "101"      //管理员
+const AuthorityIdAssist string = "102"     //协助管理
+const AuthorityIdStaff string = "300"      //成员
 
 type FileType int
 
