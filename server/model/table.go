@@ -14,6 +14,16 @@ type ReqPageSize struct {
 	Next     int `json:"next" form:"next"`
 }
 
+func NewTable(table string, where ...interface{}) *TableBase {
+	var t = new(TableBase)
+	if len(where) > 0 {
+		t.DB = DB.Table(confDB.PRE+table).Where(where[0], where[1:]...)
+	} else {
+		t.DB = DB.Table(confDB.PRE + table)
+	}
+	return t
+}
+
 func (t *TableBase) Where(where ...interface{}) *TableBase {
 	if len(where) > 0 {
 		t.DB = t.DB.Where(where[0], where[1:]...)
@@ -98,7 +108,6 @@ func (t *TableBase) Total() (total int64) {
 	return
 }
 
-
 func (t *TableBase) One(model interface{}, order ...string) {
 	if len(order) > 0 {
 		if len(order) > 1 {
@@ -125,6 +134,7 @@ func (t *TableBase) UpdateByField(fieldName string, value interface{}) {
 	t.updateByFieldName = fieldName
 	t.updateByFieldValue = value
 }
+
 // AddOrUpdate 新增或更新
 // 新增时返回 t.Id > 0
 func (t *TableBase) AddOrUpdate(must ...interface{}) error {
@@ -154,8 +164,8 @@ func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 				t.DB.Select(must[0], must[1:]...)
 			}
 			err = t.DB.Create(t.Req).Error
-			kv := fun.Struct2Map(t.Req,"")
-			t.Id =kv["TableBase"].(TableBase).Id
+			kv := fun.Struct2Map(t.Req, "")
+			t.Id = kv["TableBase"].(TableBase).Id
 		}
 	}
 	if failed(err) {

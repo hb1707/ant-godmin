@@ -14,6 +14,65 @@ import (
 	"time"
 )
 
+type ReqRegister struct {
+	Username  string `json:"username" form:"username"`
+	Password1 string `json:"password1" form:"password1"`
+	Password2 string `json:"password2" form:"password2"`
+}
+
+func RegisterWithPassword(c *gin.Context) {
+	var req ReqRegister
+	err := c.BindJSON(&req)
+	if err != nil {
+		jsonErr(c, http.StatusBadRequest, err)
+		return
+	}
+	if req.Password1 != req.Password2 {
+		jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
+		return
+	}
+	var reg = new(auth.UserReg)
+	reg.Username = req.Username
+	reg.Password1 = req.Password1
+	reg.Password2 = req.Password2
+	reg, err = auth.RegisterHandler(setting.AdminAppid, reg)
+	if err != nil {
+		jsonErr(c, http.StatusBadRequest, err)
+		return
+	}
+	if reg.Password1 != reg.Password2 {
+		jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
+		return
+	}
+	u := model.NewSysUser()
+	u.UUID = uuid.New()
+	u.QywxUserid = ""
+	u.HeaderImg = reg.Avatar
+	u.NickName = reg.Username
+	u.Username = reg.Username
+	u.RealName = reg.RealName
+	u.AuthorityId = consts.AuthorityIdStaff
+	salt := fun.SubStr(fun.MD5(strconv.Itoa(int(time.Now().UnixNano()))), 0, 4)
+	u.Salt = salt
+	u.Password = auth.Cryptosystem(reg.Password1, salt)
+	u.Edit()
+	oldUser := u
+	data, err := auth.TokenGenerator(&auth.TokenUser{
+		UUID:        oldUser.UUID,
+		ID:          oldUser.Id,
+		Appid:       "",
+		AuthorityId: oldUser.AuthorityId,
+		AdmLv:       0,
+	})
+	if err != nil {
+		jsonErr(c, http.StatusBadRequest, err)
+		return
+	}
+	jsonResult(c, http.StatusOK, data, gin.H{"currentAuthority": oldUser.AuthorityId})
+	return
+
+}
+
 type ReqLogin struct {
 	Username  string `json:"username" form:"username"`
 	Password  string `json:"password" form:"password"`

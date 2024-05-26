@@ -6,7 +6,10 @@ import (
 	"strconv"
 )
 
-var ErrorParameter = errors.New("参数错误")
+var ErrorParameter = errors.New("PARAMETER_ERROR")
+var ErrorParameterID = errors.New("ID_CANNOT_BE_EMPTY")
+var ErrorPermission = errors.New("NO_PERMISSION")
+var ErrorEmpty = errors.New("EMPTY_DATA")
 
 func jsonResult(c *gin.Context, code int, data interface{}, other ...gin.H) {
 	okData := make(gin.H)
@@ -17,7 +20,7 @@ func jsonResult(c *gin.Context, code int, data interface{}, other ...gin.H) {
 	}
 	okData["success"] = true
 	okData["data"] = data
-	okData["result"] = data //待删除
+	//okData["result"] = data //待删除
 	okData["status"] = "ok"
 	c.JSON(code, okData)
 }

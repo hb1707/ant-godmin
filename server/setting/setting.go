@@ -12,6 +12,7 @@ var (
 )
 
 var IsTest = false
+var IsCMS = false
 
 var App struct {
 	NAME           string
@@ -60,8 +61,8 @@ var Email struct {
 }
 
 var TencentYun struct {
-	SecretId      string
-	SecretKey     string
+	SecretId  string
+	SecretKey string
 }
 
 var Log struct {

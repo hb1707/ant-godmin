@@ -90,10 +90,20 @@ func OpenDB() {
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 }
-func CreatTable(dst ...interface{}) {
+func CreateTable(dst ...interface{}) {
 	if confDB.PRE != "" && confDB.AUTOMIGRATE {
-		dst = append(dst, &Files{}, &FilesTemp{}, &Settings{})
+		createTable()
+		dst = append(dst)
 		err := DB.AutoMigrate(dst...)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Info("数据库表已生成")
+	}
+}
+func createTable() {
+	if confDB.PRE != "" && confDB.AUTOMIGRATE {
+		err := DB.AutoMigrate(&SysUsers{}, &Files{}, &FilesTemp{}, &Settings{}, &Tables{}, &Fields{})
 		if err != nil {
 			log.Fatal(err)
 		}

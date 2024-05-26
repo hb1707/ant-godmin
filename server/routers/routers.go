@@ -11,7 +11,7 @@ import (
 )
 
 // List 路由列表设定
-func List(isRelease bool, allowOrigins []string,allowHeader []string) *gin.Engine {
+func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engine {
 	r := gin.New()
 	config := cors.DefaultConfig()
 	//config.AllowAllOrigins = true
@@ -20,7 +20,7 @@ func List(isRelease bool, allowOrigins []string,allowHeader []string) *gin.Engin
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	if len(allowHeader) > 0 {
 		config.AddAllowHeaders(allowHeader...)
-	}else {
+	} else {
 		config.AddAllowHeaders("Authorization,x-requested-with,withcredentials")
 	}
 	r.Use(gin.Logger(), gin.Recovery(), cors.New(config))
@@ -40,6 +40,9 @@ func List(isRelease bool, allowOrigins []string,allowHeader []string) *gin.Engin
 		systemGroup.GET("/qywx-connect", json.QyWxConnect)
 		systemGroup.GET("/qywx-jsconfig", json.QyWxJsConfig)
 		systemGroup.GET("/qywx-agent-jsconfig", json.QyWxAgentJsConfig)
+		if setting.IsCMS {
+			systemGroup.POST("/reg/account", json.RegisterWithPassword)
+		}
 		systemGroup.POST("/login/account", json.LoginWithPasswordOrQywxCode)
 		systemGroup.POST("/logout", m.LogoutHandler)
 		systemGroup.Use(m.MiddlewareFunc(), auth.CheckTokenUser)
@@ -52,6 +55,31 @@ func List(isRelease bool, allowOrigins []string,allowHeader []string) *gin.Engin
 			systemGroup.POST("/file/local-ipfs/:path", json.AddIPFS)
 			systemGroup.POST("/file/local-oss/:path", json.AddOSS)
 			systemGroup.POST("/file/local/:path", json.UploadLocal)
+		}
+		if setting.IsCMS {
+			cmsGroup := api.Group("/cms")
+			{
+				cmsGroup.GET("/detail/:table", json.FetchOne)
+				cmsGroup.GET("/list/:table", json.FetchAll)
+				dataGroup := cmsGroup.Group("/data")
+				//dataGroup.Use(m.MiddlewareFunc(), auth.CheckTokenUser)
+				{
+					dataGroup.POST("/add/:table", json.Create)
+					dataGroup.POST("/update/:table/:id", json.Update)
+					dataGroup.DELETE("/delete/:table/:id", json.Delete)
+				}
+				tableGroup := cmsGroup.Group("/table")
+				///tableGroup.Use(m.MiddlewareFunc()), auth.CheckTokenUser)
+				{
+					tableGroup.GET("/list", json.FetchTablesAll)
+					tableGroup.POST("/edit/:table", json.EditTables)
+					tableGroup.DELETE("/del/:table", json.DelTables)
+					tableGroup.GET("/fields/detail", json.DetailField)
+					tableGroup.GET("/fields/list/:table", json.ListFields)
+					tableGroup.POST("/fields/edit/:table", json.EditFields)
+					tableGroup.DELETE("/fields/del/:table", json.DelFields)
+				}
+			}
 		}
 	}
 
