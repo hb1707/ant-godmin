@@ -2,17 +2,17 @@ package cache
 
 import "github.com/hb1707/ant-godmin/model"
 
-var tableFieldsCache = make(map[string][]model.TableField)
+var tableFieldsCache = make(map[string][]model.FormField)
 
-func TableFields(table string, forceUpdate bool) []model.TableField {
+func TableFields(table string, forceUpdate bool) []model.FormField {
 	var fields []model.Fields
 	if _fields, exist := tableFieldsCache[table]; exist && len(_fields) > 0 && !forceUpdate {
 		return _fields
 	} else {
 		fields = model.NewFields("table_name = ? ", table).All("sort asc")
-		tableFieldsCache[table] = make([]model.TableField, len(fields))
+		tableFieldsCache[table] = make([]model.FormField, len(fields))
 		for i, field := range fields {
-			tableFieldsCache[table][i] = model.FieldSqlToJson(field)
+			tableFieldsCache[table][i] = model.FieldSqlToForm(field)
 		}
 		return tableFieldsCache[table]
 	}

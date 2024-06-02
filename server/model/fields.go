@@ -47,7 +47,7 @@ type Fields struct {
 	TableBase
 }
 
-type TableField struct {
+type FormField struct {
 	Id              uint      `json:"id"`
 	Type            FieldType `json:"type" required:"true"`
 	Role            string    `json:"role"`
@@ -64,9 +64,9 @@ type TableField struct {
 	IsUnique        bool      `json:"is_unique"`
 }
 
-func FieldSqlToJson(f Fields) TableField {
+func FieldSqlToForm(f Fields) FormField {
 
-	var tableField = TableField{
+	var tableField = FormField{
 		Id:              f.Id,
 		Type:            f.FieldType,
 		Role:            f.Role,
