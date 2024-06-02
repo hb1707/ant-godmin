@@ -16,7 +16,7 @@ import (
 
 type ReqRegister struct {
 	Username  string `json:"username" form:"username"`
-	Password1 string `json:"password1" form:"password1"`
+	Password1 string `json:"password" form:"password"`
 	Password2 string `json:"password2" form:"password2"`
 }
 
@@ -29,6 +29,10 @@ func RegisterWithPassword(c *gin.Context) {
 	}
 	if req.Password1 != req.Password2 {
 		jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
+		return
+	}
+	if req.Username == "" {
+		jsonErr(c, http.StatusBadRequest, consts.ErrMissingLoginValues)
 		return
 	}
 	var reg = new(auth.UserReg)
@@ -44,6 +48,7 @@ func RegisterWithPassword(c *gin.Context) {
 		jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
 		return
 	}
+	exist := model.NewSysUser("authority_id = ?", consts.AuthorityIdSuperAdmin).GetOne("id asc")
 	u := model.NewSysUser()
 	u.UUID = uuid.New()
 	u.QywxUserid = ""
@@ -51,7 +56,11 @@ func RegisterWithPassword(c *gin.Context) {
 	u.NickName = reg.Username
 	u.Username = reg.Username
 	u.RealName = reg.RealName
-	u.AuthorityId = consts.AuthorityIdStaff
+	if exist.Id == 0 {
+		u.AuthorityId = consts.AuthorityIdSuperAdmin
+	} else {
+		u.AuthorityId = consts.AuthorityIdStaff
+	}
 	salt := fun.SubStr(fun.MD5(strconv.Itoa(int(time.Now().UnixNano()))), 0, 4)
 	u.Salt = salt
 	u.Password = auth.Cryptosystem(reg.Password1, salt)
@@ -68,7 +77,9 @@ func RegisterWithPassword(c *gin.Context) {
 		jsonErr(c, http.StatusBadRequest, err)
 		return
 	}
-	jsonResult(c, http.StatusOK, data, gin.H{"currentAuthority": oldUser.AuthorityId})
+	data["sysUid"] = oldUser.Id
+	data["currentAuthority"] = oldUser.AuthorityId
+	jsonResult(c, http.StatusOK, data)
 	return
 
 }

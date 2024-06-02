@@ -25,9 +25,9 @@ type SysUsers struct {
 func NewSysUser(where ...interface{}) *SysUsers {
 	var t = new(SysUsers)
 	if len(where) > 0 {
-		t.DB = DB.Table("sys_users").Model(&SysUsers{}).Where(where[0], where[1:]...)
+		t.DB = DB.Table(confDB.PRE+"sys_users").Model(&SysUsers{}).Where(where[0], where[1:]...)
 	} else {
-		t.DB = DB.Table("sys_users").Model(&SysUsers{})
+		t.DB = DB.Table(confDB.PRE + "sys_users").Model(&SysUsers{})
 	}
 	return t
 }
