@@ -37,6 +37,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 	api := r.Group("/api")
 	{
 		systemGroup := api.Group("/system")
+		systemGroup.GET("/config", json.Config)
 		systemGroup.GET("/qywx-connect", json.QyWxConnect)
 		systemGroup.GET("/qywx-jsconfig", json.QyWxJsConfig)
 		systemGroup.GET("/qywx-agent-jsconfig", json.QyWxAgentJsConfig)
@@ -62,16 +63,17 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 				cmsGroup.GET("/detail/:table", json.FetchOne)
 				cmsGroup.GET("/list/:table", json.FetchAll)
 				dataGroup := cmsGroup.Group("/data")
-				//dataGroup.Use(m.MiddlewareFunc(), auth.CheckTokenUser)
+				dataGroup.Use(m.MiddlewareFunc(), auth.CheckTokenUser)
 				{
 					dataGroup.POST("/add/:table", json.Create)
 					dataGroup.POST("/update/:table/:id", json.Update)
 					dataGroup.DELETE("/delete/:table/:id", json.Delete)
 				}
 				tableGroup := cmsGroup.Group("/table")
-				///tableGroup.Use(m.MiddlewareFunc()), auth.CheckTokenUser)
+				tableGroup.Use(m.MiddlewareFunc(), auth.CheckTokenUser)
 				{
 					tableGroup.GET("/list", json.FetchTablesAll)
+					tableGroup.GET("/detail/:table", json.DetailTable)
 					tableGroup.POST("/edit/:table", json.EditTables)
 					tableGroup.DELETE("/del/:table", json.DelTables)
 					tableGroup.GET("/fields/detail", json.DetailField)
