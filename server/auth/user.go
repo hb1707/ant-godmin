@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/exfun/fun"
+	"github.com/silenceper/wechat/v2/work/addresslist"
 	"strconv"
 	"time"
 )
@@ -28,13 +29,14 @@ type TokenUser struct {
 }
 
 type UserReg struct {
-	Userid    string `json:"userid" form:"userid"`
-	Username  string `json:"username" form:"username"`
-	RealName  string `json:"realName" form:"realName"`
-	Avatar    string `json:"avatar" form:"avatar"`
-	Mobile    string `json:"mobile" form:"mobile"`
-	Password1 string `json:"password1" form:"password1"`
-	Password2 string `json:"password2" form:"password2"`
+	Userid    string                       `json:"userid" form:"userid"`
+	Username  string                       `json:"username" form:"username"`
+	RealName  string                       `json:"realName" form:"realName"`
+	Avatar    string                       `json:"avatar" form:"avatar"`
+	Mobile    string                       `json:"mobile" form:"mobile"`
+	Password1 string                       `json:"password1" form:"password1"`
+	Password2 string                       `json:"password2" form:"password2"`
+	QyWxUser  *addresslist.UserGetResponse `json:"qywxUser" form:"qywxUser"`
 }
 
 var RegisterHandler func(appid string, user *UserReg) (*UserReg, error)

@@ -39,11 +39,6 @@ func RegisterWithPassword(c *gin.Context) {
 	reg.Username = req.Username
 	reg.Password1 = req.Password1
 	reg.Password2 = req.Password2
-	reg, err = auth.RegisterHandler(setting.AdminAppid, reg)
-	if err != nil {
-		jsonErr(c, http.StatusBadRequest, err)
-		return
-	}
 	if reg.Password1 != reg.Password2 {
 		jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
 		return
@@ -65,6 +60,11 @@ func RegisterWithPassword(c *gin.Context) {
 	u.Salt = salt
 	u.Password = auth.Cryptosystem(reg.Password1, salt)
 	u.Edit()
+	reg, err = auth.RegisterHandler(setting.AdminAppid, reg)
+	if err != nil {
+		jsonErr(c, http.StatusBadRequest, err)
+		return
+	}
 	oldUser := u
 	data, err := auth.TokenGenerator(&auth.TokenUser{
 		UUID:        oldUser.UUID,
@@ -124,16 +124,15 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 				reg.RealName = userQyWx.Name
 				reg.Mobile = userQyWx.Mobile
 				reg.Avatar = userQyWx.Avatar
-				reg, err = auth.RegisterHandler(setting.AdminAppid, reg)
-				if reg.Password1 != reg.Password2 {
-					jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
-					return
-				}
+
 				u := model.NewSysUser()
 				u.UUID = uuid.New()
 				reg.Password1 = "e053cc3b86e072868bfaf1be0be78331" //123456edu_we
 				reg.Password2 = reg.Password1
-
+				if reg.Password1 != reg.Password2 {
+					jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
+					return
+				}
 				u.QywxUserid = userQyWx.UserID
 				u.HeaderImg = reg.Avatar
 				u.NickName = reg.Username
@@ -144,11 +143,12 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 				u.Salt = salt
 				u.Password = auth.Cryptosystem(reg.Password1, salt)
 				u.Edit()
-				oldUser = u
+				reg, err = auth.RegisterHandler(setting.AdminAppid, reg)
 				if err != nil {
 					jsonErr(c, http.StatusBadRequest, err)
 					return
 				}
+				oldUser = u
 			} else if oldUser.Username != "" {
 				user, err := auth.GetQyUser(setting.AdminAppid, res.UserID)
 				if err != nil {

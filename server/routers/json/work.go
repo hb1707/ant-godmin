@@ -121,15 +121,11 @@ func WorkRegister(c *gin.Context) {
 	} else {
 		var reg = new(auth.UserReg)
 		reg.Userid = userQyWx.UserID
-		reg.Username = userQyWx.Alias
+		reg.Username = userQyWx.Mobile
 		reg.RealName = userQyWx.Name
 		reg.Mobile = userQyWx.Mobile
 		reg.Avatar = userQyWx.Avatar
-		reg, err = auth.RegisterHandler(appid, reg)
-		if err != nil {
-			jsonErr(c, http.StatusBadRequest, err)
-			return
-		}
+		reg.QyWxUser = userQyWx
 		if reg.Password1 != reg.Password2 {
 			jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
 			return
@@ -141,7 +137,7 @@ func WorkRegister(c *gin.Context) {
 
 		u.QywxUserid = userQyWx.UserID
 		u.HeaderImg = reg.Avatar
-		u.NickName = reg.Username
+		u.NickName = userQyWx.Alias
 		u.Username = reg.Username
 		u.RealName = reg.RealName
 		u.AuthorityId = consts.AuthorityIdStaff
@@ -149,6 +145,11 @@ func WorkRegister(c *gin.Context) {
 		u.Salt = salt
 		u.Password = auth.Cryptosystem(reg.Password1, salt)
 		u.Edit()
+		reg, err = auth.RegisterHandler(appid, reg)
+		if err != nil {
+			jsonErr(c, http.StatusBadRequest, err)
+			return
+		}
 		oldUser = u
 	}
 	data, err := auth.TokenGenerator(&auth.TokenUser{
