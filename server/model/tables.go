@@ -23,11 +23,13 @@ type TablesForm struct {
 
 func TablesSqlToForm(t Tables) TablesForm {
 	return TablesForm{
-		Id:         t.Id,
-		Role:       t.Role,
-		Sort:       t.Sort,
-		InputName:  t.TableName,
-		InputLabel: t.Label,
+		Id:          t.Id,
+		Role:        t.Role,
+		Sort:        t.Sort,
+		InputName:   t.TableName,
+		InputLabel:  t.Label,
+		UploadImage: &t.Image,
+		InputDesc:   &t.Desc,
 	}
 }
 

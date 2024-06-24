@@ -73,9 +73,9 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 				tableGroup.Use(m.MiddlewareFunc(), auth.CheckTokenUser)
 				{
 					tableGroup.GET("/list", json.FetchTablesAll)
-					tableGroup.GET("/detail/:table", json.DetailTable)
-					tableGroup.POST("/edit/:table", json.EditTables)
-					tableGroup.DELETE("/del/:table", json.DelTables)
+					tableGroup.GET("/detail", json.DetailTable)
+					tableGroup.POST("/edit", json.EditTables)
+					tableGroup.DELETE("/del", json.DelTables)
 					tableGroup.GET("/fields/detail", json.DetailField)
 					tableGroup.GET("/fields/list/:table", json.ListFields)
 					tableGroup.POST("/fields/edit/:table", json.EditFields)

@@ -37,7 +37,7 @@ func EditTables(c *gin.Context) {
 		jsonErr(c, http.StatusBadRequest, ErrorParameter)
 		return
 	}
-	var exist = model.NewTables("table_name = ?", req.InputName).GetOne("sort asc")
+	var exist = model.NewTables("id = ? OR table_name = ?", req.Id, req.InputName).GetOne("sort asc")
 	table := model.NewTables()
 	if exist.TableName != "" {
 		table.Id = exist.Id
@@ -64,15 +64,16 @@ func EditTables(c *gin.Context) {
 }
 
 func DelTables(c *gin.Context) {
-	table := c.Param("table")
-	var exist = model.NewTables("table_name = ?", table).GetOne("sort asc")
+	idStr := c.Query("id")
+	id, _ := strconv.Atoi(idStr)
+	var exist = model.NewTables("id = ?", id).GetOne("sort asc")
 	if exist.TableName == "" {
 		jsonErr(c, http.StatusNotFound, ErrorEmpty)
 		return
 	}
 	//model.DB.Exec(fmt.Sprintf("DROP TABLE `%s`", exist.TableName))
-	model.NewTables("table_name = ?", table).Del(exist.Id)
-	cache.Tables(table, true)
+	model.NewTables("id = ?", id).Del(exist.Id)
+	cache.Tables(exist.TableName, true)
 	jsonResult(c, http.StatusOK, nil)
 	return
 }
