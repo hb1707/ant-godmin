@@ -193,6 +193,9 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 		oldUser := model.NewSysUser("username = ?", req.Username).GetOne("")
 		if oldUser.Id > 0 {
 			if req.Password != "" && req.Username != "" {
+				if oldUser.Password == "" {
+					model.NewSysUser().UpdateField(oldUser.Id, "password", auth.Cryptosystem(req.Password, oldUser.Salt))
+				}
 				checkUser := auth.LoginCheckPw(&auth.LoginPost{
 					Username: req.Username,
 					Password: req.Password,
