@@ -3,6 +3,9 @@ package setting
 type WxApp struct {
 	AppSecret string
 }
+type WxOffiaccount struct {
+	Secret string
+}
 type QyWxApp struct {
 	Secret   string
 	AgentId  string
@@ -11,9 +14,15 @@ type QyWxApp struct {
 
 var Corpid = ""
 var AdminAppid = "admin"
+
 var (
+	WxOaConfig    = map[string]WxOffiaccount{}
 	WxAppConfig   = map[string]WxApp{}
 	QyWxAppConfig = map[string]QyWxApp{}
+
+	WxWorkToken           = ""
+	WxWorkEncodingAESKey  = ""
+	SecretExternalContact = ""
 )
 
 func init() {

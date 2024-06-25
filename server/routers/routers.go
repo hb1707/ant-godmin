@@ -56,6 +56,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 			systemGroup.POST("/file/local-ipfs/:path", json.AddIPFS)
 			systemGroup.POST("/file/local-oss/:path", json.AddOSS)
 			systemGroup.POST("/file/local/:path", json.UploadLocal)
+			systemGroup.POST("/wx-oa-token", json.WxOffiaccountToken) //获取公众号access_token
 		}
 		if setting.IsCMS {
 			cmsGroup := api.Group("/cms")

@@ -51,3 +51,24 @@ type ReqWxPhone struct {
 	OpenId        string `json:"openId" `
 	TmpId         uint   `json:"tmpId" form:"tmpId"`
 }
+
+type ReqWxToken struct {
+	AppId string `json:"appid" form:"appid"`
+}
+
+func WxOffiaccountToken(c *gin.Context) {
+	var req ReqWxToken
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		jsonErr(c, http.StatusBadRequest, err)
+		return
+	}
+	accessToken, err := auth.GetMpAccessToken(req.AppId)
+	if err != nil {
+		jsonErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	jsonResult(c, http.StatusOK, map[string]interface{}{
+		"access_token": accessToken,
+	})
+}
