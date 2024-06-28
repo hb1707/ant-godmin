@@ -30,7 +30,7 @@ func (*IPFS) GetInfo(key string) (info map[string]string, err error) {
 }
 func (*IPFS) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	extraParams := map[string]string{}
-	request, err := uploadRequest(setting.Upload.IpfsEndpoint+"/api/v0/add", file, "arg", filepath.Base(newFileName), extraParams)
+	request, err := uploadRequest(setting.IPFS.IpfsEndpoint+"/api/v0/add", file, "arg", filepath.Base(newFileName), extraParams)
 	if err != nil {
 		return "", err
 	}
@@ -46,7 +46,7 @@ func (*IPFS) Upload(file io.Reader, newFileName string, other ...string) (string
 		}
 		resp.Body.Close()
 		if resp.StatusCode != 200 {
-			return "", fmt.Errorf("Upload failed: %s", body.String())
+			return "", fmt.Errorf("upload failed: %s", body.String())
 		}
 		var respBody IpfsRespBSN
 		err = json.Unmarshal(body.Bytes(), &respBody)

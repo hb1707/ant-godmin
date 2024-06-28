@@ -45,6 +45,7 @@ const (
 	CloudTypeLocal  CloudType = 0
 	CloudTypeAliyun CloudType = 1
 	CloudTypeIPFS   CloudType = 2
+	CloudTypeWxOa   CloudType = 3
 )
 
 type LogActionType string

@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+var UploadPath = "/upload"
+
 type Local struct{}
 
 // AllObjects 列举所有文件的信息

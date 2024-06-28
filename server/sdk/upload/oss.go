@@ -15,14 +15,16 @@ type Cloud interface {
 	Delete(key string) error
 }
 
+type cloudType string
+
 const (
-	TypeLocal        = "local"
-	TypeAliyunOss    = "aliyun_oss"
-	TypeAliyunOssEnc = "aliyun_oss_enc"
-	TypeIpfs         = "ipfs"
+	TypeLocal        cloudType = "local"
+	TypeAliyunOss    cloudType = "aliyun_oss"
+	TypeAliyunOssEnc cloudType = "aliyun_oss_enc"
+	TypeIpfs         cloudType = "ipfs"
 )
 
-func NewUpload(cloudType string) Cloud {
+func NewUpload(cloudType cloudType) Cloud {
 	switch cloudType {
 	case TypeAliyunOss:
 		return &AliyunOSS{}
@@ -35,7 +37,7 @@ func NewUpload(cloudType string) Cloud {
 	}
 }
 
-//GetFileExt 获取文件类型
+// GetFileExt 获取文件类型
 func GetFileExt(f *os.File) string {
 	var buf [512]byte
 	n, _ := f.Read(buf[:])

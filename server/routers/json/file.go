@@ -12,6 +12,7 @@ import (
 	"github.com/hb1707/exfun/fun"
 	"net/http"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -141,7 +142,7 @@ func DownloadFile(c *gin.Context) {
 		return
 	}
 }
-func AddIPFS(c *gin.Context) {
+func UploadSyncIPFS(c *gin.Context) {
 	var file model.Files
 	var up model.Files
 	var req struct {
@@ -190,7 +191,7 @@ func AddIPFS(c *gin.Context) {
 		return
 	}
 }
-func AddOSS(c *gin.Context) {
+func UploadSyncOSS(c *gin.Context) {
 	var file model.Files
 	var up model.Files
 	var req struct {
@@ -224,6 +225,60 @@ func AddOSS(c *gin.Context) {
 		up.Id = req.LocalId
 	}
 	err, file = service.NewFileService(req.Path).OSSAdd(up, false) //本地文件上传到IPFS
+	if err != nil {
+		log.Error("本地文件上传到OSS!", err)
+		jsonErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	if file.Id > 0 {
+		jsonResult(c, http.StatusOK, map[string]interface{}{
+			"file": file,
+		})
+		return
+	} else {
+		jsonResult(c, http.StatusOK, map[string]interface{}{})
+		return
+	}
+}
+
+func UploadSyncWx(c *gin.Context) {
+	var file model.Files
+	var up model.Files
+	var req struct {
+		RemoteUrl string          `json:"remote_url"`
+		LocalId   uint            `json:"local_id"`
+		FileType  consts.FileType `json:"file_type"`
+		Appid     string          `json:"appid"`
+	}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		jsonErr(c, http.StatusInternalServerError, ErrUploadFail)
+		return
+	}
+	pathStr := c.Param("path")
+	if req.Appid == "" {
+		jsonErr(c, http.StatusInternalServerError, errors.New("appid不能为空"))
+		return
+	}
+	up.FileType = req.FileType
+	uid, _ := auth.Identity(c)
+	up.Uid = uint(uid)
+	hookReq := hook.GenerateFileTag(c)
+	up.Tag = hookReq.Tag
+	up.Name = fun.MD5(req.RemoteUrl) + filepath.Ext(req.RemoteUrl)
+	if req.RemoteUrl != "" {
+		up.From = req.RemoteUrl
+		err, fileLocal := service.NewFileService(pathStr).DownloadFile(up, true) // 文件上传后拿到文件路径
+		if err != nil {
+			log.Error("远程文件下载失败!", err)
+			jsonErr(c, http.StatusInternalServerError, err)
+			return
+		}
+		up.From = fileLocal.Url
+	} else {
+		up.Id = req.LocalId
+	}
+	err, file = service.NewFileService(pathStr).WxAdd(req.Appid, up) //本地文件上传到IPFS
 	if err != nil {
 		log.Error("本地文件上传到OSS!", err)
 		jsonErr(c, http.StatusInternalServerError, err)

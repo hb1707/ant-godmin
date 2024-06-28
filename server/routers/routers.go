@@ -6,6 +6,7 @@ import (
 	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/routers/html"
 	"github.com/hb1707/ant-godmin/routers/json"
+	"github.com/hb1707/ant-godmin/sdk/upload"
 	"github.com/hb1707/ant-godmin/setting"
 	"net/http"
 )
@@ -29,7 +30,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 	} else {
 		gin.SetMode(gin.DebugMode) //debug
 	}
-	r.Static("/upload", setting.Upload.LocalPath)
+	r.Static(upload.UploadPath, setting.Upload.LocalPath)
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
 	})
@@ -53,8 +54,9 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 			systemGroup.GET("/qywx-launch-code", json.WxGetLaunchCode)
 			systemGroup.POST("/file/upload/:path", json.UploadOSS)
 			systemGroup.POST("/file/download/:path", json.DownloadFile)
-			systemGroup.POST("/file/local-ipfs/:path", json.AddIPFS)
-			systemGroup.POST("/file/local-oss/:path", json.AddOSS)
+			systemGroup.POST("/file/local-ipfs/:path", json.UploadSyncIPFS)
+			systemGroup.POST("/file/local-oss/:path", json.UploadSyncOSS)
+			systemGroup.POST("/file/local-wx/:path", json.UploadSyncWx)
 			systemGroup.POST("/file/local/:path", json.UploadLocal)
 			systemGroup.POST("/wx-oa-token", json.WxOffiaccountToken) //获取公众号access_token
 		}
