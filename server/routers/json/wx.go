@@ -63,7 +63,7 @@ func WxOffiaccountToken(c *gin.Context) {
 		jsonErr(c, http.StatusBadRequest, err)
 		return
 	}
-	accessToken, err := auth.GetMpAccessToken(req.AppId)
+	accessToken, err := auth.GetMpAccessToken(req.AppId, true)
 	if err != nil {
 		jsonErr(c, http.StatusInternalServerError, err)
 		return

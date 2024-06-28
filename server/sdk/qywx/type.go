@@ -1,6 +1,21 @@
 package qywx
 
-import "github.com/silenceper/wechat/v2/work/message"
+import (
+	"github.com/silenceper/wechat/v2/cache"
+	"github.com/silenceper/wechat/v2/work/message"
+)
+
+var WxMemory map[string]cache.Cache
+
+func Memory(appid string) cache.Cache {
+	if WxMemory == nil {
+		WxMemory = make(map[string]cache.Cache)
+	}
+	if WxMemory[appid] == nil {
+		WxMemory[appid] = cache.NewMemory()
+	}
+	return WxMemory[appid]
+}
 
 // SendTextRequest 发送文本消息的请求
 type TemplateCardRequest struct {

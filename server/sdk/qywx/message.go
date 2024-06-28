@@ -5,7 +5,6 @@ import (
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/silenceper/wechat/v2"
-	"github.com/silenceper/wechat/v2/cache"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/message"
 	"strconv"
@@ -14,12 +13,11 @@ import (
 
 func WxPushMsgToStaff(appid string, userid []string, msg string) string {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxCon := miniapp.GetMessage()
@@ -39,12 +37,11 @@ func WxPushMsgToStaff(appid string, userid []string, msg string) string {
 }
 func WxPushMsgToGroup(appid string, userid []string, msg string) string {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxCon := miniapp.GetMessage()
@@ -64,12 +61,11 @@ func WxPushMsgToGroup(appid string, userid []string, msg string) string {
 }
 func WxPushMsgCard(appid string, userid []string, msg *TemplateCardButton) (string, string, error) {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxCon := miniapp.GetMessage()
@@ -89,12 +85,11 @@ func WxPushMsgCard(appid string, userid []string, msg *TemplateCardButton) (stri
 }
 func WxPushMsgCardUpdate(appid string, userid []string, responseCode string, agentId int, replaceName string) string {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxCon := miniapp.GetMessage()

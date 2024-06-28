@@ -1,9 +1,9 @@
 package qywx
 
 import (
+	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/silenceper/wechat/v2"
-	"github.com/silenceper/wechat/v2/cache"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/kf"
 	"log"
@@ -12,12 +12,11 @@ import (
 
 func WxKfDecrypt(appid string, req kf.SignatureOptions) string {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:         setting.Corpid,
 		AgentID:        setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret:     setting.QyWxAppConfig[appid].KfSecret,
-		Cache:          memory,
+		Cache:          auth.Memory(appid),
 		Token:          setting.WxWorkToken,
 		EncodingAESKey: setting.WxWorkEncodingAESKey,
 	}
@@ -31,10 +30,9 @@ func WxKfDecrypt(appid string, req kf.SignatureOptions) string {
 }
 func WxServerDecryptGet(req *http.Request, writer http.ResponseWriter) string {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:         setting.Corpid,
-		Cache:          memory,
+		Cache:          auth.Memory("appid"),
 		Token:          setting.WxWorkToken,
 		EncodingAESKey: setting.WxWorkEncodingAESKey,
 	}

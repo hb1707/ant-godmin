@@ -18,19 +18,30 @@ import (
 	"time"
 )
 
+var WxMemory map[string]cache.Cache
+
+func Memory(appid string) cache.Cache {
+	if WxMemory == nil {
+		WxMemory = make(map[string]cache.Cache)
+	}
+	if WxMemory[appid] == nil {
+		WxMemory[appid] = cache.NewMemory()
+	}
+	return WxMemory[appid]
+}
+
 var cacheGetMpAccessTokenTime = make(map[string]time.Time)
 var cacheMpAccessToken = make(map[string]string)
 
-func GetMpAccessToken(appId string) (string, error) {
-	if time.Since(cacheGetMpAccessTokenTime[appId]) < time.Hour && cacheMpAccessToken[appId] != "" {
+func GetMpAccessToken(appId string, isRefresh bool) (string, error) {
+	if !isRefresh && time.Since(cacheGetMpAccessTokenTime[appId]) < time.Minute*3 && cacheMpAccessToken[appId] != "" {
 		return cacheMpAccessToken[appId], nil
 	}
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &offConfig.Config{
 		AppID:     appId,
 		AppSecret: setting.WxAppConfig[appId].AppSecret,
-		Cache:     memory,
+		Cache:     Memory(appId),
 	}
 	official := wc.GetOfficialAccount(cfg)
 	res, err := official.GetAccessToken()
@@ -52,14 +63,13 @@ func GetMpJsConfig(appId, url string) (*offJS.Config, error) {
 		return cacheMpJsConfig[cacheKey], nil
 	}
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &offConfig.Config{
 		AppID:     appId,
 		AppSecret: setting.WxAppConfig[appId].AppSecret,
-		Cache:     memory,
+		Cache:     Memory(appId),
 	}
 	official := wc.GetOfficialAccount(cfg)
-	accessToken, err := GetMpAccessToken(appId)
+	accessToken, err := GetMpAccessToken(appId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -95,11 +105,10 @@ func GetMpJsConfig(appId, url string) (*offJS.Config, error) {
 
 func GetOpenID(appid, code string) (auth.ResCode2Session, error) {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &miniConfig.Config{
 		AppID:     appid,
 		AppSecret: setting.WxAppConfig[appid].AppSecret,
-		Cache:     memory,
+		Cache:     Memory(appid),
 	}
 	miniapp := wc.GetMiniProgram(cfg)
 	wxAuth := miniapp.GetAuth()
@@ -108,12 +117,11 @@ func GetOpenID(appid, code string) (auth.ResCode2Session, error) {
 }
 func GetQyOpenID(appid, code string) (oauth.ResUserInfo, error) {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxAuth := miniapp.GetOauth()
@@ -122,12 +130,11 @@ func GetQyOpenID(appid, code string) (oauth.ResUserInfo, error) {
 }
 func GetQyWxUserID(appid, code string) (oauth.ResUserInfo, error) {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxAuth := miniapp.GetOauth()
@@ -137,11 +144,10 @@ func GetQyWxUserID(appid, code string) (oauth.ResUserInfo, error) {
 
 func GetQyWxConfig(appid, url string) (conf *workJS.Config) {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxJs := miniapp.GetJs()
@@ -162,12 +168,11 @@ func GetQyWxAgentConfig(appid, url string) (conf *workJS.Config) {
 		return cacheQyWxAgentConfig[cacheKey]
 	}
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxJs := miniapp.GetJs()
@@ -182,12 +187,11 @@ func GetQyWxAgentConfig(appid, url string) (conf *workJS.Config) {
 }
 func GetQyUser(appid, userID string) (*addresslist.UserGetResponse, error) {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxUser := miniapp.GetAddressList()
@@ -204,12 +208,11 @@ type ReqLaunchCode struct {
 
 func GetQyLaunchCode(appid, userID, other string) (*oauth.RespLaunchCode, error) {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
-		Cache:      memory,
+		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxUser := miniapp.GetOauth()

@@ -4,7 +4,6 @@ import (
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/silenceper/wechat/v2"
-	"github.com/silenceper/wechat/v2/cache"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/externalcontact"
 	"strconv"
@@ -12,10 +11,9 @@ import (
 
 func WxGetUser(appid string, qyUserid string) externalcontact.ExternalUserDetailResponse {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		Cache:      memory,
+		Cache:      Memory(appid),
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 	}
@@ -29,10 +27,9 @@ func WxGetUser(appid string, qyUserid string) externalcontact.ExternalUserDetail
 }
 func WxEditUserTag(appid string, qyUserid string, externalUserid string, tags []string) error {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		Cache:      memory,
+		Cache:      Memory(appid),
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 	}
@@ -52,11 +49,10 @@ func WxEditUserTag(appid string, qyUserid string, externalUserid string, tags []
 
 func WxGetMyUsers(qyUserid string) []string {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	appid := setting.AdminAppid
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		Cache:      memory,
+		Cache:      Memory(appid),
 		AgentID:    setting.QyWxAppConfig[appid].AgentId,
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 	}
@@ -71,11 +67,10 @@ func WxGetMyUsers(qyUserid string) []string {
 }
 func WxPushMsgToUser(externalUserid []string, msg string) string {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		CorpSecret: setting.SecretExternalContact,
-		Cache:      memory,
+		Cache:      Memory("appid"),
 	}
 	miniapp := wc.GetWork(cfg)
 	wxCon := miniapp.GetExternalContact()

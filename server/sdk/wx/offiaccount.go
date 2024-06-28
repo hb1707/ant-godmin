@@ -1,19 +1,18 @@
 package wx
 
 import (
+	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/silenceper/wechat/v2"
-	"github.com/silenceper/wechat/v2/cache"
 	offConfig "github.com/silenceper/wechat/v2/officialaccount/config"
 )
 
 func WxOaUploadImg(appId string, image string) (string, error) {
 	wc := wechat.NewWechat()
-	memory := cache.NewMemory()
 	cfg := &offConfig.Config{
 		AppID:     appId,
 		AppSecret: setting.WxAppConfig[appId].AppSecret,
-		Cache:     memory,
+		Cache:     auth.Memory(appId),
 	}
 	official := wc.GetOfficialAccount(cfg)
 	m := official.GetMaterial()
