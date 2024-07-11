@@ -115,6 +115,18 @@ func GetOpenID(appid, code string) (auth.ResCode2Session, error) {
 	res, err := wxAuth.Code2Session(code)
 	return res, err
 }
+func GetPhone(appid, code string) (*auth.GetPhoneNumberResponse, error) {
+	wc := wechat.NewWechat()
+	cfg := &miniConfig.Config{
+		AppID:     appid,
+		AppSecret: setting.WxAppConfig[appid].AppSecret,
+		Cache:     Memory(appid),
+	}
+	miniapp := wc.GetMiniProgram(cfg)
+	wxAuth := miniapp.GetAuth()
+	res, err := wxAuth.GetPhoneNumber(code)
+	return res, err
+}
 func GetQyOpenID(appid, code string) (oauth.ResUserInfo, error) {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
