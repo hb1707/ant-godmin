@@ -32,6 +32,7 @@ func WxPushMsgToStaff(appid string, userid []string, msg string) string {
 	res, err := wxCon.SendText(reqMsg)
 	if err != nil {
 		log.Error("[ERROR]", err)
+		return ""
 	}
 	return res.MsgID
 }
@@ -56,6 +57,7 @@ func WxPushMsgToGroup(appid string, userid []string, msg string) string {
 	res, err := wxCon.SendText(reqMsg)
 	if err != nil {
 		log.Error("[ERROR]", err)
+		return ""
 	}
 	return res.MsgID
 }
@@ -105,6 +107,7 @@ func WxPushMsgCardUpdate(appid string, userid []string, responseCode string, age
 	res, err := wxCon.UpdateTemplate(reqMsg)
 	if err != nil {
 		log.Error("[ERROR]", err)
+		return ""
 	}
 	return res
 }
