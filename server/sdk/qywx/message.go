@@ -7,6 +7,7 @@ import (
 	"github.com/silenceper/wechat/v2"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/message"
+	log2 "log"
 	"strconv"
 	"strings"
 )
@@ -31,7 +32,7 @@ func WxPushMsgToStaff(appid string, userid []string, msg string) string {
 	}
 	res, err := wxCon.SendText(reqMsg)
 	if err != nil {
-		log.Error("[ERROR]", err)
+		log2.Println("[ERROR]", err) //防止循环引用
 		return ""
 	}
 	return res.MsgID

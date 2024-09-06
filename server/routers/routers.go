@@ -57,6 +57,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 			systemGroup.POST("/file/local-ipfs/:path", json.UploadSyncIPFS)
 			systemGroup.POST("/file/local-oss/:path", json.UploadSyncOSS)
 			systemGroup.POST("/file/local-wx/:path", json.UploadSyncWx)
+			systemGroup.POST("/file/read-xls", json.ReadXls)
 			systemGroup.POST("/file/local/:path", json.UploadLocal)
 			systemGroup.POST("/wx-oa-token", json.WxOffiaccountToken) //获取公众号access_token
 		}

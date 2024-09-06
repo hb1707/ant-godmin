@@ -238,10 +238,3 @@ type ReqUser struct {
 	From  string `json:"from" form:"from"`
 	Appid string `json:"appid" form:"appid"`
 }
-
-type ReqUserPhone struct {
-	Code    string `json:"code" form:"code"`
-	UnionID string `json:"unionId" form:"unionId"`
-	From    string `json:"from" form:"from"`
-	Appid   string `json:"appid" form:"appid"`
-}

@@ -10,6 +10,7 @@ import (
 	"github.com/hb1707/ant-godmin/routers/hook"
 	"github.com/hb1707/ant-godmin/service"
 	"github.com/hb1707/exfun/fun"
+	"github.com/xuri/excelize/v2"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -249,6 +250,7 @@ func UploadSyncWx(c *gin.Context) {
 		LocalId   uint            `json:"local_id"`
 		FileType  consts.FileType `json:"file_type"`
 		Appid     string          `json:"appid"`
+		TypeId    uint            `json:"type_id"`
 	}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -278,6 +280,7 @@ func UploadSyncWx(c *gin.Context) {
 	} else {
 		up.Id = req.LocalId
 	}
+	up.TypeId = req.TypeId
 	err, file = service.NewFileService(pathStr).WxAdd(req.Appid, up) //本地文件上传到IPFS
 	if err != nil {
 		log.Error("本地文件上传到OSS!", err)
@@ -293,4 +296,30 @@ func UploadSyncWx(c *gin.Context) {
 		jsonResult(c, http.StatusOK, map[string]interface{}{})
 		return
 	}
+}
+
+func ReadXls(c *gin.Context) {
+	//uid, _ := auth.Identity(c)
+	file, _, err := c.Request.FormFile("file")
+	if err != nil {
+		jsonErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	defer file.Close()
+	f, err := excelize.OpenReader(file)
+	if err != nil {
+		jsonErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	//xlsTmpName := fmt.Sprintf("%s/%d_%s.xlsx", setting.Upload.LocalPath, uid, time.Now().Format("20060102150405"))
+	//f.Path = xlsTmpName
+	sheetIndex := f.GetActiveSheetIndex()
+	sheetName := f.GetSheetName(sheetIndex)
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		jsonErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	jsonResult(c, http.StatusOK, rows)
+	return
 }
