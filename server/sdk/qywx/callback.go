@@ -37,7 +37,7 @@ func WxServerDecryptGet(req *http.Request, writer http.ResponseWriter) string {
 		EncodingAESKey: setting.WxWorkEncodingAESKey,
 	}
 	work := wc.GetWork(cfg)
-	wxMsg := work.GetPushReceiver(req, writer)
+	wxMsg := work.GetServer(req, writer)
 	res, err := wxMsg.VerifyURL()
 	if err != nil {
 		log.Println("[ERROR]", err)

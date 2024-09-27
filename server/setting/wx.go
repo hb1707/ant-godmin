@@ -22,6 +22,9 @@ var (
 
 	WxWorkToken           = ""
 	WxWorkEncodingAESKey  = ""
+	WxMAppToken           = ""
+	WxMAppEncodingAESKey  = ""
+
 	SecretExternalContact = ""
 )
 
