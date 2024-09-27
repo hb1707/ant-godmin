@@ -6,7 +6,6 @@ import (
 	"github.com/silenceper/wechat/v2"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/externalcontact"
-	"strconv"
 )
 
 func WxGetUser(appid string, qyUserid string) externalcontact.ExternalUserDetailResponse {
@@ -72,15 +71,15 @@ func WxPushMsgToUser(externalUserid []string, msg string) string {
 		CorpSecret: setting.SecretExternalContact,
 		Cache:      Memory("appid"),
 	}
-	miniapp := wc.GetWork(cfg)
-	wxCon := miniapp.GetExternalContact()
-	var reqMsg = new(externalcontact.ReqMessage)
-	reqMsg.ChatType = externalcontact.ChatTypeSingle
-	reqMsg.ExternalUserid = externalUserid
+	work := wc.GetWork(cfg)
+	wxCon := work.GetExternalContact()
+	var reqMsg = new(externalcontact.AddMsgTemplateRequest)
+	reqMsg.ChatType = "single"
+	reqMsg.ExternalUserID = externalUserid
 	reqMsg.Text.Content = msg
-	res, err := wxCon.Send(reqMsg)
+	res, err := wxCon.AddMsgTemplate(reqMsg)
 	if err != nil {
 		log.Error(err)
 	}
-	return strconv.FormatInt(res, 10)
+	return res.MsgID
 }

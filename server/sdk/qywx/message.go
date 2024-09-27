@@ -8,7 +8,6 @@ import (
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/message"
 	log2 "log"
-	"strconv"
 	"strings"
 )
 
@@ -24,7 +23,7 @@ func WxPushMsgToStaff(appid string, userid []string, msg string) string {
 	wxCon := miniapp.GetMessage()
 	var reqMsg message.SendTextRequest
 	reqMsg.SendRequestCommon = new(message.SendRequestCommon)
-	reqMsg.AgentID, _ = strconv.Atoi(setting.QyWxAppConfig[appid].AgentId)
+	reqMsg.AgentID = setting.QyWxAppConfig[appid].AgentId
 	reqMsg.ToUser = strings.Join(userid, "|")
 	reqMsg.MsgType = "text"
 	reqMsg.Text = message.TextField{
@@ -50,7 +49,7 @@ func WxPushMsgToGroup(appid string, userid []string, msg string) string {
 	var reqMsg message.SendTextRequest
 	reqMsg.SendRequestCommon = new(message.SendRequestCommon)
 	reqMsg.ToUser = strings.Join(userid, "|")
-	reqMsg.AgentID, _ = strconv.Atoi(setting.QyWxAppConfig[appid].AgentId)
+	reqMsg.AgentID = setting.QyWxAppConfig[appid].AgentId
 	reqMsg.MsgType = "text"
 	reqMsg.Text = message.TextField{
 		Content: msg,
@@ -75,7 +74,7 @@ func WxPushMsgCard(appid string, userid []string, msg *TemplateCardButton) (stri
 	var reqMsg TemplateCardRequest
 	reqMsg.SendRequestCommon = new(message.SendRequestCommon)
 	reqMsg.ToUser = strings.Join(userid, "|")
-	reqMsg.AgentID, _ = strconv.Atoi(setting.QyWxAppConfig[appid].AgentId)
+	reqMsg.AgentID = setting.QyWxAppConfig[appid].AgentId
 	reqMsg.MsgType = "template_card"
 	reqMsg.TemplateCard = msg
 	res, err := wxCon.Send("MessageSendTemplateCard", reqMsg)
