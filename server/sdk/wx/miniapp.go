@@ -11,7 +11,7 @@ import (
 )
 
 // MAppDecryptPost 解密微信小程序消息
-func MAppDecryptPost(appid string, r *http.Request) (message.PushData, error) {
+func MAppDecryptPost(appid string, r *http.Request) (message.MsgType, message.EventType, message.PushData, error) {
 	wc := wechat.NewWechat()
 	memory := auth.Memory(appid)
 	sessionKey := setting.WxMAppEncodingAESKey
@@ -26,13 +26,13 @@ func MAppDecryptPost(appid string, r *http.Request) (message.PushData, error) {
 	msgType, eventType, data, err := wxServ.GetMsgData(r)
 	if err != nil {
 		log.Error("GetMsgData", msgType, eventType, err)
-		return nil, err
+		return "", "", nil, err
 	}
-	return data, nil
+	return msgType, eventType, data, nil
 }
 
 // MAppDecryptGet 解密微信小程序消息
-func MAppDecryptGet(appid string, r *http.Request) (message.PushData, error) {
+func MAppDecryptGet(appid string, r *http.Request) (string, message.PushData, error) {
 	wc := wechat.NewWechat()
 	memory := auth.Memory(appid)
 	sessionKey := setting.WxMAppEncodingAESKey
@@ -47,7 +47,7 @@ func MAppDecryptGet(appid string, r *http.Request) (message.PushData, error) {
 	msgType, data, err := wxServ.GetMsg(r)
 	if err != nil {
 		log.Error("GetMsgData", msgType, err)
-		return nil, err
+		return "", nil, err
 	}
-	return data, nil
+	return msgType, data, nil
 }
