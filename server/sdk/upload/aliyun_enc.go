@@ -53,7 +53,20 @@ func (*AliyunOSSEnc) AllObjects(path string, continuation string) (pathList []ma
 
 // GetInfo 文件的信息
 func (*AliyunOSSEnc) GetInfo(key string) (info map[string]string, err error) {
-	return
+	// 将Object下载到本地文件，并保存到指定的本地路径中。如果指定的本地文件存在会覆盖，不存在则新建。
+	bucket, err := NewBucketEnc()
+	if err != nil {
+		return nil, err
+	}
+	// 生成用于下载的签名URL，并指定签名URL的有效时间为60秒。
+	signedURL, err := bucket.SignURL(key, oss.HTTPGet, 60)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{
+		"url": signedURL,
+	}, nil
 }
 func (*AliyunOSSEnc) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	bucket, err := NewBucketEnc()

@@ -290,6 +290,13 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName, contentType)
 	filePath := setting.AliyunOSS.BucketUrl + "/" + newFileName
+	if isEnc {
+		fileMap, err := oss.GetInfo(key)
+		if err != nil {
+			return err, model.Files{}
+		}
+		filePath = fileMap["url"]
+	}
 	if err != nil {
 		return err, model.Files{}
 	}
