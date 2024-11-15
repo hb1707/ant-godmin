@@ -1,8 +1,8 @@
 package qywx
 
 import (
-	"github.com/hb1707/wechat/v2/cache"
-	"github.com/hb1707/wechat/v2/work/message"
+	"github.com/silenceper/wechat/v2/cache"
+	"github.com/silenceper/wechat/v2/work/message"
 )
 
 var WxMemory map[string]cache.Cache

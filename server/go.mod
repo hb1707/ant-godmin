@@ -11,7 +11,7 @@ require (
 	github.com/go-ini/ini v1.67.0
 	github.com/google/uuid v1.6.0
 	github.com/hb1707/exfun v0.0.0-20230608090108-0046c3544426
-	github.com/hb1707/wechat/v2 v2.1.6
+	github.com/silenceper/wechat/v2 v2.1.6
 	github.com/xuri/excelize/v2 v2.8.1
 	gorm.io/driver/mysql v1.5.6
 	gorm.io/gorm v1.25.10
@@ -64,4 +64,9 @@ require (
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+
+replace (
+	github.com/r3labs/sse/v2 => github.com/hb1707/sse/v2 v2.10.0
+	github.com/silenceper/wechat/v2 => github.com/hb1707/wechat/v2 v2.1.6
 )

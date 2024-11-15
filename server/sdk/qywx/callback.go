@@ -3,8 +3,8 @@ package qywx
 import (
 	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/setting"
-	workConfig "github.com/hb1707/wechat/v2/work/config"
-	"github.com/hb1707/wechat/v2/work/kf"
+	workConfig "github.com/silenceper/wechat/v2/work/config"
+	"github.com/silenceper/wechat/v2/work/kf"
 	"log"
 	"net/http"
 )

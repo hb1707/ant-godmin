@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/exfun/fun"
-	"github.com/hb1707/wechat/v2/work/addresslist"
+	"github.com/silenceper/wechat/v2/work/addresslist"
 	"strconv"
 	"time"
 )

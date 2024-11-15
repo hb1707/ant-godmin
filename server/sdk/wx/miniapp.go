@@ -4,9 +4,9 @@ import (
 	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
-	"github.com/hb1707/wechat/v2/miniprogram/config"
-	"github.com/hb1707/wechat/v2/miniprogram/message"
-	"github.com/hb1707/wechat/v2/miniprogram/subscribe"
+	"github.com/silenceper/wechat/v2/miniprogram/config"
+	"github.com/silenceper/wechat/v2/miniprogram/message"
+	"github.com/silenceper/wechat/v2/miniprogram/subscribe"
 	"net/http"
 )
 
