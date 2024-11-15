@@ -10,14 +10,15 @@ import (
 )
 
 func QyWxConnect(c *gin.Context) {
+	appid := setting.AdminAppid
 	if fun.Stripos(c.Request.UserAgent(), "wxwork") > 0 {
 		c.Redirect(http.StatusFound, fmt.Sprintf(
 			"https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s/user/connect&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect",
-			setting.Corpid, setting.App.WEBURL))
+			setting.QyWxAppConfig[appid].Corpid, setting.App.WEBURL))
 	} else {
 		c.Redirect(http.StatusFound, fmt.Sprintf(
 			"https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%d&redirect_uri=%s/user/connect&state=STATE",
-			setting.Corpid, setting.QyWxAppConfig[setting.AdminAppid].AgentId, setting.App.WEBURL))
+			setting.QyWxAppConfig[appid].Corpid, setting.QyWxAppConfig[appid].AgentId, setting.App.WEBURL))
 	}
 	return
 }
