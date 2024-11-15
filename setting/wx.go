@@ -1,6 +1,6 @@
 package setting
 
-import "github.com/hb1707/ant-godmin/pkg/log"
+import "log"
 
 type WxApp struct {
 	AppSecret      string
@@ -36,9 +36,9 @@ func confQyWxAdmin() {
 			Token:          app.Key("QYWX_TOKEN").MustString(""),
 			EncodingAESKey: app.Key("QYWX_ENCODING_AES_KEY").MustString(""),
 		}
-		log.Info("QyWx Config", AdminAppid, "OK")
+		log.Println("[INFO] QyWx Config", AdminAppid, "OK")
 	} else {
-		log.Error("QyWx Config", AdminAppid, "ERROR", err)
+		log.Println("[ERROR] QyWx Config", AdminAppid, "ERROR", err)
 	}
 }
 
@@ -50,8 +50,8 @@ func ConfWxApp(section string, appid string) {
 			Token:          app.Key("WX_TOKEN").MustString(""),
 			EncodingAESKey: app.Key("WX_ENCODING_AES_KEY").MustString(""),
 		}
-		log.Info("Wx Config", section, "OK")
+		log.Println("[INFO] Wx Config", section, "OK")
 	} else {
-		log.Error("Wx Config", section, "ERROR", err)
+		log.Println("[ERROR] Wx Config", section, "ERROR", err)
 	}
 }
