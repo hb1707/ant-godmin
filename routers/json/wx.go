@@ -16,7 +16,7 @@ func QyWxConnect(c *gin.Context) {
 			setting.Corpid, setting.App.WEBURL))
 	} else {
 		c.Redirect(http.StatusFound, fmt.Sprintf(
-			"https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%s&redirect_uri=%s/user/connect&state=STATE",
+			"https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=%s&agentid=%d&redirect_uri=%s/user/connect&state=STATE",
 			setting.Corpid, setting.QyWxAppConfig[setting.AdminAppid].AgentId, setting.App.WEBURL))
 	}
 	return

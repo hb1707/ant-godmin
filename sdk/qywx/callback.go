@@ -3,17 +3,19 @@ package qywx
 import (
 	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/setting"
+	"github.com/silenceper/wechat/v2"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/kf"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func WxKfDecrypt(appid string, req kf.SignatureOptions) string {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:         setting.Corpid,
-		AgentID:        setting.QyWxAppConfig[appid].AgentId,
+		AgentID:        strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret:     setting.QyWxAppConfig[appid].KfSecret,
 		Cache:          auth.Memory(appid),
 		Token:          setting.WxWorkToken,

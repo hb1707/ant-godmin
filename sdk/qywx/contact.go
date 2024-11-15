@@ -3,8 +3,10 @@ package qywx
 import (
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
+	"github.com/silenceper/wechat/v2"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/externalcontact"
+	"strconv"
 )
 
 func WxGetUser(appid string, qyUserid string) externalcontact.ExternalUserDetailResponse {
@@ -12,7 +14,7 @@ func WxGetUser(appid string, qyUserid string) externalcontact.ExternalUserDetail
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		Cache:      Memory(appid),
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 	}
 	miniapp := wc.GetWork(cfg)
@@ -28,7 +30,7 @@ func WxEditUserTag(appid string, qyUserid string, externalUserid string, tags []
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		Cache:      Memory(appid),
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 	}
 	miniapp := wc.GetWork(cfg)
@@ -51,7 +53,7 @@ func WxGetMyUsers(qyUserid string) []string {
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
 		Cache:      Memory(appid),
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 	}
 	miniapp := wc.GetWork(cfg)

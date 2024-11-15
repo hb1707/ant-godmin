@@ -15,6 +15,7 @@ import (
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	workJS "github.com/silenceper/wechat/v2/work/js"
 	"github.com/silenceper/wechat/v2/work/oauth"
+	"strconv"
 	"time"
 )
 
@@ -131,7 +132,7 @@ func GetQyOpenID(appid, code string) (oauth.ResUserInfo, error) {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
 	}
@@ -144,7 +145,7 @@ func GetQyWxUserID(appid, code string) (oauth.ResUserInfo, error) {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
 	}
@@ -182,7 +183,7 @@ func GetQyWxAgentConfig(appid, url string) (conf *workJS.Config) {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
 	}
@@ -201,7 +202,7 @@ func GetQyUser(appid, userID string) (*addresslist.UserGetResponse, error) {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
 	}
@@ -222,7 +223,7 @@ func GetQyLaunchCode(appid, userID, other string) (*oauth.RespLaunchCode, error)
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
 	}

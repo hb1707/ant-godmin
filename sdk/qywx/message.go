@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
+	"github.com/silenceper/wechat/v2"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/message"
 	log2 "log"
+	"strconv"
 	"strings"
 )
 
@@ -14,7 +16,7 @@ func WxPushMsgToStaff(appid string, userid []string, msg string) string {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
 	}
@@ -39,7 +41,7 @@ func WxPushMsgToGroup(appid string, userid []string, msg string) string {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
 	}
@@ -64,7 +66,7 @@ func WxPushMsgCard(appid string, userid []string, msg *TemplateCardButton) (stri
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
 	}
@@ -88,7 +90,7 @@ func WxPushMsgCardUpdate(appid string, userid []string, responseCode string, age
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.Corpid,
-		AgentID:    setting.QyWxAppConfig[appid].AgentId,
+		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
 	}

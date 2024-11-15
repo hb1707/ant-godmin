@@ -8,7 +8,7 @@ type WxOffiaccount struct {
 }
 type QyWxApp struct {
 	Secret   string
-	AgentId  string
+	AgentId  int
 	KfSecret string
 }
 
@@ -20,10 +20,10 @@ var (
 	WxAppConfig   = map[string]WxApp{}
 	QyWxAppConfig = map[string]QyWxApp{}
 
-	WxWorkToken           = ""
-	WxWorkEncodingAESKey  = ""
-	WxMAppToken           = ""
-	WxMAppEncodingAESKey  = ""
+	WxWorkToken          = ""
+	WxWorkEncodingAESKey = ""
+	WxMAppToken          = ""
+	WxMAppEncodingAESKey = ""
 
 	SecretExternalContact = ""
 )
@@ -36,7 +36,7 @@ func confQyWxAdmin() {
 	if err == nil {
 		Corpid = app.Key("QYWX_CORPID").MustString("")
 		QyWxAppConfig[AdminAppid] = QyWxApp{
-			AgentId: app.Key("QYWX_AGENT_ID").MustString(""),
+			AgentId: app.Key("QYWX_AGENT_ID").MustInt(0),
 			Secret:  app.Key("QYWX_SECRET").MustString(""),
 		}
 	}
