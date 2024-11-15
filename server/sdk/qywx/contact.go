@@ -3,9 +3,8 @@ package qywx
 import (
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
-	"github.com/silenceper/wechat/v2"
-	workConfig "github.com/silenceper/wechat/v2/work/config"
-	"github.com/silenceper/wechat/v2/work/externalcontact"
+	workConfig "github.com/hb1707/wechat/v2/work/config"
+	"github.com/hb1707/wechat/v2/work/externalcontact"
 )
 
 func WxGetUser(appid string, qyUserid string) externalcontact.ExternalUserDetailResponse {

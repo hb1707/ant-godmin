@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
-	"github.com/silenceper/wechat/v2"
-	workConfig "github.com/silenceper/wechat/v2/work/config"
-	"github.com/silenceper/wechat/v2/work/message"
+	workConfig "github.com/hb1707/wechat/v2/work/config"
+	"github.com/hb1707/wechat/v2/work/message"
 	log2 "log"
 	"strings"
 )
