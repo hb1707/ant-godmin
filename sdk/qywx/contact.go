@@ -12,7 +12,7 @@ import (
 func WxGetUser(appid string, qyUserid string) externalcontact.ExternalUserDetailResponse {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
-		CorpID:     setting.Corpid,
+		CorpID:     setting.QyWxAppConfig[appid].Corpid,
 		Cache:      Memory(appid),
 		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
@@ -28,7 +28,7 @@ func WxGetUser(appid string, qyUserid string) externalcontact.ExternalUserDetail
 func WxEditUserTag(appid string, qyUserid string, externalUserid string, tags []string) error {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
-		CorpID:     setting.Corpid,
+		CorpID:     setting.QyWxAppConfig[appid].Corpid,
 		Cache:      Memory(appid),
 		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
@@ -51,7 +51,7 @@ func WxGetMyUsers(qyUserid string) []string {
 	wc := wechat.NewWechat()
 	appid := setting.AdminAppid
 	cfg := &workConfig.Config{
-		CorpID:     setting.Corpid,
+		CorpID:     setting.QyWxAppConfig[appid].Corpid,
 		Cache:      Memory(appid),
 		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
@@ -65,11 +65,11 @@ func WxGetMyUsers(qyUserid string) []string {
 	return res
 
 }
-func WxPushMsgToUser(externalUserid []string, msg string) string {
+func WxPushMsgToUser(appid string, externalUserid []string, msg string) string {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
-		CorpID:     setting.Corpid,
-		CorpSecret: setting.SecretExternalContact,
+		CorpID:     setting.QyWxAppConfig[appid].Corpid,
+		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory("appid"),
 	}
 	work := wc.GetWork(cfg)

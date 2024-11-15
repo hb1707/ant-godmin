@@ -3,6 +3,7 @@ package wx
 import (
 	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/setting"
+	"github.com/silenceper/wechat/v2"
 	offConfig "github.com/silenceper/wechat/v2/officialaccount/config"
 )
 

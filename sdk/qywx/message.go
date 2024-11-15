@@ -15,7 +15,7 @@ import (
 func WxPushMsgToStaff(appid string, userid []string, msg string) string {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
-		CorpID:     setting.Corpid,
+		CorpID:     setting.QyWxAppConfig[appid].Corpid,
 		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
@@ -40,7 +40,7 @@ func WxPushMsgToStaff(appid string, userid []string, msg string) string {
 func WxPushMsgToGroup(appid string, userid []string, msg string) string {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
-		CorpID:     setting.Corpid,
+		CorpID:     setting.QyWxAppConfig[appid].Corpid,
 		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
@@ -65,7 +65,7 @@ func WxPushMsgToGroup(appid string, userid []string, msg string) string {
 func WxPushMsgCard(appid string, userid []string, msg *TemplateCardButton) (string, string, error) {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
-		CorpID:     setting.Corpid,
+		CorpID:     setting.QyWxAppConfig[appid].Corpid,
 		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
@@ -89,7 +89,7 @@ func WxPushMsgCard(appid string, userid []string, msg *TemplateCardButton) (stri
 func WxPushMsgCardUpdate(appid string, userid []string, responseCode string, agentId int, replaceName string) string {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
-		CorpID:     setting.Corpid,
+		CorpID:     setting.QyWxAppConfig[appid].Corpid,
 		AgentID:    strconv.Itoa(setting.QyWxAppConfig[appid].AgentId),
 		CorpSecret: setting.QyWxAppConfig[appid].Secret,
 		Cache:      Memory(appid),
