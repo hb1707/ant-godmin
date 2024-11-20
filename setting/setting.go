@@ -159,8 +159,8 @@ func confTencentYun() {
 func confAliYun() {
 	tx, err := Cfg.GetSection("aliyun")
 	if err == nil {
-		TencentYun.SecretId = tx.Key("SECRET_ID").MustString("")
-		TencentYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
+		AliYun.SecretId = tx.Key("SECRET_ID").MustString("")
+		AliYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
 	}
 }
 
