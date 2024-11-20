@@ -68,7 +68,10 @@ var TencentYun struct {
 	SecretId  string
 	SecretKey string
 }
-
+var AliYun struct {
+	SecretId  string
+	SecretKey string
+}
 var Log struct {
 	PATH string
 }
@@ -91,6 +94,7 @@ func init() {
 	confUpload()
 	confLog()
 	confTencentYun()
+	confAliYun()
 	confEmail()
 }
 func confApp() {
@@ -152,6 +156,14 @@ func confTencentYun() {
 		TencentYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
 	}
 }
+func confAliYun() {
+	tx, err := Cfg.GetSection("aliyun")
+	if err == nil {
+		TencentYun.SecretId = tx.Key("SECRET_ID").MustString("")
+		TencentYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
+	}
+}
+
 func confEmail() {
 	tx, err := Cfg.GetSection("email")
 	if err == nil {
