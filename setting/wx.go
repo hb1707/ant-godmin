@@ -8,6 +8,7 @@ type WxApp struct {
 	EncodingAESKey string // 接收消息时的EncodingAESKey
 }
 type QyWxApp struct {
+	AdminAppId     string
 	Corpid         string
 	Secret         string
 	AgentId        int
@@ -30,6 +31,7 @@ func confQyWxAdmin() {
 	app, err := Cfg.GetSection(AdminAppid)
 	if err == nil {
 		QyWxAppConfig[AdminAppid] = QyWxApp{
+			AdminAppId:     app.Key("QYWX_ADM_APPID").MustString(AdminAppid),
 			Corpid:         app.Key("QYWX_CORPID").MustString(""),
 			AgentId:        app.Key("QYWX_AGENT_ID").MustInt(0),
 			Secret:         app.Key("QYWX_SECRET").MustString(""),

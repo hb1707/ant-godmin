@@ -15,15 +15,14 @@ var IsTest = false
 var IsCMS = false
 
 var App struct {
-	NAME           string
-	RUNMODE        string
-	APIURL         string
-	WEBURL         string
-	SHAREURL       string
-	WWWURL         string
-	STATICURL      string
-	QyWxAdminAppId string
-	AuthKey        string
+	NAME      string
+	RUNMODE   string
+	APIURL    string
+	WEBURL    string
+	SHAREURL  string
+	WWWURL    string
+	STATICURL string
+	AuthKey   string
 }
 
 var DB struct {
@@ -111,7 +110,6 @@ func confApp() {
 	App.SHAREURL = app.Key("SHARE_URL").MustString(App.WWWURL)
 	App.STATICURL = app.Key("STATIC_URL").MustString(App.WEBURL)
 	App.AuthKey = app.Key("AUTH_KEY").MustString("")
-	App.QyWxAdminAppId = app.Key("QYWX_ADM_APPID").MustString(AdminAppid)
 }
 func confDB() {
 	database, err := Cfg.GetSection("database")
