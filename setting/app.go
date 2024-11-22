@@ -10,6 +10,7 @@ type AppInfo struct {
 	Name    string
 	Version string
 	Desc    string
+	Channel string
 }
 
 func ReadAppInfo(path string) AppInfo {
