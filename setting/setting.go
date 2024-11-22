@@ -23,6 +23,7 @@ var App struct {
 	WWWURL         string
 	STATICURL      string
 	QyWxAdminAppId string
+	AuthKey        string
 }
 
 var DB struct {
@@ -109,6 +110,7 @@ func confApp() {
 	App.WWWURL = app.Key("WWW_URL").MustString(App.WEBURL)
 	App.SHAREURL = app.Key("SHARE_URL").MustString(App.WWWURL)
 	App.STATICURL = app.Key("STATIC_URL").MustString(App.WEBURL)
+	App.AuthKey = app.Key("AUTH_KEY").MustString("")
 	App.QyWxAdminAppId = app.Key("QYWX_ADM_APPID").MustString(AdminAppid)
 }
 func confDB() {
