@@ -15,13 +15,18 @@ import (
 )
 
 var WxMemory map[string]cache.Cache
+var WxMemoryAt map[string]time.Time
 
 func Memory(appid string) cache.Cache {
 	if WxMemory == nil {
 		WxMemory = make(map[string]cache.Cache)
 	}
-	if WxMemory[appid] == nil {
+	if WxMemoryAt == nil {
+		WxMemoryAt = make(map[string]time.Time)
+	}
+	if WxMemory[appid] == nil || time.Since(WxMemoryAt[appid]) > time.Hour {
 		WxMemory[appid] = cache.NewMemory()
+		WxMemoryAt[appid] = time.Now()
 	}
 	return WxMemory[appid]
 }
