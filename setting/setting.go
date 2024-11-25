@@ -89,6 +89,7 @@ func init() {
 		fmt.Printf("找不到配置文件: %v", err)
 		os.Exit(1)
 	}
+	readENV()
 	confApp()
 	confDB()
 	confUpload()
@@ -97,19 +98,26 @@ func init() {
 	confAliYun()
 	confEmail()
 }
+
+func readENV() {
+	App.RUNMODE = os.Getenv("RUN_MODE")
+}
+
 func confApp() {
 	app, err := Cfg.GetSection("app")
 	if err != nil {
 		log.Fatalf("未找到配置 'app': %v", err)
 	}
 	App.NAME = app.Key("APP_NAME").MustString("PDP")
-	App.RUNMODE = app.Key("APP_MODE").MustString("dev")
 	App.APIURL = app.Key("API_URL").MustString("")
 	App.WEBURL = app.Key("WEB_URL").MustString("")
 	App.WWWURL = app.Key("WWW_URL").MustString(App.WEBURL)
 	App.SHAREURL = app.Key("SHARE_URL").MustString(App.WWWURL)
 	App.STATICURL = app.Key("STATIC_URL").MustString(App.WEBURL)
 	App.AuthKey = app.Key("AUTH_KEY").MustString("")
+	if App.RUNMODE == "" {
+		App.RUNMODE = app.Key("APP_MODE").MustString("dev")
+	}
 }
 func confDB() {
 	database, err := Cfg.GetSection("database")
