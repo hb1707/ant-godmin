@@ -78,7 +78,7 @@ func WxPushMsgCard(appid string, userid []string, msg *TemplateCardButton) (stri
 	reqMsg.AgentID = setting.QyWxAppConfig[appid].AgentId
 	reqMsg.MsgType = "template_card"
 	reqMsg.TemplateCard = msg
-	res, err := wxCon.Send("MessageSendTemplateCard", msg)
+	res, err := wxCon.Send("MessageSendTemplateCard", reqMsg)
 	if err != nil {
 		data, _ := json.Marshal(msg)
 		log.Error("[ERROR]", err, string(data))
