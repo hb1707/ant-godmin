@@ -27,22 +27,22 @@ type TemplateCardRequest struct {
 // https://developer.work.weixin.qq.com/document/path/90236#%E6%A8%A1%E6%9D%BF%E5%8D%A1%E7%89%87%E6%B6%88%E6%81%AF
 type TemplateCardButton struct {
 	CardType              string `json:"card_type"`
-	Source                `json:"source,omitempty"`
-	ActionMenu            `json:"action_menu,omitempty"`
-	MainTitle             `json:"main_title,omitempty"`
-	QuoteArea             `json:"quote_area,omitempty"`
-	SubTitleText          string              `json:"sub_title_text,omitempty"`
+	*Source               `json:"source,omitempty"`
+	*ActionMenu           `json:"action_menu,omitempty"`
+	*MainTitle            `json:"main_title,omitempty"`
+	*QuoteArea            `json:"quote_area,omitempty"`
+	SubTitleText          *string             `json:"sub_title_text,omitempty"`
 	HorizontalContentList []HorizontalContent `json:"horizontal_content_list,omitempty"`
 	VerticalContentList   []VerticalContent   `json:"vertical_content_list,omitempty"`
-	CardAction            `json:"card_action,omitempty"`
+	*CardAction           `json:"card_action,omitempty"`
 	JumpList              []Jump `json:"jump_list,omitempty"`
-	EmphasisContent       `json:"emphasis_content,omitempty"`
-	ImageTextArea         `json:"image_text_area,omitempty"`
-	CardImage             `json:"card_image,omitempty"`
-	Checkbox              `json:"checkbox,omitempty"`
+	*EmphasisContent      `json:"emphasis_content,omitempty"`
+	*ImageTextArea        `json:"image_text_area,omitempty"`
+	*CardImage            `json:"card_image,omitempty"`
+	*Checkbox             `json:"checkbox,omitempty"`
 	SelectList            []Select `json:"select_list,omitempty"`
 	TaskId                string   `json:"task_id"`
-	ButtonSelection       `json:"button_selection,omitempty"`
+	*ButtonSelection      `json:"button_selection,omitempty"`
 	ButtonList            []Button `json:"button_list,omitempty"`
 }
 
