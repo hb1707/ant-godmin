@@ -24,7 +24,7 @@ func Memory(appid string) cache.Cache {
 	if WxMemoryAt == nil {
 		WxMemoryAt = make(map[string]time.Time)
 	}
-	if WxMemory[appid] == nil || time.Since(WxMemoryAt[appid]) > time.Hour {
+	if WxMemory[appid] == nil || time.Since(WxMemoryAt[appid]) > time.Minute*5 {
 		WxMemory[appid] = cache.NewMemory()
 		WxMemoryAt[appid] = time.Now()
 	}
