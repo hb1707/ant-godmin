@@ -61,8 +61,13 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 		}
 	}
 	if req.FileId > 0 {
+		var exist model.FilesTemp
+		if key != "" {
+			model.NewFileTemp().Where("key = ?", key).One(&exist)
+		}
 		var temp model.FilesTemp
 		sql := model.NewFileTemp()
+		temp.Id = exist.Id
 		temp.FileId = req.FileId
 		temp.Url = filePath
 		temp.Key = key
@@ -85,7 +90,12 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 			Key:       key,
 			Other:     req.Other,
 		}
+		var exist model.Files
+		if key != "" {
+			model.NewFile().Where("key = ?", key).One(&exist)
+		}
 		sql := model.NewFile()
+		newFile.Id = exist.Id
 		sql.Request(&newFile)
 		err := sql.AddOrUpdate()
 		return err, newFile
@@ -120,7 +130,12 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 		Tag:       req.Tag,
 		Key:       newFileName,
 	}
+	var exist model.Files
+	if filePath != "" {
+		model.NewFile().Where("url = ?", filePath).One(&exist)
+	}
 	sql := model.NewFile()
+	newFile.Id = exist.Id
 	sql.Request(&newFile)
 	err = sql.AddOrUpdate()
 	return err, newFile
@@ -148,8 +163,13 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 		return err, model.Files{}
 	}
 	if saveTemp {
+		var exist model.FilesTemp
+		if filePath != "" {
+			model.NewFileTemp().Where("url = ?", filePath).One(&exist)
+		}
 		var temp model.FilesTemp
 		sql := model.NewFileTemp()
+		temp.Id = exist.Id
 		temp.FileId = req.FileId
 		temp.Url = filePath
 		temp.Key = newFileName
@@ -172,7 +192,12 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 			Tag:       req.Tag,
 			Key:       "",
 		}
+		var exist model.Files
+		if filePath != "" {
+			model.NewFile().Where("url = ?", filePath).One(&exist)
+		}
 		sql := model.NewFile()
+		newFile.Id = exist.Id
 		sql.Request(&newFile)
 		err = sql.AddOrUpdate()
 		return err, newFile
@@ -201,7 +226,12 @@ func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, fi
 		Key:       req.Key,
 	}
 	if saveSql {
+		var exist model.Files
+		if filePath != "" {
+			model.NewFile().Where("url = ?", filePath).One(&exist)
+		}
 		sql := model.NewFile()
+		newFile.Id = exist.Id
 		sql.Request(&newFile)
 		err = sql.AddOrUpdate()
 	}
@@ -248,7 +278,12 @@ func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) 
 		Tag:       req.Tag,
 		Key:       key,
 	}
+	var exist model.Files
+	if filePath != "" {
+		model.NewFile().Where("url = ?", filePath).One(&exist)
+	}
 	sql := model.NewFile()
+	newFile.Id = exist.Id
 	sql.Request(&newFile)
 	err = sql.AddOrUpdate()
 	return err, newFile
@@ -311,7 +346,12 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 		Tag:       req.Tag,
 		Key:       key,
 	}
+	var exist model.Files
+	if filePath != "" {
+		model.NewFile().Where("url = ?", filePath).One(&exist)
+	}
 	sql := model.NewFile()
+	newFile.Id = exist.Id
 	sql.Request(&newFile)
 	err = sql.AddOrUpdate()
 	return err, newFile
@@ -356,7 +396,12 @@ func (f *FileService) WxAdd(appid string, req model.Files) (err error, outFile m
 		Tag:       req.Tag,
 		Key:       appid,
 	}
+	var exist model.Files
+	if res != "" {
+		model.NewFile().Where("url = ?", res).One(&exist)
+	}
 	sql := model.NewFile()
+	newFile.Id = exist.Id
 	sql.Request(&newFile)
 	err = sql.AddOrUpdate()
 	return err, newFile
