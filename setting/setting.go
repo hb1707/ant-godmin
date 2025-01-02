@@ -13,6 +13,7 @@ var (
 
 var IsTest = false
 var IsCMS = false
+var IsReg = false
 
 var App struct {
 	NAME      string

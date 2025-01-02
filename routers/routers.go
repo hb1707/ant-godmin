@@ -42,10 +42,10 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 		systemGroup.GET("/qywx-connect", json.QyWxConnect)
 		systemGroup.GET("/qywx-jsconfig", json.QyWxJsConfig)
 		systemGroup.GET("/qywx-agent-jsconfig", json.QyWxAgentJsConfig)
-		if setting.IsCMS {
-			systemGroup.POST("/reg/account", json.RegisterWithPassword)
+		if setting.IsReg {
+			systemGroup.POST("/account/reg", json.RegisterWithPassword)
 		}
-		systemGroup.POST("/login/account", json.LoginWithPasswordOrQywxCode)
+		systemGroup.POST("/account/login", json.LoginWithPasswordOrQywxCode)
 		systemGroup.POST("/logout", m.LogoutHandler)
 		systemGroup.Use(m.MiddlewareFunc(), auth.CheckTokenUser)
 		{
