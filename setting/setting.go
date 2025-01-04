@@ -62,7 +62,9 @@ var AliyunOSSEnc struct {
 }
 
 var Email struct {
-	PWD string
+	PWD        string
+	SystemMail string
+	AdminEmail string
 }
 
 var TencentYun struct {
@@ -177,6 +179,8 @@ func confEmail() {
 	tx, err := Cfg.GetSection("email")
 	if err == nil {
 		Email.PWD = tx.Key("MAIL_SYS_PWD").MustString("")
+		Email.AdminEmail = tx.Key("MAIL_ADMIN").MustString("")
+		Email.SystemMail = tx.Key("MAIL_SYS").MustString("")
 	}
 }
 func confLog() {

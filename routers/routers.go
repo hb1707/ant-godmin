@@ -24,7 +24,9 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 	} else {
 		config.AddAllowHeaders("Authorization,x-requested-with,withcredentials")
 	}
-	r.Use(gin.Logger(), gin.Recovery(), cors.New(config))
+	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		SkipPaths: []string{"/online/test", "/online/begin"},
+	}), gin.Recovery(), cors.New(config))
 	if isRelease {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
@@ -35,6 +37,8 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
 	})
 	m := auth.Middleware()
+	r.GET("/online/test", json.AppTest)
+	r.GET("/online/begin", json.AppBegin)
 	api := r.Group("/api")
 	{
 		systemGroup := api.Group("/system")

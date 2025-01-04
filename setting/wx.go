@@ -14,6 +14,7 @@ type QyWxApp struct {
 	KfSecret       string
 	Token          string // 接收消息时的token
 	EncodingAESKey string // 接收消息时的EncodingAESKey
+	AdminUserIds   string
 }
 
 var AdminAppid = "qywx"
@@ -35,6 +36,7 @@ func confQyWxAdmin() {
 			Secret:         app.Key("QYWX_SECRET").MustString(""),
 			Token:          app.Key("QYWX_TOKEN").MustString(""),
 			EncodingAESKey: app.Key("QYWX_ENCODING_AES_KEY").MustString(""),
+			AdminUserIds:   app.Key("QYWX_ADMIN_USERIDS").MustString(""),
 		}
 		log.Println("[INFO] QyWx Config", AdminAppid, "OK")
 	} else {
