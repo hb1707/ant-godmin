@@ -63,7 +63,7 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 	if req.FileId > 0 {
 		var exist model.FilesTemp
 		if key != "" {
-			model.NewFileTemp().Where("key = ?", key).One(&exist)
+			model.NewFileTemp().Where("`key` = ?", key).One(&exist)
 		}
 		var temp model.FilesTemp
 		sql := model.NewFileTemp()
@@ -92,7 +92,7 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 		}
 		var exist model.Files
 		if key != "" {
-			model.NewFile().Where("key = ?", key).One(&exist)
+			model.NewFile().Where("`key` = ?", key).One(&exist)
 		}
 		sql := model.NewFile()
 		newFile.Id = exist.Id
