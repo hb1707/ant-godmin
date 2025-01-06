@@ -4,6 +4,7 @@ import (
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/hb1707/ant-godmin/consts"
+	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/exfun/fun"
 	"net/http"
@@ -12,11 +13,12 @@ import (
 )
 
 var (
-	identityKey = "ID"
-	maxRefresh  = time.Hour * 24 * 365
-	tokenMaxAge = time.Hour * 24 * 30 //Second
-	Realm       string
-	Key         string
+	anonymousKey = "AnonymousID"
+	identityKey  = "ID"
+	maxRefresh   = time.Hour * 24 * 365
+	tokenMaxAge  = time.Hour * 24 * 30 //Second
+	Realm        string
+	Key          string
 )
 
 type LoginPost struct {
@@ -210,6 +212,74 @@ func CheckTokenUser(c *gin.Context) {
 	})
 	return
 }
+
+type GinJWTMiddleware struct {
+	*jwt.GinJWTMiddleware
+}
+
+func MiddlewareAnonymous() *GinJWTMiddleware {
+	if Realm == "" {
+		log.Fatal("Realm未配置！")
+	}
+	m, err := NewMiddleware()
+	if err != nil {
+		log.Fatal("JWT Error:" + err.Error())
+	}
+	return &GinJWTMiddleware{
+		m,
+	}
+}
+
+func (mw *GinJWTMiddleware) MiddlewareFuncAnonymous(c *gin.Context) {
+	claims, err := mw.GetClaimsFromJWT(c)
+	if err == nil {
+		if claims["exp"] == nil {
+			c.Next()
+			return
+		}
+
+		if _, ok := claims["exp"].(float64); !ok {
+			c.Next()
+			return
+		}
+
+		if int64(claims["exp"].(float64)) < mw.TimeFunc().Unix() {
+			c.Next()
+			return
+		}
+		c.Set("JWT_PAYLOAD", claims)
+		identity := mw.IdentityHandler(c)
+		if identity != nil {
+			c.Set(anonymousKey, identity)
+		}
+	}
+	c.Next()
+}
+func CheckAdminPublic(c *gin.Context) {
+	sub, exists := c.Get(anonymousKey)
+	if exists {
+		uid := sub.(int)
+		if uid > 0 {
+			c.Set("user_uid", uid)
+		}
+	}
+	staffUid := GetStaffID(c)
+	if staffUid > 0 {
+		staff := model.NewSysUser("id = ?", staffUid).GetOne("")
+		if staff.Id == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"code":    http.StatusUnauthorized,
+				"message": "权限无效！",
+			})
+			return
+		} else {
+			c.Set("authority_id", staff.AuthorityId)
+		}
+	}
+	c.Next()
+	return
+}
+
 func GetUserUID(c *gin.Context) int {
 	sub, exists := c.Get("user_uid")
 	if exists {
