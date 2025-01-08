@@ -13,14 +13,21 @@ import (
 )
 
 const (
-	tokenUri     = "https://api.coze.cn/api/permission/oauth2/token"
-	agentListUri = "https://api.coze.cn/v1/space/published_bots_list"
+	tokenUri                = "https://api.coze.cn/api/permission/oauth2/token"
+	oauthCodeUri            = "https://www.coze.cn/api/permission/oauth2/authorize"
+	oauthCodeUriCollaborate = "https://www.coze.cn/api/permission/oauth2/workspace_id"
+	agentListUri            = "https://api.coze.cn/v1/space/published_bots_list"
+	botPublish              = "https://api.coze.cn/v1/bot/publish"
 )
 
 type Config struct {
-	Host     string
-	Appid    string
-	CertPath string
+	Host         string
+	Appid        string
+	CertPath     string
+	ClientId     string
+	ClientSecret string
+	WorkspaceId  string
+	RedirectUri  string
 }
 
 type Client struct {
@@ -33,7 +40,64 @@ func NewClient(c Config) *Client {
 		Config: c,
 	}
 }
-
+func (c *Client) GetOAuthCodeUri(key string) string {
+	params := map[string]string{
+		"response_type": "code",
+		"client_id":     c.ClientId,
+		"redirect_uri":  c.RedirectUri,
+		"state":         key,
+	}
+	uri := curl.Web(oauthCodeUri, params)
+	return uri
+}
+func (c *Client) GetOAuthCodeUriCollaborate(key string) string {
+	params := map[string]string{
+		"response_type": "code",
+		"client_id":     c.ClientId,
+		"redirect_uri":  c.RedirectUri,
+		"state":         key,
+	}
+	uri := curl.Web(oauthCodeUriCollaborate+"/"+c.WorkspaceId+"/authorize", params)
+	return uri
+}
+func (c *Client) GetOAuthToken(code string) (string, error) {
+	client := curl.Config{
+		Headers: map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": "Bearer " + c.Token,
+		},
+	}
+	params := map[string]any{
+		"grant_type":   "authorization_code",
+		"code":         code,
+		"client_id":    c.ClientId,
+		"redirect_uri": c.RedirectUri,
+	}
+	b, _ := json.Marshal(params)
+	resp, _, err := client.POST(tokenUri, b)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	var result struct {
+		AccessToken  string `json:"access_token"`
+		ExpiresIn    int    `json:"expires_in"`
+		RefreshToken string `json:"refresh_token"`
+		Error        string `json:"error"`
+		ErrorMessage string `json:"error_message"`
+	}
+	err = json.Unmarshal(resp, &result)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	if result.Error != "" {
+		log.Error(result.ErrorMessage)
+		return "", errors.New(result.ErrorMessage)
+	}
+	c.Token = result.AccessToken
+	return result.AccessToken, nil
+}
 func (c *Client) GetJWT(key string) string {
 	// 生成jwt token
 	// 准备 JWT 的 Header 和 Payload
@@ -151,4 +215,48 @@ func (c *Client) GetAgentList(spaceID string) (*AgentList, error) {
 		return nil, err
 	}
 	return &result, nil
+}
+
+type PublishDraftBotData struct {
+	BotId   string `json:"bot_id"`
+	Version string `json:"version"`
+}
+
+type RespBotPublish struct {
+	Code         int                 `json:"code"`
+	Msg          string              `json:"msg"`
+	Data         PublishDraftBotData `json:"data"`
+	Error        string              `json:"error"`
+	ErrorMessage string              `json:"error_message"`
+}
+
+func (c *Client) BotPublish(botID string, connectorIds []string) (string, error) {
+	//log.Debug(token)
+	client := curl.Config{
+		Headers: map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": "Bearer " + c.Token,
+		},
+	}
+	params := map[string]any{
+		"bot_id":        botID,
+		"connector_ids": connectorIds,
+	}
+	b, _ := json.Marshal(params)
+	resp, _, err := client.POST(botPublish, b)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	var result RespBotPublish
+	err = json.Unmarshal(resp, &result)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	if result.Error != "" {
+		log.Error(result.ErrorMessage)
+		return "", errors.New(result.ErrorMessage)
+	}
+	return result.Data.Version, nil
 }

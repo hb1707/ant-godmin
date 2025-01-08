@@ -103,7 +103,7 @@ func CreateTable(dst ...interface{}) {
 }
 func createTable() {
 	if confDB.PRE != "" && confDB.AUTOMIGRATE {
-		err := DB.AutoMigrate(&SysUsers{}, &Files{}, &FilesTemp{}, &Settings{}, &Tables{}, &Fields{})
+		err := DB.AutoMigrate(&Files{}, &FilesTemp{}, &Settings{}, &Tables{}, &Fields{})
 		if err != nil {
 			log.Fatal(err)
 		}
