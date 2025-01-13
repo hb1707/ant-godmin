@@ -127,7 +127,7 @@ func LoginWithPasswordOrQywxCode(c *gin.Context) {
 
 				u := model.NewSysUser()
 				u.UUID = uuid.New()
-				reg.Password1 = "e053cc3b86e072868bfaf1be0be78331" //123456edu_we
+				reg.Password1 = ""
 				reg.Password2 = reg.Password1
 				if reg.Password1 != reg.Password2 {
 					jsonErr(c, http.StatusBadRequest, consts.ErrInconsistentPassword)
