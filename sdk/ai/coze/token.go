@@ -76,7 +76,7 @@ func (c *Client) OAuthCodeUriCollaborate(key string) string {
 	uri := curl.Web(oauthCodeUriCollaborate+"/"+c.WorkspaceId+"/authorize", params)
 	return uri
 }
-func (c *Client) OAuthToken(code string) (string, error) {
+func (c *Client) OAuthToken(code string) (string, string, error) {
 	client := curl.Config{
 		Headers: map[string]string{
 			"Content-Type":  "application/json",
@@ -93,22 +93,22 @@ func (c *Client) OAuthToken(code string) (string, error) {
 	resp, _, err := client.POST(tokenUri, b)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return "", "", err
 	}
 	var result Result
 	err = json.Unmarshal(resp, &result)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return "", "", err
 	}
 	if result.ErrorMessage != "" {
 		log.Error(string(resp))
-		return "", errors.New(result.ErrorMessage)
+		return "", "", errors.New(result.ErrorMessage)
 	}
 	c.Token = result.AccessToken
-	return result.AccessToken, nil
+	return result.AccessToken, result.RefreshToken, nil
 }
-func (c *Client) OAuthTokenRefresh(token string) (string, error) {
+func (c *Client) OAuthTokenRefresh(token string) (string, string, error) {
 	client := curl.Config{
 		Headers: map[string]string{
 			"Content-Type":  "application/json",
@@ -124,20 +124,20 @@ func (c *Client) OAuthTokenRefresh(token string) (string, error) {
 	resp, _, err := client.POST(tokenUri, b)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return "", "", err
 	}
 	var result Result
 	err = json.Unmarshal(resp, &result)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return "", "", err
 	}
 	if result.ErrorMessage != "" {
 		log.Error(string(resp))
-		return "", errors.New(result.ErrorMessage)
+		return "", "", errors.New(result.ErrorMessage)
 	}
 	c.Token = result.AccessToken
-	return result.AccessToken, nil
+	return result.AccessToken, result.RefreshToken, nil
 }
 func (c *Client) GenJWT(key string) string {
 	// 生成jwt token
@@ -175,7 +175,7 @@ func (c *Client) GenJWT(key string) string {
 	}
 	return tokenString
 }
-func (c *Client) TokenByJWT(key string) (string, error) {
+func (c *Client) TokenByJWT(key string) (string, string, error) {
 	var token = c.GenJWT(key)
 	//log.Debug(token)
 	client := curl.Config{
@@ -192,19 +192,19 @@ func (c *Client) TokenByJWT(key string) (string, error) {
 	resp, _, err := client.POST(tokenUri, b)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return "", "", err
 	}
 	var result Result
 	err = json.Unmarshal(resp, &result)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return "", "", err
 	}
 	if result.Error != "" {
 		log.Error(result.ErrorMessage)
-		return "", errors.New(result.ErrorMessage)
+		return "", "", errors.New(result.ErrorMessage)
 	}
 	c.Token = result.AccessToken
-	return result.AccessToken, nil
+	return result.AccessToken, result.RefreshToken, nil
 
 }
