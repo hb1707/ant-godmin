@@ -24,9 +24,6 @@ var (
 	QyWxAppConfig = map[string]QyWxApp{}
 )
 
-func init() {
-	confQyWxAdmin()
-}
 func confQyWxAdmin() {
 	app, err := Cfg.GetSection(AdminAppid)
 	if err == nil {

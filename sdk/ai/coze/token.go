@@ -39,6 +39,7 @@ func NewClient(c Config) *Client {
 		Config: c,
 	}
 }
+
 func (c *Client) OAuthCodeUri(key string) string {
 	params := map[string]string{
 		"response_type": "code",

@@ -5,10 +5,6 @@ var Coze struct {
 	ClientSecret string
 }
 
-func init() {
-	confCoze()
-}
-
 func confCoze() {
 	cz, err := Cfg.GetSection("coze")
 	if err == nil {

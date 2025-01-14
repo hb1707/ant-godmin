@@ -100,6 +100,8 @@ func init() {
 	confTencentYun()
 	confAliYun()
 	confEmail()
+	confQyWxAdmin()
+	confCoze()
 }
 
 func readENV() {
