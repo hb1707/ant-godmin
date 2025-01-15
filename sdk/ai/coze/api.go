@@ -8,6 +8,50 @@ import (
 	"strconv"
 )
 
+type OpenSpace struct {
+	Id            string `json:"id"`
+	Name          string `json:"name"`
+	IconUrl       string `json:"icon_url"`
+	RoleType      string `json:"role_type"`
+	WorkspaceType string `json:"workspace_type"`
+}
+
+type OpenSpaceData struct {
+	Workspaces []OpenSpace
+	TotalCount int `json:"total_count"`
+}
+
+type SpaceList struct {
+	Code int           `json:"code"`
+	Msg  string        `json:"msg"`
+	Data OpenSpaceData `json:"data"`
+}
+
+func (c *Client) GetSpaceList() (*SpaceList, error) {
+	client := curl.Config{
+		Headers: map[string]string{
+			"Content-Type":  "application/json",
+			"Authorization": "Bearer " + c.Token,
+		},
+	}
+	params := map[string]string{
+		"page_size": strconv.Itoa(20),
+		"page_num":  strconv.Itoa(c.Page),
+	}
+	resp, _, err := client.GET(spaceListUri, params)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	var result SpaceList
+	err = json.Unmarshal(resp, &result)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return &result, nil
+}
+
 type SpaceBot struct {
 	BotId       string `json:"bot_id"`
 	BotName     string `json:"bot_name"`
@@ -37,7 +81,7 @@ func (c *Client) GetAgentList(spaceID string) (*AgentList, error) {
 	params := map[string]string{
 		"space_id":   spaceID,
 		"page_size":  strconv.Itoa(20),
-		"page_index": strconv.Itoa(1),
+		"page_index": strconv.Itoa(c.Page),
 	}
 	resp, _, err := client.GET(agentListUri, params)
 	if err != nil {

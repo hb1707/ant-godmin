@@ -16,6 +16,7 @@ const (
 	oauthCodeUri            = "https://www.coze.cn/api/permission/oauth2/authorize"
 	oauthCodeUriCollaborate = "https://www.coze.cn/api/permission/oauth2/workspace_id"
 	agentListUri            = "https://api.coze.cn/v1/space/published_bots_list"
+	spaceListUri            = "https://api.coze.cn/v1/workspaces"
 	botPublish              = "https://api.coze.cn/v1/bot/publish"
 )
 
@@ -31,6 +32,7 @@ type Config struct {
 
 type Client struct {
 	Token string
+	Page  int
 	Config
 }
 
