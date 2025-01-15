@@ -34,6 +34,9 @@ func (c *Client) GetSpaceList() (*SpaceList, error) {
 			"Authorization": "Bearer " + c.Token,
 		},
 	}
+	if c.Page == 0 {
+		c.Page = 1
+	}
 	params := map[string]string{
 		"page_size": strconv.Itoa(20),
 		"page_num":  strconv.Itoa(c.Page),
@@ -48,6 +51,10 @@ func (c *Client) GetSpaceList() (*SpaceList, error) {
 	if err != nil {
 		log.Error(err)
 		return nil, err
+	}
+	if result.Code != 0 {
+		log.Error(result.Msg)
+		return nil, errors.New(result.Msg)
 	}
 	return &result, nil
 }
@@ -78,6 +85,9 @@ func (c *Client) GetAgentList(spaceID string) (*AgentList, error) {
 			"Authorization": "Bearer " + c.Token,
 		},
 	}
+	if c.Page == 0 {
+		c.Page = 1
+	}
 	params := map[string]string{
 		"space_id":   spaceID,
 		"page_size":  strconv.Itoa(20),
@@ -93,6 +103,10 @@ func (c *Client) GetAgentList(spaceID string) (*AgentList, error) {
 	if err != nil {
 		log.Error(err)
 		return nil, err
+	}
+	if result.Code != 0 {
+		log.Error(result.Msg)
+		return nil, errors.New(result.Msg)
 	}
 	return &result, nil
 }
