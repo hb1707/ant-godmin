@@ -44,6 +44,10 @@ func RemoteSync(imgUrl string, path string, pre string, newFileName string) stri
 		return ""
 	}
 	if fun.Stripos(imgUrl, setting.AliyunOSS.BucketUrl) == -1 {
+		imgUrlArr := strings.Split(imgUrl, "?")
+		if len(imgUrlArr) > 1 {
+			imgUrl = imgUrlArr[0]
+		}
 		ext := filepath.Ext(imgUrl)
 		if newFileName == "" {
 			newFileName = pre + fun.MD5(imgUrl)
