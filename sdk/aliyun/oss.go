@@ -43,6 +43,7 @@ func RemoteSync(imgUrl string, path string, pre string, newFileName string) stri
 	if imgUrl == "" {
 		return ""
 	}
+	var oriImgUrl = imgUrl
 	if fun.Stripos(imgUrl, setting.AliyunOSS.BucketUrl) == -1 {
 		imgUrlArr := strings.Split(imgUrl, "?")
 		if len(imgUrlArr) > 1 {
@@ -57,13 +58,13 @@ func RemoteSync(imgUrl string, path string, pre string, newFileName string) stri
 		if ext != "." && ext != "" {
 			newFileName = newFileName + ext
 		}
-		localPath, err := upload.NewUpload(upload.TypeLocal).Download(imgUrl, "tmp/"+newFileName)
+		localPath, err := upload.NewUpload(upload.TypeLocal).Download(oriImgUrl, "tmp/"+newFileName)
 		if err != nil {
-			return imgUrl
+			return oriImgUrl
 		}
 		file, err := os.Open(localPath)
 		if err != nil {
-			return imgUrl
+			return oriImgUrl
 		}
 		defer file.Close()
 		ext2 := filepath.Ext(localPath)
@@ -73,7 +74,7 @@ func RemoteSync(imgUrl string, path string, pre string, newFileName string) stri
 		//上传文件
 		ossPath, err := upload.NewUpload(upload.TypeAliyunOss).Upload(file, path+"/"+newFileName)
 		if err != nil {
-			return imgUrl
+			return oriImgUrl
 		}
 		imgUrl = setting.AliyunOSS.BucketUrl + "/" + ossPath
 	}
