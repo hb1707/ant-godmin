@@ -6,6 +6,7 @@ import (
 	"github.com/volcengine/volcengine-go-sdk/service/arkruntime"
 	"github.com/volcengine/volcengine-go-sdk/service/arkruntime/model"
 	"io"
+	"time"
 )
 
 type Config struct {
@@ -65,12 +66,20 @@ func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionM
 	for {
 		recv, err := stream.Recv()
 		if err == io.EOF {
-			return nil
+			return err
 		}
 		if err != nil {
 			log.Error("standard chat error: %v", err)
 			return err
 		}
-		c.StreamChan <- recv
+		// 超时处理
+		select {
+		case c.StreamChan <- recv:
+		case <-ctx.Done():
+			return nil
+		case <-time.After(5 * time.Second):
+			log.Error("standard chat error: %v", err)
+			return err
+		}
 	}
 }
