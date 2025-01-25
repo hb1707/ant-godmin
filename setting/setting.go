@@ -102,6 +102,7 @@ func init() {
 	confEmail()
 	confQyWxAdmin()
 	confCoze()
+	confVolc()
 }
 
 func readENV() {
