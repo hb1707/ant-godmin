@@ -2,15 +2,17 @@ package fangzhou
 
 import (
 	"context"
+	"fmt"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/volcengine/volcengine-go-sdk/service/arkruntime"
 	"github.com/volcengine/volcengine-go-sdk/service/arkruntime/model"
 	"io"
-	"time"
 )
 
 type Config struct {
 	ApiKey string
+	ApiAk  string
+	ApiSk  string
 }
 
 type Client struct {
@@ -26,8 +28,8 @@ func NewChat(config Config) *Client {
 }
 
 func (c *Client) Chat(endpointId string, messages []*model.ChatCompletionMessage) ([]*model.ChatCompletionChoice, error) {
-	client := arkruntime.NewClientWithApiKey(
-		c.ApiKey,
+	client := arkruntime.NewClientWithAkSk(
+		c.ApiAk, c.ApiSk,
 	)
 	// 创建一个上下文，通常用于传递请求的上下文信息，如超时、取消等
 	ctx := context.Background()
@@ -46,8 +48,9 @@ func (c *Client) Chat(endpointId string, messages []*model.ChatCompletionMessage
 }
 
 func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionMessage) error {
-	client := arkruntime.NewClientWithApiKey(
-		c.ApiKey,
+	client := arkruntime.NewClientWithAkSk(
+		c.ApiAk, c.ApiSk,
+		//arkruntime.WithBaseUrl("https://api-knowledgebase.mlp.cn-beijing.volces.com/api/knowledge"),
 	)
 	// 创建一个上下文，通常用于传递请求的上下文信息，如超时、取消等
 	ctx := context.Background()
@@ -57,7 +60,8 @@ func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionM
 		Messages: messages,
 		Stream:   true,
 	}
-	stream, err := client.CreateChatCompletionStream(ctx, req)
+	stream, err := client.CreateChatCompletionStream(ctx, req)//arkruntime.WithCustomHeader("V-Account-Id", "2103628750"),
+
 	if err != nil {
 		log.Error("standard chat error: %v", err)
 		return err
@@ -65,11 +69,8 @@ func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionM
 	defer stream.Close()
 	for {
 		recv, err := stream.Recv()
-		if err == io.EOF {
-			return err
-		}
-		if err != nil {
-			log.Error("standard chat error: %v", err)
+		if err != nil && err != io.EOF {
+			log.Error(fmt.Sprintf("standard chat error: %v", err))
 			return err
 		}
 		// 超时处理
@@ -77,9 +78,18 @@ func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionM
 		case c.StreamChan <- recv:
 		case <-ctx.Done():
 			return nil
-		case <-time.After(5 * time.Second):
-			log.Error("standard chat error: %v", err)
-			return err
+			//case <-time.After(5 * time.Second):
+			//	log.Error("standard chat error: %v", err)
+			//	return err
 		}
 	}
+}
+func (c *Client) ChatStreamAdd(text string) {
+	var msg model.ChatCompletionStreamResponse
+	msg.Choices = append(msg.Choices, &model.ChatCompletionStreamChoice{
+		Delta: model.ChatCompletionStreamChoiceDelta{
+			Content: text,
+		},
+	})
+	c.StreamChan <- msg
 }
