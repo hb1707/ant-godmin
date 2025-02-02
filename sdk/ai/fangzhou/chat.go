@@ -17,13 +17,15 @@ type Config struct {
 
 type Client struct {
 	Config
-	StreamChan chan model.ChatCompletionStreamResponse
+	BotStreamChan chan model.BotChatCompletionStreamResponse
+	StreamChan    chan model.ChatCompletionStreamResponse
 }
 
 func NewChat(config Config) *Client {
 	return &Client{
-		Config:     config,
-		StreamChan: make(chan model.ChatCompletionStreamResponse),
+		Config:        config,
+		BotStreamChan: make(chan model.BotChatCompletionStreamResponse),
+		StreamChan:    make(chan model.ChatCompletionStreamResponse),
 	}
 }
 
@@ -58,9 +60,8 @@ func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionM
 	req := model.ChatCompletionRequest{
 		Model:    endpointId,
 		Messages: messages,
-		Stream:   true,
 	}
-	stream, err := client.CreateChatCompletionStream(ctx, req)//arkruntime.WithCustomHeader("V-Account-Id", "2103628750"),
+	stream, err := client.CreateChatCompletionStream(ctx, req) //arkruntime.WithCustomHeader("V-Account-Id", "2103628750"),
 
 	if err != nil {
 		log.Error("standard chat error: %v", err)
@@ -84,6 +85,7 @@ func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionM
 		}
 	}
 }
+
 func (c *Client) ChatStreamAdd(text string) {
 	var msg model.ChatCompletionStreamResponse
 	msg.Choices = append(msg.Choices, &model.ChatCompletionStreamChoice{
