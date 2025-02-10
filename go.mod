@@ -16,8 +16,9 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.6.0
 	github.com/hb1707/exfun v0.0.0-20230608090108-0046c3544426
+	github.com/sashabaranov/go-openai v1.37.0
 	github.com/silenceper/wechat/v2 v2.1.7
-	github.com/volcengine/volcengine-go-sdk v1.0.179
+	github.com/volcengine/volcengine-go-sdk v1.0.180
 	github.com/xuri/excelize/v2 v2.8.1
 	gorm.io/driver/mysql v1.5.6
 	gorm.io/gorm v1.25.10
