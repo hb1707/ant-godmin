@@ -7,6 +7,7 @@ import (
 	"github.com/volcengine/volcengine-go-sdk/service/arkruntime"
 	"github.com/volcengine/volcengine-go-sdk/service/arkruntime/model"
 	"io"
+	"time"
 )
 
 type Config struct {
@@ -53,6 +54,7 @@ func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionM
 	client := arkruntime.NewClientWithAkSk(
 		c.ApiAk, c.ApiSk,
 		//arkruntime.WithBaseUrl("https://api-knowledgebase.mlp.cn-beijing.volces.com/api/knowledge"),
+		arkruntime.WithTimeout(10*time.Minute),
 	)
 	// 创建一个上下文，通常用于传递请求的上下文信息，如超时、取消等
 	ctx := context.Background()
