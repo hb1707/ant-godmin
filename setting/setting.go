@@ -103,6 +103,7 @@ func init() {
 	confQyWxAdmin()
 	confCoze()
 	confVolc()
+	confDify()
 }
 
 func readENV() {
