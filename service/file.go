@@ -47,6 +47,7 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 	if newFileName == "" {
 		newFileName = header.Filename
 	}
+	size := header.Size
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName)
 	filePath := setting.AliyunOSS.BucketUrl + "/" + key
@@ -58,6 +59,8 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 			info, _ := oss.GetInfo(key)
 			req.Other.Width, _ = strconv.Atoi(info["image_width"])
 			req.Other.Height, _ = strconv.Atoi(info["image_height"])
+			req.Other.Size = int(size)
+			req.Other.Ext = path.Ext(newFileName)
 		}
 	}
 	if req.FileId > 0 {
