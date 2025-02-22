@@ -20,7 +20,7 @@ type TokenUser struct {
 	UUID        uuid.UUID
 	UidHash     string
 	Uid         string
-	Bid         string
+	Bid         uint
 	Role        string
 	ID          uint
 	Appid       string
