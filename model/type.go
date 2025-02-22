@@ -87,8 +87,9 @@ func (j Config) Value() (driver.Value, error) {
 }
 
 type FileOther struct {
-	Width  int `json:"width"`
-	Height int `json:"height"`
+	Width  int    `json:"width,omitempty"`
+	Height int    `json:"height,omitempty"`
+	Ext    string `json:"ext,omitempty"`
 }
 
 func (j *FileOther) Scan(value interface{}) error {
