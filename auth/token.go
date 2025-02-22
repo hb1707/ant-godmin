@@ -15,7 +15,7 @@ import (
 var (
 	anonymousKey = "AnonymousID"
 	identityKey  = "ID"
-	maxRefresh   = time.Hour * 24 * 365
+	maxRefresh   = time.Hour * 24 * 90
 	tokenMaxAge  = time.Hour * 24 * 30 //Second
 	Realm        string
 	Key          string

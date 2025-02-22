@@ -19,6 +19,9 @@ var PasswordSalt string
 type TokenUser struct {
 	UUID        uuid.UUID
 	UidHash     string
+	Uid         string
+	Bid         string
+	Role        string
 	ID          uint
 	Appid       string
 	AuthorityId string
