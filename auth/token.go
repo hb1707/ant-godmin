@@ -139,6 +139,16 @@ func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 			} else {
 				c.Set("uid_hash", "")
 			}
+			if bid, ok := claims["Bid"].(float64); bid > 0 && ok {
+				c.Set("bid", uint(bid))
+			} else {
+				c.Set("bid", 0)
+			}
+			if sub, ok := claims["Sub"].(string); sub != "" && ok {
+				c.Set("sub", sub)
+			} else {
+				c.Set("sub", "")
+			}
 			return int(claims[identityKey].(float64)) //对应下文Authorizator 接收的参数
 		},
 		//4. 已登录，接收请求时，其他接口将提取的身份信息做最后一步的验证
@@ -295,6 +305,22 @@ func GetUidHash(c *gin.Context) string {
 	}
 	return ""
 }
+
+func GetBid(c *gin.Context) uint {
+	sub, exists := c.Get("bid")
+	if exists {
+		return sub.(uint)
+	}
+	return 0
+}
+func GetBidSub(c *gin.Context) string {
+	sub, exists := c.Get("sub")
+	if exists {
+		return sub.(string)
+	}
+	return ""
+}
+
 func GetAdmUID(c *gin.Context) int {
 	sub, exists := c.Get("adm_uid")
 	if exists {
