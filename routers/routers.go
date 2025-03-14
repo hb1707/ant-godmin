@@ -14,6 +14,7 @@ import (
 // List 路由列表设定
 func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engine {
 	r := gin.New()
+	//r.TrustedPlatform = ""
 	config := cors.DefaultConfig()
 	//config.AllowAllOrigins = true
 	config.AllowCredentials = true
@@ -25,7 +26,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 		config.AddAllowHeaders("Authorization,x-requested-with,withcredentials")
 	}
 	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		SkipPaths: []string{"/online/test", "/online/begin"},
+		SkipPaths: []string{"/online/test", "/online/begin", "/test", "/begin"},
 	}), gin.Recovery(), cors.New(config))
 	if isRelease {
 		gin.SetMode(gin.ReleaseMode)
