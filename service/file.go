@@ -194,6 +194,7 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 			Name:      newFileName,
 			Tag:       req.Tag,
 			Key:       "",
+			Other:     req.Other,
 		}
 		var exist model.Files
 		if filePath != "" {
