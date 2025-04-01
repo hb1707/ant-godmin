@@ -91,7 +91,7 @@ type FileOther struct {
 	Height int    `json:"height,omitempty"`
 	Size   int    `json:"size,omitempty"`
 	Ext    string `json:"ext,omitempty"`
-	Vars   string `json:"vars,omitempty"`
+	Vars   []any  `json:"vars,omitempty"`
 }
 
 func (j *FileOther) Scan(value interface{}) error {
