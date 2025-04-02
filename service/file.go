@@ -189,7 +189,7 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 			Url:       filePath,
 			Name:      head.Filename,
 			Tag:       req.Tag,
-			Key:       "",
+			Key:       newFileName,
 			Other:     req.Other,
 		}
 		var exist model.Files
