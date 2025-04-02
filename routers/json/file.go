@@ -79,6 +79,7 @@ func UploadLocal(c *gin.Context) {
 	pathStr := c.Param("path")
 	typeId, _ := strconv.Atoi(c.DefaultQuery("type_id", "0"))
 	fileType, _ := strconv.Atoi(c.DefaultQuery("file_type", "1"))
+	fileName := c.DefaultQuery("file_name", "")
 	req.TypeId = uint(typeId)
 	req.FileType = consts.FileType(fileType)
 	uid, _ := auth.Identity(c)
@@ -91,6 +92,13 @@ func UploadLocal(c *gin.Context) {
 	}
 	hookReq := hook.GenerateFileTag(c)
 	req.Tag = hookReq.Tag
+	ext := path.Ext(header.Filename)
+	if fileName == "" {
+		name := strings.TrimSuffix(header.Filename, ext)
+		name = fun.MD5(name)
+		fileName = time.Now().Format("2006-01-02") + "/" + name + "_" + time.Now().Format("20060102150405")
+	}
+	req.Name = fileName + ext
 	err, file = service.NewFileService(pathStr).UploadLocal(header, req, false) // 文件上传后拿到文件路径
 	if err != nil {
 		log.Error("上传文件到服务器失败!", err)

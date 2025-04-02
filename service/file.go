@@ -17,7 +17,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type FileService struct {
@@ -149,10 +148,7 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 	local := upload.NewUpload(upload.TypeLocal)
 	newFileName := req.Name
 	if newFileName == "" {
-		ext := path.Ext(head.Filename)
-		name := strings.TrimSuffix(head.Filename, ext)
-		name = fun.MD5(name)
-		newFileName = name + "_" + time.Now().Format("20060102150405") + ext
+		newFileName = head.Filename
 	}
 	file, err := head.Open()
 	if err != nil {
