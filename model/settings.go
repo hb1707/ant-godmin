@@ -31,10 +31,10 @@ func (t *Settings) GetOne(order string) *Settings {
 	return &user
 }
 
-func (t *Settings) Edit() *Settings {
+func (t *Settings) Edit(must ...string) *Settings {
 	var user Settings
 	t.Request(t)
-	err := t.AddOrUpdate()
+	err := t.AddOrUpdate(must)
 	if err != nil {
 		log.Error(err)
 	}
@@ -58,9 +58,11 @@ func SettingGet(k string) string {
 	}
 	if _, exist := SettingsCache[k]; !exist {
 		sql := NewSettings()
-		sql.Key = k
-		sql.Value = ""
-		sql.AddOrUpdate()
+		var up Settings
+		up.Key = k
+		up.Value = ""
+		sql.Request(&up)
+		sql.AddOrUpdate([]string{"setting_key", "setting_value"})
 		SettingsCache[k] = ""
 	}
 	return SettingsCache[k]
