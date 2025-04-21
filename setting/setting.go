@@ -24,6 +24,7 @@ var App struct {
 	WWWURL    string
 	STATICURL string
 	AuthKey   string
+	AesKey    string
 }
 
 var DB struct {
@@ -122,6 +123,7 @@ func confApp() {
 	App.SHAREURL = app.Key("SHARE_URL").MustString(App.WWWURL)
 	App.STATICURL = app.Key("STATIC_URL").MustString(App.WEBURL)
 	App.AuthKey = app.Key("AUTH_KEY").MustString("")
+	App.AesKey = app.Key("AES_KEY").MustString("")
 	if App.RUNMODE == "" {
 		App.RUNMODE = app.Key("APP_MODE").MustString("dev")
 	}
