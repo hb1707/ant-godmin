@@ -38,6 +38,7 @@ var DB struct {
 }
 var Upload struct {
 	LocalPath string
+	UserPath  string
 }
 
 var IPFS struct {
@@ -145,6 +146,7 @@ func confUpload() {
 	upload, err := Cfg.GetSection("upload")
 	if err == nil {
 		Upload.LocalPath = "." + upload.Key("LOCAL_PATH").MustString("")
+		Upload.UserPath = "." + upload.Key("USER_PATH").MustString("")
 		IPFS.IpfsEndpoint = upload.Key("IPFS_ENDPOINT").MustString("")
 		IPFS.IpfsGateway = upload.Key("IPFS_GATEWAY").MustString("")
 		AliyunOSS.Endpoint = upload.Key("ALIYUN_OSS_ENDPOINT").MustString("")
