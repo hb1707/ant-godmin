@@ -20,12 +20,16 @@ import (
 )
 
 type FileService struct {
-	PathType string
+	PathType       string
+	LocalOutputUrl string
+	CloudOutputUrl string
 }
 
 func NewFileService(pathType string) *FileService {
 	var fs = new(FileService)
 	fs.PathType = pathType
+	fs.LocalOutputUrl = setting.App.APIURL
+	fs.CloudOutputUrl = setting.AliyunOSS.BucketUrl
 	return fs
 }
 
@@ -53,11 +57,14 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 		newFileName = header.Filename
 	}
 	size := header.Size
+	if req.UserSpace != "" {
+		newFileName = req.UserSpace + "/" + newFileName
+	}
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName)
-	filePath := setting.AliyunOSS.BucketUrl + "/" + key
+	filePath := f.CloudOutputUrl + "/" + key
 	if req.UserSpace != "" {
-		filePath = setting.AliyunOSS.BucketUrl + upload.RoutePathUser + "/" + req.UserSpace + "/" + key
+		filePath = f.LocalOutputUrl + upload.RoutePathUser + "/" + req.UserSpace + "/" + key
 	}
 	if err != nil {
 		return err, model.Files{}
@@ -130,7 +137,7 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	file := io.Reader(res.Body)
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName)
-	filePath := setting.AliyunOSS.BucketUrl + "/" + key
+	filePath := f.CloudOutputUrl + "/" + key
 	if err != nil {
 		return err, model.Files{}
 	}
@@ -173,9 +180,9 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 	}
 	newFileName = f.prevPathType(newFileName)
 	newFileName, err = local.Upload(file, newFileName)
-	filePath := setting.App.APIURL + upload.RoutePath + "/" + newFileName
+	filePath := f.LocalOutputUrl + upload.RoutePath + "/" + newFileName
 	if req.UserSpace != "" {
-		filePath = setting.App.APIURL + upload.RoutePathUser + "/" + newFileName
+		filePath = f.LocalOutputUrl + upload.RoutePathUser + "/" + newFileName
 	}
 	if err != nil {
 		return err, model.Files{}
@@ -347,7 +354,7 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 	}
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName, contentType)
-	filePath := setting.AliyunOSS.BucketUrl + "/" + newFileName
+	filePath := f.CloudOutputUrl + "/" + newFileName
 	if isEnc {
 		fileMap, err := oss.GetInfo(key)
 		if err != nil {
