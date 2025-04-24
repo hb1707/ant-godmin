@@ -64,7 +64,7 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 	key, err := oss.Upload(file, newFileName)
 	filePath := f.CloudOutputUrl + "/" + key
 	if req.UserSpace != "" {
-		filePath = f.LocalOutputUrl + upload.RoutePathUser + "/" + req.UserSpace + "/" + key
+		filePath = f.LocalOutputUrl + "/" + key
 	}
 	if err != nil {
 		return err, model.Files{}
