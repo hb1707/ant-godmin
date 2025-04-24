@@ -36,13 +36,13 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
 		if req.UserSpace != "" {
 			oss.SetPath(upload.RoutePathUser)
-			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
+			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
 		}
 	} else {
 		oss = upload.NewUpload(upload.TypeAliyunOss)
 		if req.UserSpace != "" {
 			oss.SetPath(upload.RoutePathUser)
-			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
+			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
 		}
 	}
 	newFileName := req.Name
