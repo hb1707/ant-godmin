@@ -51,6 +51,7 @@ var AliyunOSS struct {
 	AccessKeyId     string
 	AccessKeySecret string
 	BucketName      string
+	BucketNameUser  string
 	BucketUrl       string
 	BasePath        string
 }
@@ -59,6 +60,7 @@ var AliyunOSSEnc struct {
 	AccessKeyId     string
 	AccessKeySecret string
 	BucketName      string
+	BucketNameUser  string
 	BucketUrl       string
 	BasePath        string
 }
@@ -153,6 +155,7 @@ func confUpload() {
 		AliyunOSS.AccessKeyId = upload.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
 		AliyunOSS.AccessKeySecret = upload.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
 		AliyunOSS.BucketName = upload.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
+		AliyunOSS.BucketNameUser = upload.Key("ALIYUN_OSS_BUCKET_NAME_USER").MustString("")
 		AliyunOSS.BucketUrl = upload.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
 		AliyunOSS.BasePath = upload.Key("ALIYUN_OSS_BASE_PATH").MustString("")
 	}
@@ -162,10 +165,10 @@ func confUpload() {
 		AliyunOSSEnc.AccessKeyId = uploadEnc.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
 		AliyunOSSEnc.AccessKeySecret = uploadEnc.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
 		AliyunOSSEnc.BucketName = uploadEnc.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
+		AliyunOSSEnc.BucketNameUser = uploadEnc.Key("ALIYUN_OSS_BUCKET_NAME_USER").MustString("")
 		AliyunOSSEnc.BucketUrl = uploadEnc.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
 		AliyunOSSEnc.BasePath = uploadEnc.Key("ALIYUN_OSS_BASE_PATH").MustString("")
 	}
-
 }
 
 func confTencentYun() {

@@ -34,8 +34,16 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 	var oss upload.Cloud
 	if isEnc {
 		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
+		if req.UserSpace != "" {
+			oss.SetPath(upload.RoutePathUser)
+			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
+		}
 	} else {
 		oss = upload.NewUpload(upload.TypeAliyunOss)
+		if req.UserSpace != "" {
+			oss.SetPath(upload.RoutePathUser)
+			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
+		}
 	}
 	newFileName := req.Name
 	file, err := header.Open()

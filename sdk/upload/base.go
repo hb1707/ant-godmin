@@ -11,6 +11,7 @@ type Cloud interface {
 	AllObjects(path string, next string) ([]map[string]string, string, error)
 	GetInfo(key string) (map[string]string, error)
 	SetPath(path string)
+	SetBucket(bucketName string)
 	Upload(file io.Reader, newFileName string, other ...string) (string, error)
 	Copy(ori string, new string) error
 	Download(url string, localPath string) (string, error)
@@ -30,11 +31,13 @@ func NewUpload(cloudType cloudType) Cloud {
 	switch cloudType {
 	case TypeAliyunOss:
 		return &AliyunOSS{
-			BasePath: setting.AliyunOSS.BasePath,
+			BasePath:   setting.AliyunOSS.BasePath,
+			BucketName: setting.AliyunOSS.BucketName,
 		}
 	case TypeAliyunOssEnc:
 		return &AliyunOSSEnc{
-			BasePath: setting.AliyunOSS.BasePath,
+			BasePath:   setting.AliyunOSSEnc.BasePath,
+			BucketName: setting.AliyunOSSEnc.BucketName,
 		}
 	case TypeIpfs:
 		return &IPFS{}

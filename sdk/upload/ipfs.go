@@ -22,6 +22,8 @@ func (c *IPFS) SetPath(path string) {
 
 }
 
+func (c *IPFS) SetBucket(bucketName string) {}
+
 // AllObjects 列举所有文件的信息
 func (*IPFS) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
 

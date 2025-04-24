@@ -38,16 +38,20 @@ type ObjectInfo struct {
 }
 
 type AliyunOSS struct {
-	BasePath string
+	BasePath   string
+	BucketName string
 }
 
 func (c *AliyunOSS) SetPath(path string) {
 	c.BasePath = path
 }
+func (c *AliyunOSS) SetBucket(bucketName string) {
+	c.BucketName = bucketName
+}
 
 // AllObjects 列举所有文件的信息
-func (*AliyunOSS) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
-	bucket, err := NewBucket()
+func (c *AliyunOSS) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
+	bucket, err := NewBucket(c.BucketName)
 	if err != nil {
 		return
 	}
@@ -118,7 +122,7 @@ func (*AliyunOSS) GetInfo(key string) (info map[string]string, err error) {
 }
 
 func (c *AliyunOSS) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
-	bucket, err := NewBucket()
+	bucket, err := NewBucket(c.BucketName)
 	if err != nil {
 		return "", errors.New("AliyunOSS.Upload().NewBucket Error:" + err.Error())
 	}
@@ -134,8 +138,8 @@ func (c *AliyunOSS) Upload(file io.Reader, newFileName string, other ...string) 
 
 	return ossPath, nil
 }
-func (*AliyunOSS) Copy(ori string, new string) error {
-	bucket, err := NewBucket()
+func (c *AliyunOSS) Copy(ori string, new string) error {
+	bucket, err := NewBucket(c.BucketName)
 	if err != nil {
 		return errors.New("AliyunOSS.Copy().NewBucket() Error:" + err.Error())
 	}
@@ -174,12 +178,12 @@ func (*AliyunOSS) Copy(ori string, new string) error {
 	}
 	return nil
 }
-func (*AliyunOSS) Download(url string, localFileName string) (string, error) {
+func (c *AliyunOSS) Download(url string, localFileName string) (string, error) {
 	return "", errors.New("AliyunOSS.Download() Not Support")
 }
 
-func (*AliyunOSS) Delete(key string) error {
-	bucket, err := NewBucket()
+func (c *AliyunOSS) Delete(key string) error {
+	bucket, err := NewBucket(c.BucketName)
 	if err != nil {
 		return errors.New("AliyunOSS.Delete().NewBucket() Error:" + err.Error())
 	}
@@ -191,12 +195,12 @@ func (*AliyunOSS) Delete(key string) error {
 	return nil
 }
 
-func NewBucket() (*oss.Bucket, error) {
+func NewBucket(bucketName string) (*oss.Bucket, error) {
 	client, err := oss.New(setting.AliyunOSS.Endpoint, setting.AliyunOSS.AccessKeyId, setting.AliyunOSS.AccessKeySecret)
 	if err != nil {
 		return nil, err
 	}
-	bucket, err := client.Bucket(setting.AliyunOSS.BucketName)
+	bucket, err := client.Bucket(bucketName)
 	if err != nil {
 		return nil, err
 	}

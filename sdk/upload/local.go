@@ -21,6 +21,9 @@ type Local struct {
 func (c *Local) SetPath(path string) {
 	c.SavePath = path
 }
+func (c *Local) SetBucket(bucketName string) {
+	// c.BucketName = bucketName
+}
 
 // AllObjects 列举所有文件的信息
 func (c *Local) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {

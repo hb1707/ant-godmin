@@ -9,16 +9,20 @@ import (
 )
 
 type AliyunOSSEnc struct {
-	BasePath string
+	BasePath   string
+	BucketName string
 }
 
 func (c *AliyunOSSEnc) SetPath(path string) {
 	c.BasePath = path
 }
+func (c *AliyunOSSEnc) SetBucket(bucketName string) {
+	c.BucketName = bucketName
+}
 
 // AllObjects 列举所有文件的信息
-func (*AliyunOSSEnc) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
-	bucket, err := NewBucket()
+func (c *AliyunOSSEnc) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
+	bucket, err := NewBucketEnc(c.BucketName)
 	if err != nil {
 		return
 	}
@@ -58,9 +62,9 @@ func (*AliyunOSSEnc) AllObjects(path string, continuation string) (pathList []ma
 }
 
 // GetInfo 文件的信息
-func (*AliyunOSSEnc) GetInfo(key string) (info map[string]string, err error) {
+func (c *AliyunOSSEnc) GetInfo(key string) (info map[string]string, err error) {
 	// 将Object下载到本地文件，并保存到指定的本地路径中。如果指定的本地文件存在会覆盖，不存在则新建。
-	bucket, err := NewBucketEnc()
+	bucket, err := NewBucketEnc(c.BucketName)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +79,7 @@ func (*AliyunOSSEnc) GetInfo(key string) (info map[string]string, err error) {
 	}, nil
 }
 func (c *AliyunOSSEnc) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
-	bucket, err := NewBucketEnc()
+	bucket, err := NewBucketEnc(c.BucketName)
 	if err != nil {
 		return "", errors.New("AliyunOSSEnc.Upload().NewBucket Error:" + err.Error())
 	}
@@ -98,8 +102,8 @@ func (*AliyunOSSEnc) Download(url string, localFileName string) (string, error) 
 	return "", errors.New("AliyunOSSEnc.Download() Not Support")
 }
 
-func (*AliyunOSSEnc) Delete(key string) error {
-	bucket, err := NewBucketEnc()
+func (c *AliyunOSSEnc) Delete(key string) error {
+	bucket, err := NewBucketEnc(c.BucketName)
 	if err != nil {
 		return errors.New("AliyunOSSEnc.Delete().NewBucket() Error:" + err.Error())
 	}
@@ -111,12 +115,12 @@ func (*AliyunOSSEnc) Delete(key string) error {
 	return nil
 }
 
-func NewBucketEnc() (*oss.Bucket, error) {
+func NewBucketEnc(bucketName string) (*oss.Bucket, error) {
 	client, err := oss.New(setting.AliyunOSSEnc.Endpoint, setting.AliyunOSSEnc.AccessKeyId, setting.AliyunOSSEnc.AccessKeySecret)
 	if err != nil {
 		return nil, err
 	}
-	bucket, err := client.Bucket(setting.AliyunOSSEnc.BucketName)
+	bucket, err := client.Bucket(bucketName)
 	if err != nil {
 		return nil, err
 	}
