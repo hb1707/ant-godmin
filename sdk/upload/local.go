@@ -12,6 +12,7 @@ import (
 )
 
 var RoutePath = "/upload"
+var RoutePathUser = "/udata"
 
 type Local struct {
 	SavePath string
