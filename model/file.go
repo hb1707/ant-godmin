@@ -6,6 +6,8 @@ type Files struct {
 	TypeId    uint             `json:"type_id" gorm:"type:tinyint UNSIGNED not null;default:0;comment:分类id"`        //分类id 0 图片 2其他 3证件 4APK
 	CloudType consts.CloudType `json:"cloud_type" gorm:"type:tinyint UNSIGNED not null;default:0;comment:云类型"`      //云类型
 	FileType  consts.FileType  `json:"file_type" gorm:"type:tinyint UNSIGNED not null;default:0;comment:文件类型"`      //文件类型,0 未知，1 图片，2 JSON
+	Domain    string           `json:"domain" gorm:"type:varchar(64) not null;default:'';comment:域名"`               //域名
+	UserSpace string           `json:"user_space" gorm:"type:varchar(64) not null;default:'';comment:用户空间"`         //用户空间
 	Uid       uint             `json:"uid" gorm:"type:int UNSIGNED not null;default:0;comment:用户id"`                //用户id
 	From      string           `json:"from" gorm:"type:varchar(255) not null;default:'';comment:用户来源"`              //用户来源
 	Name      string           `json:"name" gorm:"type:varchar(255) not null;default:'';comment:文件名"`               // 文件名

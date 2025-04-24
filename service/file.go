@@ -50,6 +50,9 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName)
 	filePath := setting.AliyunOSS.BucketUrl + "/" + key
+	if req.UserSpace != "" {
+		filePath = setting.AliyunOSS.BucketUrl + upload.RoutePathUser + "/" + req.UserSpace + "/" + key
+	}
 	if err != nil {
 		return err, model.Files{}
 	}
@@ -80,12 +83,15 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 		req.Key = key
 		return err, req
 	} else {
+		filePath = strings.ReplaceAll(filePath, req.Domain, "{DOMAIN}")
 		newFile := model.Files{
 			CloudType: consts.CloudTypeAliyun,
 			FileType:  req.FileType,
 			TypeId:    req.TypeId,
 			From:      req.From,
 			Uid:       req.Uid,
+			Domain:    req.Domain,
+			UserSpace: req.UserSpace,
 			Url:       filePath,
 			Name:      header.Filename,
 			Tag:       req.Tag,
@@ -100,6 +106,7 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 		newFile.Id = exist.Id
 		sql.Request(&newFile)
 		err := sql.AddOrUpdate()
+		newFile.Url = strings.ReplaceAll(newFile.Url, "{DOMAIN}", req.Domain)
 		return err, newFile
 	}
 }
@@ -157,7 +164,10 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 	defer file.Close()
 	newFileName = f.prevPathType(newFileName)
 	newFileName, err = local.Upload(file, newFileName)
-	filePath := setting.App.APIURL + "/upload/" + newFileName
+	filePath := setting.App.APIURL + upload.RoutePath + "/" + newFileName
+	if req.UserSpace != "" {
+		filePath = setting.App.APIURL + upload.RoutePathUser + "/" + req.UserSpace + "/" + newFileName
+	}
 	if err != nil {
 		return err, model.Files{}
 	}
@@ -180,10 +190,13 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 		req.Id = temp.Id
 		return err, req
 	} else {
+		filePath = strings.ReplaceAll(filePath, req.Domain, "{DOMAIN}")
 		newFile := model.Files{
 			CloudType: consts.CloudTypeAliyun,
 			FileType:  req.FileType,
 			TypeId:    req.TypeId,
+			Domain:    req.Domain,
+			UserSpace: req.UserSpace,
 			From:      req.From,
 			Uid:       req.Uid,
 			Url:       filePath,
@@ -200,6 +213,7 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 		newFile.Id = exist.Id
 		sql.Request(&newFile)
 		err = sql.AddOrUpdate()
+		newFile.Url = strings.ReplaceAll(newFile.Url, "{DOMAIN}", req.Domain)
 		return err, newFile
 	}
 }
