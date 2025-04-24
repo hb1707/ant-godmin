@@ -35,13 +35,11 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 	if isEnc {
 		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
 		if req.UserSpace != "" {
-			oss.SetPath(upload.RoutePathUser)
 			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
 		}
 	} else {
 		oss = upload.NewUpload(upload.TypeAliyunOss)
 		if req.UserSpace != "" {
-			oss.SetPath(upload.RoutePathUser)
 			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
 		}
 	}
@@ -170,11 +168,14 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 		return err, model.Files{}
 	}
 	defer file.Close()
+	if req.UserSpace != "" {
+		newFileName = req.UserSpace + "/" + newFileName
+	}
 	newFileName = f.prevPathType(newFileName)
 	newFileName, err = local.Upload(file, newFileName)
 	filePath := setting.App.APIURL + upload.RoutePath + "/" + newFileName
 	if req.UserSpace != "" {
-		filePath = setting.App.APIURL + upload.RoutePathUser + "/" + req.UserSpace + "/" + newFileName
+		filePath = setting.App.APIURL + upload.RoutePathUser + "/" + newFileName
 	}
 	if err != nil {
 		return err, model.Files{}
