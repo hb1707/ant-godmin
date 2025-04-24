@@ -8,7 +8,13 @@ import (
 	"strconv"
 )
 
-type AliyunOSSEnc struct{}
+type AliyunOSSEnc struct {
+	BasePath string
+}
+
+func (c *AliyunOSSEnc) SetPath(path string) {
+	c.BasePath = path
+}
 
 // AllObjects 列举所有文件的信息
 func (*AliyunOSSEnc) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
@@ -68,12 +74,12 @@ func (*AliyunOSSEnc) GetInfo(key string) (info map[string]string, err error) {
 		"url": signedURL,
 	}, nil
 }
-func (*AliyunOSSEnc) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
+func (c *AliyunOSSEnc) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	bucket, err := NewBucketEnc()
 	if err != nil {
 		return "", errors.New("AliyunOSSEnc.Upload().NewBucket Error:" + err.Error())
 	}
-	ossPath := setting.AliyunOSSEnc.BasePath + newFileName
+	ossPath := c.BasePath + newFileName
 	if len(other) > 0 {
 		err = bucket.PutObject(ossPath, file, oss.ContentType(other[0]))
 	} else {

@@ -1,6 +1,7 @@
 package upload
 
 import (
+	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"net/http"
 	"os"
@@ -9,6 +10,7 @@ import (
 type Cloud interface {
 	AllObjects(path string, next string) ([]map[string]string, string, error)
 	GetInfo(key string) (map[string]string, error)
+	SetPath(path string)
 	Upload(file io.Reader, newFileName string, other ...string) (string, error)
 	Copy(ori string, new string) error
 	Download(url string, localPath string) (string, error)
@@ -27,13 +29,19 @@ const (
 func NewUpload(cloudType cloudType) Cloud {
 	switch cloudType {
 	case TypeAliyunOss:
-		return &AliyunOSS{}
+		return &AliyunOSS{
+			BasePath: setting.AliyunOSS.BasePath,
+		}
 	case TypeAliyunOssEnc:
-		return &AliyunOSSEnc{}
+		return &AliyunOSSEnc{
+			BasePath: setting.AliyunOSS.BasePath,
+		}
 	case TypeIpfs:
 		return &IPFS{}
 	default:
-		return &Local{}
+		return &Local{
+			SavePath: setting.Upload.LocalPath,
+		}
 	}
 }
 

@@ -65,7 +65,7 @@ func HtmlImage2Local(body string, callback func(thLocal string) string, path str
 // RemoteImage2Local 远程图片转换为本地图片
 func RemoteImage2Local(url string, path string, saveSql bool) (string, string) {
 	if strings.HasPrefix(url, setting.App.APIURL) {
-		return url, strings.Replace(url, fmt.Sprintf("%s%s", setting.App.APIURL, upload.UploadPath), "", -1)
+		return url, strings.Replace(url, fmt.Sprintf("%s%s", setting.App.APIURL, upload.RoutePath), "", -1)
 	}
 	var up model.Files
 	up.FileType = consts.FileTypeImage
@@ -76,5 +76,5 @@ func RemoteImage2Local(url string, path string, saveSql bool) (string, string) {
 		log.Error("远程文件下载失败!", err)
 		return "", ""
 	}
-	return f.Url, fmt.Sprintf("%s%s%s", setting.App.APIURL, upload.UploadPath, f.Name)
+	return f.Url, fmt.Sprintf("%s%s%s", setting.App.APIURL, upload.RoutePath, f.Name)
 }

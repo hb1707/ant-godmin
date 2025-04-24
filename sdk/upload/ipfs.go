@@ -18,6 +18,10 @@ type IpfsRespBSN struct {
 	Size string `json:"Size"`
 }
 
+func (c *IPFS) SetPath(path string) {
+
+}
+
 // AllObjects 列举所有文件的信息
 func (*IPFS) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
 

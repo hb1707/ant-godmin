@@ -2,7 +2,6 @@ package upload
 
 import (
 	"errors"
-	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"mime"
 	"net/http"
@@ -12,12 +11,18 @@ import (
 	"time"
 )
 
-var UploadPath = "/upload"
+var RoutePath = "/upload"
 
-type Local struct{}
+type Local struct {
+	SavePath string
+}
+
+func (c *Local) SetPath(path string) {
+	c.SavePath = path
+}
 
 // AllObjects 列举所有文件的信息
-func (*Local) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
+func (c *Local) AllObjects(path string, continuation string) (pathList []map[string]string, next string, err error) {
 
 	return
 }
@@ -26,8 +31,8 @@ func (*Local) AllObjects(path string, continuation string) (pathList []map[strin
 func (*Local) GetInfo(key string) (info map[string]string, err error) {
 	return
 }
-func (*Local) Upload(file io.Reader, localFileName string, other ...string) (string, error) {
-	localPath := setting.Upload.LocalPath
+func (c *Local) Upload(file io.Reader, localFileName string, other ...string) (string, error) {
+	localPath := c.SavePath
 	localFilePath := strings.Split(localFileName, "/")
 	err := os.MkdirAll(localPath+"/"+strings.Join(localFilePath[0:len(localFilePath)-1], "/"), os.ModePerm)
 	if err != nil {
@@ -48,12 +53,12 @@ func (*Local) Upload(file io.Reader, localFileName string, other ...string) (str
 func (*Local) Copy(ori string, new string) error {
 	return nil
 }
-func (*Local) Download(url string, localFileName string) (string, error) {
+func (c *Local) Download(url string, localFileName string) (string, error) {
 	if localFileName == "" {
 		localFileName = time.Now().Format("20060102150405")
 	}
 	//获取文件目录路径
-	localPath := setting.Upload.LocalPath
+	localPath := c.SavePath
 	localFilePath := strings.Split(localFileName, "/")
 	err := os.MkdirAll(localPath+"/"+strings.Join(localFilePath[0:len(localFilePath)-1], "/"), os.ModePerm)
 	if err != nil {
@@ -91,8 +96,8 @@ func (*Local) Download(url string, localFileName string) (string, error) {
 
 	return pathNew, nil
 }
-func (*Local) Delete(key string) error {
-	localPath := setting.Upload.LocalPath
+func (c *Local) Delete(key string) error {
+	localPath := c.SavePath
 	filePath := localPath + "/" + key
 	if strings.Contains(filePath, localPath) {
 		if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {

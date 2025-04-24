@@ -33,7 +33,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 	} else {
 		gin.SetMode(gin.DebugMode) //debug
 	}
-	r.Static(upload.UploadPath, setting.Upload.LocalPath)
+	r.Static(upload.RoutePath, setting.Upload.LocalPath)
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
 	})

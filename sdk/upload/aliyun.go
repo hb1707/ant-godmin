@@ -38,6 +38,11 @@ type ObjectInfo struct {
 }
 
 type AliyunOSS struct {
+	BasePath string
+}
+
+func (c *AliyunOSS) SetPath(path string) {
+	c.BasePath = path
 }
 
 // AllObjects 列举所有文件的信息
@@ -112,12 +117,12 @@ func (*AliyunOSS) GetInfo(key string) (info map[string]string, err error) {
 	return
 }
 
-func (*AliyunOSS) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
+func (c *AliyunOSS) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	bucket, err := NewBucket()
 	if err != nil {
 		return "", errors.New("AliyunOSS.Upload().NewBucket Error:" + err.Error())
 	}
-	ossPath := setting.AliyunOSS.BasePath + newFileName
+	ossPath := c.BasePath + newFileName
 	if len(other) > 0 {
 		err = bucket.PutObject(ossPath, file, oss.ContentType(other[0]))
 	} else {
