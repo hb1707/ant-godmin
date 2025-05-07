@@ -10,8 +10,6 @@ import (
 )
 
 var Endpoint = "sms.aliyuncs.com"
-var AccessKeyId = ""
-var AccessKeySecret = ""
 
 // CreateClient 创建短信客户端
 func CreateClient(accessKeyId *string, accessKeySecret *string) (_result *dysmsapi20170525.Client, _err error) {
