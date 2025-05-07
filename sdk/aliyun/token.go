@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"time"
 )
 
 type TokenResult struct {
@@ -15,7 +16,14 @@ type TokenResult struct {
 	}
 }
 
+var tokenCache = make(map[string]TokenResult)
+
 func (c *Client) CreateToken(domain string) (*TokenResult, error) {
+	if token, ok := tokenCache[domain]; ok {
+		if token.Token.ExpireTime-30 > time.Now().Unix() {
+			return &token, nil
+		}
+	}
 	request := requests.NewCommonRequest()
 	request.Method = "POST"
 	request.Domain = domain //"nls-meta.cn-shanghai.aliyuncs.com"
@@ -32,6 +40,7 @@ func (c *Client) CreateToken(domain string) (*TokenResult, error) {
 	if err != nil {
 		return nil, err
 	} else {
+		tokenCache[domain] = tr
 		return &tr, nil
 	}
 }
