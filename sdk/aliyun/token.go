@@ -31,7 +31,7 @@ func (c *Client) CreateToken(domain string) (*TokenResult, error) {
 	request.Version = "2019-02-28"
 	response, err := c.ProcessCommonRequest(request)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	fmt.Print(response.GetHttpStatus())
 	fmt.Print(response.GetHttpContentString())
