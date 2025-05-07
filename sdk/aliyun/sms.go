@@ -10,6 +10,8 @@ import (
 )
 
 var Endpoint = "sms.aliyuncs.com"
+var AccessKeyIdSMS string
+var AccessKeySecretSMS string
 
 // CreateClient 创建短信客户端
 func CreateClient(accessKeyId *string, accessKeySecret *string) (_result *dysmsapi20170525.Client, _err error) {
@@ -27,7 +29,7 @@ func CreateClient(accessKeyId *string, accessKeySecret *string) (_result *dysmsa
 }
 
 func Send(phoneNumbers string, templateParam, signName, templateCode string) (resp *dysmsapi20170525.SendSmsResponse, _err error) {
-	client, _err := CreateClient(&AccessKeyId, &AccessKeySecret)
+	client, _err := CreateClient(&AccessKeyIdSMS, &AccessKeySecretSMS)
 	if _err != nil {
 		return nil, _err
 	}

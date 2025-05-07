@@ -76,8 +76,10 @@ var TencentYun struct {
 	SecretKey string
 }
 var AliYun struct {
-	SecretId  string
-	SecretKey string
+	SecretId     string
+	SecretKey    string
+	SecretIdSMS  string
+	SecretKeySMS string
 }
 var Log struct {
 	PATH string
@@ -183,6 +185,8 @@ func confAliYun() {
 	if err == nil {
 		AliYun.SecretId = tx.Key("SECRET_ID").MustString("")
 		AliYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
+		AliYun.SecretIdSMS = tx.Key("SECRET_ID_S").MustString("")
+		AliYun.SecretKeySMS = tx.Key("SECRET_KEY_S").MustString("")
 	}
 }
 
