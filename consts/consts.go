@@ -32,11 +32,14 @@ const AuthorityIdStaff string = "300"      //成员
 type FileType int
 
 const (
-	FileTypeOther FileType = 0
-	FileTypeImage FileType = 1
-	FileTypeJson  FileType = 2
-	FileTypeAsset FileType = 3
-	FileTypeFile  FileType = 4
+	FileTypeOther    FileType = 0
+	FileTypeImage    FileType = 1
+	FileTypeJson     FileType = 2
+	FileTypeAsset    FileType = 3
+	FileTypeFile     FileType = 4
+	FileTypeAudio    FileType = 5
+	FileTypeVideo    FileType = 6
+	FileTypeDocument FileType = 7
 )
 
 type CloudType int
