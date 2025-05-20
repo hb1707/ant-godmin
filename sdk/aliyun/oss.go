@@ -39,7 +39,7 @@ func GetImgColor(imgUrl string) string {
 	return "#" + Resp.RGB[2:]
 }
 
-func RemoteSync(imgUrl string, path string, pre string, newFileName string) string {
+func RemoteSync(imgUrl string, path string, pre string, newFileName string, bucketName string) string {
 	if imgUrl == "" {
 		return ""
 	}
@@ -72,7 +72,11 @@ func RemoteSync(imgUrl string, path string, pre string, newFileName string) stri
 			newFileName = newFileName + ext2
 		}
 		//上传文件
-		ossPath, err := upload.NewUpload(upload.TypeAliyunOss).Upload(file, path+"/"+newFileName)
+		up := upload.NewUpload(upload.TypeAliyunOss)
+		if bucketName != "" {
+			up.SetBucket(bucketName)
+		}
+		ossPath, err := up.Upload(file, path+"/"+newFileName)
 		if err != nil {
 			return oriImgUrl
 		}
