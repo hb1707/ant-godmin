@@ -325,6 +325,13 @@ func GetBidSub(c *gin.Context) string {
 	}
 	return ""
 }
+func GetRole(c *gin.Context) string {
+	role, exists := c.Get("role")
+	if exists {
+		return role.(string)
+	}
+	return ""
+}
 
 func GetAdmUID(c *gin.Context) int {
 	sub, exists := c.Get("adm_uid")
