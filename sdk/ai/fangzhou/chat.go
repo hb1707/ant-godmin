@@ -7,6 +7,7 @@ import (
 	"github.com/volcengine/volcengine-go-sdk/service/arkruntime"
 	"github.com/volcengine/volcengine-go-sdk/service/arkruntime/model"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -66,6 +67,9 @@ func (c *Client) Chat(endpointId string, messages []*model.ChatCompletionMessage
 }
 
 func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionMessage) error {
+	if !strings.HasPrefix(endpointId, "ep-") {
+		return fmt.Errorf("volcengine-sdk限制，必须采用以ep-开头的endpointId")
+	}
 	client := arkruntime.NewClientWithAkSk(
 		c.ApiAk, c.ApiSk,
 		//arkruntime.WithBaseUrl("https://api-knowledgebase.mlp.cn-beijing.volces.com/api/knowledge"),

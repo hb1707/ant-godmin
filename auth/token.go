@@ -149,6 +149,11 @@ func NewMiddleware() (*jwt.GinJWTMiddleware, error) {
 			} else {
 				c.Set("sub", "")
 			}
+			if role, ok := claims["Role"].(string); role != "" && ok {
+				c.Set("role", role)
+			} else {
+				c.Set("role", "")
+			}
 			return int(claims[identityKey].(float64)) //对应下文Authorizator 接收的参数
 		},
 		//4. 已登录，接收请求时，其他接口将提取的身份信息做最后一步的验证
