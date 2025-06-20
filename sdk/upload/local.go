@@ -54,6 +54,9 @@ func (c *Local) Upload(file io.Reader, localFileName string, other ...string) (s
 	}
 	return localFileName, nil
 }
+func (c *Local) AsyncProcessObject(sourceKey, process string) (map[string]string, error) {
+	return nil, nil
+}
 func (*Local) Copy(ori string, new string) error {
 	return nil
 }

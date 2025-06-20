@@ -2,6 +2,7 @@ package upload
 
 import (
 	"errors"
+	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/hb1707/ant-godmin/setting"
 	"io"
@@ -94,6 +95,22 @@ func (c *AliyunOSSEnc) Upload(file io.Reader, newFileName string, other ...strin
 	}
 
 	return ossPath, nil
+}
+
+func (c *AliyunOSSEnc) AsyncProcessObject(sourceKey, process string) (map[string]string, error) {
+	bucket, err := NewBucket(c.BucketName)
+	if err != nil {
+		return nil, errors.New("AliyunOSS.Upload().NewBucket Error:" + err.Error())
+	}
+	result, err := bucket.AsyncProcessObject(sourceKey, process)
+	if err != nil {
+		return nil, fmt.Errorf("转换失败:%w", err)
+	}
+	return map[string]string{
+		"EventId":   result.EventId,
+		"RequestId": result.RequestId,
+		"TaskId":    result.TaskId,
+	}, nil
 }
 func (*AliyunOSSEnc) Copy(ori string, new string) error {
 	return errors.New("AliyunOSSEnc.Copy() Not Support")

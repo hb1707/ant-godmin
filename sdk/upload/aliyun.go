@@ -3,6 +3,7 @@ package upload
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/hb1707/exfun/fun/curl"
@@ -135,9 +136,25 @@ func (c *AliyunOSS) Upload(file io.Reader, newFileName string, other ...string) 
 	if err != nil {
 		return "", errors.New("AliyunOSS.Upload().bucket.PutObject() Error:" + err.Error())
 	}
-
 	return ossPath, nil
 }
+
+func (c *AliyunOSS) AsyncProcessObject(sourceKey, process string) (map[string]string, error) {
+	bucket, err := NewBucket(c.BucketName)
+	if err != nil {
+		return nil, errors.New("AliyunOSS.Upload().NewBucket Error:" + err.Error())
+	}
+	result, err := bucket.AsyncProcessObject(sourceKey, process)
+	if err != nil {
+		return nil, fmt.Errorf("转换失败:%w", err)
+	}
+	return map[string]string{
+		"EventId":   result.EventId,
+		"RequestId": result.RequestId,
+		"TaskId":    result.TaskId,
+	}, nil
+}
+
 func (c *AliyunOSS) Copy(ori string, new string) error {
 	bucket, err := NewBucket(c.BucketName)
 	if err != nil {

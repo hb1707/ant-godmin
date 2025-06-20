@@ -62,6 +62,9 @@ func (*IPFS) Upload(file io.Reader, newFileName string, other ...string) (string
 		return respBody.Hash, nil
 	}
 }
+func (c *IPFS) AsyncProcessObject(sourceKey, process string) (map[string]string, error) {
+	return nil, nil
+}
 func (*IPFS) Copy(ori string, new string) error {
 	return nil
 }
