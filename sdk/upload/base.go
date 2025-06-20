@@ -1,7 +1,6 @@
 package upload
 
 import (
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"net/http"
