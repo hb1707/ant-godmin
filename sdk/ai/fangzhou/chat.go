@@ -49,6 +49,7 @@ func (c *Client) Chat(endpointId string, messages []*model.ChatCompletionMessage
 	client := arkruntime.NewClientWithAkSk(
 		c.ApiAk, c.ApiSk,
 	)
+
 	// 创建一个上下文，通常用于传递请求的上下文信息，如超时、取消等
 	ctx := context.Background()
 	// 构建聊天完成请求，设置请求的模型和消息内容
@@ -71,11 +72,12 @@ func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionM
 	if !strings.HasPrefix(endpointId, "ep-") {
 		//return fmt.Errorf("volcengine-sdk限制，必须采用以ep-开头的endpointId")
 	}
-	client := arkruntime.NewClientWithAkSk(
-		c.ApiAk, c.ApiSk,
+	client := arkruntime.NewClientWithApiKey(
+		c.ApiKey,
 		//arkruntime.WithBaseUrl("https://api-knowledgebase.mlp.cn-beijing.volces.com/api/knowledge"),
 		arkruntime.WithTimeout(10*time.Minute),
 	)
+
 	// 创建一个上下文，通常用于传递请求的上下文信息，如超时、取消等
 	ctx := context.Background()
 	// 构建聊天完成请求，设置请求的模型和消息内容
