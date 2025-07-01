@@ -19,7 +19,7 @@ type Config struct {
 
 type Client struct {
 	Config
-	*model.ChatCompletionRequest
+	*model.CreateChatCompletionRequest
 	BotStreamChan chan model.BotChatCompletionStreamResponse
 	StreamChan    chan model.ChatCompletionStreamResponse
 }
@@ -32,15 +32,16 @@ func NewChat(config Config) *Client {
 	}
 }
 
-func (c *Client) BindParams(req *model.ChatCompletionRequest) {
+func (c *Client) BindParams(req *model.CreateChatCompletionRequest) {
 	if req != nil {
-		c.ChatCompletionRequest = req
+		c.CreateChatCompletionRequest = req
 	} else {
-		c.ChatCompletionRequest = &model.ChatCompletionRequest{
-			Temperature: 1,
-			MaxTokens:   4096,
-			TopP:        0.7,
-		}
+		req = new(model.CreateChatCompletionRequest)
+		// 默认参数设置
+		*req.Temperature = 1
+		*req.MaxTokens = 4096
+		*req.TopP = 0.7
+		c.CreateChatCompletionRequest = req
 	}
 }
 
@@ -51,9 +52,9 @@ func (c *Client) Chat(endpointId string, messages []*model.ChatCompletionMessage
 	// 创建一个上下文，通常用于传递请求的上下文信息，如超时、取消等
 	ctx := context.Background()
 	// 构建聊天完成请求，设置请求的模型和消息内容
-	var req = new(model.ChatCompletionRequest)
-	if c.ChatCompletionRequest != nil {
-		req = c.ChatCompletionRequest
+	var req = new(model.CreateChatCompletionRequest)
+	if c.CreateChatCompletionRequest != nil {
+		req = c.CreateChatCompletionRequest
 	}
 	req.Model = endpointId
 	req.Messages = messages
@@ -68,7 +69,7 @@ func (c *Client) Chat(endpointId string, messages []*model.ChatCompletionMessage
 
 func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionMessage) error {
 	if !strings.HasPrefix(endpointId, "ep-") {
-		return fmt.Errorf("volcengine-sdk限制，必须采用以ep-开头的endpointId")
+		//return fmt.Errorf("volcengine-sdk限制，必须采用以ep-开头的endpointId")
 	}
 	client := arkruntime.NewClientWithAkSk(
 		c.ApiAk, c.ApiSk,
@@ -78,9 +79,9 @@ func (c *Client) ChatStream(endpointId string, messages []*model.ChatCompletionM
 	// 创建一个上下文，通常用于传递请求的上下文信息，如超时、取消等
 	ctx := context.Background()
 	// 构建聊天完成请求，设置请求的模型和消息内容
-	var req = new(model.ChatCompletionRequest)
-	if c.ChatCompletionRequest != nil {
-		req = c.ChatCompletionRequest
+	var req = new(model.CreateChatCompletionRequest)
+	if c.CreateChatCompletionRequest != nil {
+		req = c.CreateChatCompletionRequest
 	}
 	req.Model = endpointId
 	req.Messages = messages
