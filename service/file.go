@@ -62,10 +62,6 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 	}
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName)
-	filePath := f.CloudOutputUrl + "/" + key
-	if req.UserSpace != "" {
-		filePath = f.LocalOutputUrl + "/" + key
-	}
 	if err != nil {
 		return err, model.Files{}
 	}
@@ -78,42 +74,54 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 			req.Other.Ext = path.Ext(newFileName)
 		}
 	}
+	fileUrl := f.CloudOutputUrl + "/" + key
+	if req.UserSpace != "" {
+		fileUrl = f.LocalOutputUrl + "/" + key
+	}
+	req.CloudType = consts.CloudTypeAliyun
+	req.Url = fileUrl
+	err, req = f.SaveSql(req, key, header.Filename)
+	return err, req
+}
+
+func (f *FileService) SaveSql(req model.Files, key string, originalName string) (error, model.Files) {
+	fileUrl := req.Url
 	if req.FileId > 0 {
 		var exist model.FilesTemp
-		if key != "" {
-			model.NewFileTemp().Where("`key` = ?", key).One(&exist)
+		if fileUrl != "" {
+			model.NewFileTemp().Where("`url` = ?", fileUrl).One(&exist)
 		}
 		var temp model.FilesTemp
 		sql := model.NewFileTemp()
 		temp.Id = exist.Id
 		temp.FileId = req.FileId
-		temp.Url = filePath
+		temp.Url = fileUrl
 		temp.Key = key
 		sql.Request(&temp)
 		err := sql.AddOrUpdate()
 		req.TempExist = true
-		req.Url = filePath
+		req.Url = fileUrl
 		req.Key = key
 		return err, req
 	} else {
-		filePath = strings.ReplaceAll(filePath, req.Domain, "{DOMAIN}")
+		fileUrl = strings.ReplaceAll(fileUrl, req.Domain, "{DOMAIN}")
 		newFile := model.Files{
-			CloudType: consts.CloudTypeAliyun,
+			CloudType: req.CloudType,
 			FileType:  req.FileType,
 			TypeId:    req.TypeId,
 			From:      req.From,
 			Uid:       req.Uid,
 			Domain:    req.Domain,
 			UserSpace: req.UserSpace,
-			Url:       filePath,
-			Name:      header.Filename,
+			Url:       fileUrl,
+			Name:      filepath.Base(originalName),
 			Tag:       req.Tag,
 			Key:       key,
 			Other:     req.Other,
 		}
 		var exist model.Files
-		if key != "" {
-			model.NewFile().Where("`key` = ?", key).One(&exist)
+		if fileUrl != "" {
+			model.NewFile().Where("url = ?", fileUrl).One(&exist)
 		}
 		sql := model.NewFile()
 		newFile.Id = exist.Id
@@ -137,30 +145,25 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	file := io.Reader(res.Body)
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName)
-	filePath := f.CloudOutputUrl + "/" + key
 	if err != nil {
 		return err, model.Files{}
 	}
-	newFile := model.Files{
-		CloudType: consts.CloudTypeAliyun,
-		FileType:  req.FileType,
-		TypeId:    req.TypeId,
-		From:      req.From,
-		Uid:       req.Uid,
-		Url:       filePath,
-		Name:      newFileName,
-		Tag:       req.Tag,
-		Key:       newFileName,
+	if req.FileType == consts.FileTypeImage {
+		if req.Other.Width == 0 || req.Other.Height == 0 {
+			info, _ := oss.GetInfo(key)
+			req.Other.Width, _ = strconv.Atoi(info["image_width"])
+			req.Other.Height, _ = strconv.Atoi(info["image_height"])
+			req.Other.Size = int(res.ContentLength)
+			req.Other.Ext = path.Ext(newFileName)
+		}
 	}
-	var exist model.Files
-	if filePath != "" {
-		model.NewFile().Where("url = ?", filePath).One(&exist)
+	fileUrl := f.CloudOutputUrl + "/" + key
+	if req.UserSpace != "" {
+		fileUrl = f.LocalOutputUrl + "/" + key
 	}
-	sql := model.NewFile()
-	newFile.Id = exist.Id
-	sql.Request(&newFile)
-	err = sql.AddOrUpdate()
-	return err, newFile
+	req.CloudType = consts.CloudTypeAliyun
+	req.Url = fileUrl
+	return f.SaveSql(req, key, req.Name)
 }
 
 // UploadLocal 客户端上传到服务器本地
@@ -180,58 +183,20 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 	}
 	newFileName = f.prevPathType(newFileName)
 	newFileName, err = local.Upload(file, newFileName)
-	filePath := f.LocalOutputUrl + upload.RoutePath + "/" + newFileName
-	if req.UserSpace != "" {
-		filePath = f.LocalOutputUrl + upload.RoutePathUser + "/" + newFileName
-	}
 	if err != nil {
 		return err, model.Files{}
 	}
-	if saveTemp {
-		var exist model.FilesTemp
-		if filePath != "" {
-			model.NewFileTemp().Where("url = ?", filePath).One(&exist)
-		}
-		var temp model.FilesTemp
-		sql := model.NewFileTemp()
-		temp.Id = exist.Id
-		temp.FileId = req.FileId
-		temp.Url = filePath
-		temp.Key = newFileName
-		sql.Request(&temp)
-		err := sql.AddOrUpdate()
-		req.Name = newFileName
-		req.TempExist = true
-		req.Url = filePath
-		req.Id = temp.Id
-		return err, req
-	} else {
-		filePath = strings.ReplaceAll(filePath, req.Domain, "{DOMAIN}")
-		newFile := model.Files{
-			CloudType: consts.CloudTypeAliyun,
-			FileType:  req.FileType,
-			TypeId:    req.TypeId,
-			Domain:    req.Domain,
-			UserSpace: req.UserSpace,
-			From:      req.From,
-			Uid:       req.Uid,
-			Url:       filePath,
-			Name:      head.Filename,
-			Tag:       req.Tag,
-			Key:       newFileName,
-			Other:     req.Other,
-		}
-		var exist model.Files
-		if filePath != "" {
-			model.NewFile().Where("url = ?", filePath).One(&exist)
-		}
-		sql := model.NewFile()
-		newFile.Id = exist.Id
-		sql.Request(&newFile)
-		err = sql.AddOrUpdate()
-		newFile.Url = strings.ReplaceAll(newFile.Url, "{DOMAIN}", req.Domain)
-		return err, newFile
+	key := upload.RoutePath + "/" + newFileName
+	if req.UserSpace != "" {
+		key = upload.RoutePathUser + "/" + newFileName
 	}
+	fileUrl := f.CloudOutputUrl + "/" + key
+	if req.UserSpace != "" {
+		fileUrl = f.LocalOutputUrl + "/" + key
+	}
+	req.CloudType = consts.CloudTypeLocal
+	req.Url = fileUrl
+	return f.SaveSql(req, key, head.Filename)
 }
 
 // DownloadFile 下载文件到服务器本地
@@ -255,17 +220,10 @@ func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, fi
 		Tag:       req.Tag,
 		Key:       req.Key,
 	}
-	if saveSql {
-		var exist model.Files
-		if filePath != "" {
-			model.NewFile().Where("url = ?", filePath).One(&exist)
-		}
-		sql := model.NewFile()
-		newFile.Id = exist.Id
-		sql.Request(&newFile)
-		err = sql.AddOrUpdate()
+	if !saveSql {
+		return nil, newFile
 	}
-	return err, newFile
+	return f.SaveSql(newFile, req.Key, newFileNamePath)
 }
 
 // IPFSAdd 服务器本地同步到IPFS
@@ -297,26 +255,9 @@ func (f *FileService) IPFSAdd(req model.Files) (err error, outFile model.Files) 
 	if err != nil {
 		return err, model.Files{}
 	}
-	newFile := model.Files{
-		CloudType: consts.CloudTypeIPFS,
-		FileType:  req.FileType,
-		TypeId:    req.TypeId,
-		From:      req.From,
-		Uid:       req.Uid,
-		Url:       filePath,
-		Name:      filepath.Base(newFileName),
-		Tag:       req.Tag,
-		Key:       key,
-	}
-	var exist model.Files
-	if filePath != "" {
-		model.NewFile().Where("url = ?", filePath).One(&exist)
-	}
-	sql := model.NewFile()
-	newFile.Id = exist.Id
-	sql.Request(&newFile)
-	err = sql.AddOrUpdate()
-	return err, newFile
+	req.CloudType = consts.CloudTypeIPFS
+	req.Url = filePath
+	return f.SaveSql(req, key, newFileName)
 }
 
 // OSSAdd 服务器本地同步到OSS
@@ -354,37 +295,20 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 	}
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName, contentType)
-	filePath := f.CloudOutputUrl + "/" + newFileName
+	if err != nil {
+		return err, model.Files{}
+	}
+	fileUrl := f.CloudOutputUrl + "/" + newFileName
 	if isEnc {
 		fileMap, err := oss.GetInfo(key)
 		if err != nil {
 			return err, model.Files{}
 		}
-		filePath = fileMap["url"]
+		fileUrl = fileMap["url"]
 	}
-	if err != nil {
-		return err, model.Files{}
-	}
-	newFile := model.Files{
-		CloudType: consts.CloudTypeAliyun,
-		FileType:  req.FileType,
-		TypeId:    req.TypeId,
-		From:      req.From,
-		Uid:       req.Uid,
-		Url:       filePath,
-		Name:      filepath.Base(newFileName),
-		Tag:       req.Tag,
-		Key:       key,
-	}
-	var exist model.Files
-	if filePath != "" {
-		model.NewFile().Where("url = ?", filePath).One(&exist)
-	}
-	sql := model.NewFile()
-	newFile.Id = exist.Id
-	sql.Request(&newFile)
-	err = sql.AddOrUpdate()
-	return err, newFile
+	req.CloudType = consts.CloudTypeAliyun
+	req.Url = fileUrl
+	return f.SaveSql(req, key, newFileName)
 }
 
 // WxAdd 服务器本地同步到微信公众号
@@ -415,26 +339,10 @@ func (f *FileService) WxAdd(appid string, req model.Files) (err error, outFile m
 		return err, model.Files{}
 
 	}
-	newFile := model.Files{
-		CloudType: consts.CloudTypeWxOa,
-		FileType:  req.FileType,
-		TypeId:    req.TypeId,
-		From:      req.From,
-		Uid:       req.Uid,
-		Url:       res,
-		Name:      filepath.Base(newFileName),
-		Tag:       req.Tag,
-		Key:       appid,
-	}
-	var exist model.Files
-	if res != "" {
-		model.NewFile().Where("url = ?", res).One(&exist)
-	}
-	sql := model.NewFile()
-	newFile.Id = exist.Id
-	sql.Request(&newFile)
-	err = sql.AddOrUpdate()
-	return err, newFile
+
+	req.CloudType = consts.CloudTypeWxOa
+	req.Url = res
+	return f.SaveSql(req, appid, newFileName)
 
 }
 func (f *FileService) prevPathType(filename string) (newFileName string) {
