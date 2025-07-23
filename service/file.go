@@ -20,9 +20,10 @@ import (
 )
 
 type FileService struct {
-	PathType       string
-	LocalOutputUrl string
-	CloudOutputUrl string
+	PathType           string
+	LocalOutputUrl     string
+	CloudOutputUrl     string
+	CloudOutputUserUrl string
 }
 
 func NewFileService(pathType string) *FileService {
@@ -30,6 +31,7 @@ func NewFileService(pathType string) *FileService {
 	fs.PathType = pathType
 	fs.LocalOutputUrl = setting.App.APIURL
 	fs.CloudOutputUrl = setting.AliyunOSS.BucketUrl
+	fs.CloudOutputUserUrl = setting.AliyunOSS.BucketUrlUser
 	return fs
 }
 
@@ -76,7 +78,7 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 	}
 	fileUrl := f.CloudOutputUrl + "/" + key
 	if req.UserSpace != "" {
-		fileUrl = f.LocalOutputUrl + "/" + key
+		fileUrl = f.CloudOutputUserUrl + "/" + key
 	}
 	req.CloudType = consts.CloudTypeAliyun
 	req.Url = fileUrl
@@ -159,7 +161,7 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	}
 	fileUrl := f.CloudOutputUrl + "/" + key
 	if req.UserSpace != "" {
-		fileUrl = f.LocalOutputUrl + "/" + key
+		fileUrl = f.CloudOutputUserUrl + "/" + key
 	}
 	req.CloudType = consts.CloudTypeAliyun
 	req.Url = fileUrl
@@ -190,10 +192,7 @@ func (f *FileService) UploadLocal(head *multipart.FileHeader, req model.Files, s
 	if req.UserSpace != "" {
 		key = upload.RoutePathUser + "/" + newFileName
 	}
-	fileUrl := f.CloudOutputUrl + "/" + key
-	if req.UserSpace != "" {
-		fileUrl = f.LocalOutputUrl + "/" + key
-	}
+	fileUrl := f.LocalOutputUrl + "/" + key
 	req.CloudType = consts.CloudTypeLocal
 	req.Url = fileUrl
 	return f.SaveSql(req, key, head.Filename)
