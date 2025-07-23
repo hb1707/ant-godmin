@@ -274,11 +274,14 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 	if req.Id > 0 {
 		sq.Where("id = ?", req.Id)
 		sq.One(&localSql, "created_at desc")
-		localPath = setting.Upload.LocalPath + "/" + localSql.Name
+		localPath = setting.Upload.LocalPath + "/" + localSql.Key
+		if req.UserSpace != "" {
+			localPath = setting.Upload.UserPath + "/" + localSql.Key
+		}
 	} else {
 		localPath = req.From
 	}
-	if fun.Stripos(localPath, setting.Upload.LocalPath) == -1 {
+	if fun.Stripos(localPath, setting.Upload.LocalPath) == -1 && fun.Stripos(localPath, setting.Upload.UserPath) == -1 {
 		return errors.New("非本地文件无法处理：" + localPath), model.Files{}
 	}
 	file, err := os.Open(localPath)
