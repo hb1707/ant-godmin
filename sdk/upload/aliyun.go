@@ -96,12 +96,12 @@ func (c *AliyunOSS) GetUrl(key string, isPrivate bool) string {
 	if isPrivate {
 		bucket, err := NewBucket(c.BucketName)
 		if err != nil {
-			return ""
+			return "ERROR"
 		}
 		// 生成一个临时的访问URL，过期时间为1小时
 		signedURL, err := bucket.SignURL(key, oss.HTTPGet, 3600)
 		if err != nil {
-			return ""
+			return "ERROR"
 		}
 		return signedURL
 	}

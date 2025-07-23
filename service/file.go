@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/hb1707/ant-godmin/consts"
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/ant-godmin/sdk/upload"
@@ -33,57 +34,6 @@ func NewFileService(pathType string) *FileService {
 	fs.CloudOutputUrl = setting.AliyunOSS.BucketUrl
 	fs.CloudOutputUserUrl = setting.AliyunOSS.BucketUrlUser
 	return fs
-}
-
-// UploadToOSS 从客户端上传到OSS
-func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files, isEnc bool) (err error, outFile model.Files) {
-	var oss upload.Cloud
-	if isEnc {
-		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
-		if req.UserSpace != "" {
-			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
-		}
-	} else {
-		oss = upload.NewUpload(upload.TypeAliyunOss)
-		if req.UserSpace != "" {
-			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
-		}
-	}
-	newFileName := req.Name
-	file, err := header.Open()
-	if err != nil {
-		return err, model.Files{}
-	}
-	defer file.Close()
-	if newFileName == "" {
-		newFileName = header.Filename
-	}
-	size := header.Size
-	if req.UserSpace != "" {
-		newFileName = req.UserSpace + "/" + newFileName
-	}
-	newFileName = f.prevPathType(newFileName)
-	key, err := oss.Upload(file, newFileName)
-	if err != nil {
-		return err, model.Files{}
-	}
-	if req.FileType == consts.FileTypeImage {
-		if req.Other.Width == 0 || req.Other.Height == 0 {
-			info, _ := oss.GetInfo(key)
-			req.Other.Width, _ = strconv.Atoi(info["image_width"])
-			req.Other.Height, _ = strconv.Atoi(info["image_height"])
-			req.Other.Size = int(size)
-			req.Other.Ext = path.Ext(newFileName)
-		}
-	}
-	fileUrl := f.CloudOutputUrl + "/" + key
-	if req.UserSpace != "" {
-		fileUrl = f.CloudOutputUserUrl + "/" + key
-	}
-	req.CloudType = consts.CloudTypeAliyun
-	req.Url = fileUrl
-	err, req = f.SaveSql(req, key, header.Filename)
-	return err, req
 }
 
 func (f *FileService) SaveSql(req model.Files, key string, originalName string) (error, model.Files) {
@@ -134,6 +84,58 @@ func (f *FileService) SaveSql(req model.Files, key string, originalName string) 
 	}
 }
 
+// UploadToOSS 从客户端上传到OSS
+func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files, isEnc bool) (err error, outFile model.Files) {
+	var oss upload.Cloud
+	if isEnc {
+		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
+		if req.UserSpace != "" {
+			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
+		}
+	} else {
+		oss = upload.NewUpload(upload.TypeAliyunOss)
+		if req.UserSpace != "" {
+			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
+		}
+	}
+	newFileName := req.Name
+	file, err := header.Open()
+	if err != nil {
+		return err, model.Files{}
+	}
+	defer file.Close()
+	if newFileName == "" {
+		newFileName = header.Filename
+	}
+	size := header.Size
+	if req.UserSpace != "" {
+		newFileName = req.UserSpace + "/" + newFileName
+	}
+	newFileName = f.prevPathType(newFileName)
+	key, err := oss.Upload(file, newFileName)
+	if err != nil {
+		return err, model.Files{}
+	}
+	if req.FileType == consts.FileTypeImage {
+		if req.Other.Width == 0 || req.Other.Height == 0 {
+			info, _ := oss.GetInfo(key)
+			req.Other.Width, _ = strconv.Atoi(fmt.Sprintf("%v", info["image_width"]))
+			req.Other.Height, _ = strconv.Atoi(fmt.Sprintf("%v", info["image_height"]))
+			req.Other.Size = int(size)
+			req.Other.Ext = path.Ext(newFileName)
+		}
+	}
+	fileUrl := f.CloudOutputUrl + "/" + key
+	if req.UserSpace != "" {
+		fileUrl = f.LocalOutputUrl + "/" + key
+	}
+	req.CloudType = consts.CloudTypeAliyun
+	req.Url = fileUrl
+	err, req = f.SaveSql(req, key, header.Filename)
+	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "")
+	return err, req
+}
+
 // UploadRemote 从远程同步到OSS
 func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outFile model.Files) {
 	var oss upload.Cloud
@@ -153,19 +155,21 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	if req.FileType == consts.FileTypeImage {
 		if req.Other.Width == 0 || req.Other.Height == 0 {
 			info, _ := oss.GetInfo(key)
-			req.Other.Width, _ = strconv.Atoi(info["image_width"])
-			req.Other.Height, _ = strconv.Atoi(info["image_height"])
+			req.Other.Width, _ = strconv.Atoi(fmt.Sprintf("%v", info["image_width"]))
+			req.Other.Height, _ = strconv.Atoi(fmt.Sprintf("%v", info["image_height"]))
 			req.Other.Size = int(res.ContentLength)
 			req.Other.Ext = path.Ext(newFileName)
 		}
 	}
 	fileUrl := f.CloudOutputUrl + "/" + key
 	if req.UserSpace != "" {
-		fileUrl = f.CloudOutputUserUrl + "/" + key
+		fileUrl = f.LocalOutputUrl + "/" + key
 	}
 	req.CloudType = consts.CloudTypeAliyun
 	req.Url = fileUrl
-	return f.SaveSql(req, key, req.Name)
+	err, req = f.SaveSql(req, key, req.Name)
+	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "")
+	return err, req
 }
 
 // UploadLocal 客户端上传到服务器本地
@@ -302,15 +306,13 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 	}
 	fileUrl := f.CloudOutputUrl + "/" + newFileName
 	if isEnc {
-		fileMap, err := oss.GetInfo(key)
-		if err != nil {
-			return err, model.Files{}
-		}
-		fileUrl = fileMap["url"]
+		fileUrl = f.LocalOutputUrl + "/" + newFileName
 	}
 	req.CloudType = consts.CloudTypeAliyun
 	req.Url = fileUrl
-	return f.SaveSql(req, key, newFileName)
+	err, req = f.SaveSql(req, key, newFileName)
+	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "")
+	return err, req
 }
 
 // WxAdd 服务器本地同步到微信公众号

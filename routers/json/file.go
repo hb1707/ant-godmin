@@ -8,7 +8,9 @@ import (
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/routers/hook"
+	"github.com/hb1707/ant-godmin/sdk/upload"
 	"github.com/hb1707/ant-godmin/service"
+	"github.com/hb1707/ant-godmin/setting"
 	"github.com/hb1707/exfun/fun"
 	"github.com/xuri/excelize/v2"
 	"net/http"
@@ -18,6 +20,44 @@ import (
 	"strings"
 	"time"
 )
+
+type UserPathPrams struct {
+	UidHash string `uri:"uid_hash" binding:"required"`
+	Ext     string `uri:"ext" binding:"required"`
+	Name    string `uri:"name" binding:"required"`
+}
+
+func GetUserFile(c *gin.Context) {
+	var params UserPathPrams
+	if err := c.ShouldBindUri(&params); err != nil {
+		jsonErr(c, http.StatusBadRequest, err)
+		return
+	}
+	uidHash := params.UidHash
+	ext := params.Ext
+	name := params.Name
+	key := path.Join(setting.Upload.UserPath, uidHash, ext, name)
+
+	oss := upload.NewUpload(upload.TypeAliyunOss)
+	oss.SetBucket(setting.AliyunOSS.BucketNameUser)
+	filePath := oss.GetUrl(key, true)
+	response, err := http.Get(filePath)
+	if err != nil || response.StatusCode != http.StatusOK {
+		c.Status(http.StatusServiceUnavailable)
+		return
+	}
+
+	reader := response.Body
+	contentLength := response.ContentLength
+	contentType := response.Header.Get("Content-Type")
+
+	extraHeaders := map[string]string{
+		//"Content-Disposition": "image; filename=\"" + name + "\"",
+	}
+
+	c.DataFromReader(http.StatusOK, contentLength, contentType, reader, extraHeaders)
+	return
+}
 
 var (
 	ErrUploadFail = errors.New("接收文件失败")
