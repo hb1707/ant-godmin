@@ -2,6 +2,7 @@ package upload
 
 import (
 	"errors"
+	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"mime"
 	"net/http"
@@ -31,8 +32,28 @@ func (c *Local) AllObjects(path string, continuation string) (pathList []map[str
 	return
 }
 
+// GetUrl 获取文件的访问地址
+func (c *Local) GetUrl(key string, isPrivate bool) string {
+	if isPrivate {
+		return RoutePathUser + "/" + key
+	}
+	return RoutePath + "/" + key
+}
+
 // GetInfo 文件的信息
-func (*Local) GetInfo(key string) (info map[string]string, err error) {
+func (*Local) GetInfo(key string) (info map[string]any, err error) {
+	info = make(map[string]any)
+	filePath := setting.Upload.LocalPath + "/" + key
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, errors.New("Local.GetInfo().os.Stat() Error: File does not exist")
+		}
+		return nil, errors.New("Local.GetInfo().os.Stat() Error:" + err.Error())
+	}
+	info["FileSize"] = fileInfo.Size()
+	info["Format"] = filepath.Ext(filePath)
+	info["LastModified"] = fileInfo.ModTime().Format("2006-01-02 15:04:05")
 	return
 }
 func (c *Local) Upload(file io.Reader, localFileName string, other ...string) (string, error) {

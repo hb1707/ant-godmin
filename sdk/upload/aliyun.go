@@ -91,8 +91,25 @@ func (c *AliyunOSS) AllObjects(path string, continuation string) (pathList []map
 	return
 }
 
+// GetUrl 获取文件的访问地址
+func (c *AliyunOSS) GetUrl(key string, isPrivate bool) string {
+	if isPrivate {
+		bucket, err := NewBucket(c.BucketName)
+		if err != nil {
+			return ""
+		}
+		// 生成一个临时的访问URL，过期时间为1小时
+		signedURL, err := bucket.SignURL(key, oss.HTTPGet, 3600)
+		if err != nil {
+			return ""
+		}
+		return signedURL
+	}
+	return setting.AliyunOSS.BucketUrl + "/" + c.BasePath + key
+}
+
 // GetInfo 文件的信息
-func (*AliyunOSS) GetInfo(key string) (info map[string]string, err error) {
+func (*AliyunOSS) GetInfo(key string) (info map[string]any, err error) {
 	var resp ObjectInfo
 	body, status, err := curl.GET(setting.AliyunOSS.BucketUrl+"/"+key, map[string]string{
 		"x-oss-process": "image/info",
@@ -108,7 +125,7 @@ func (*AliyunOSS) GetInfo(key string) (info map[string]string, err error) {
 	if err != nil {
 		return
 	}
-	info = map[string]string{
+	info = map[string]any{
 		"key":             key,
 		"size":            resp.FileSize.Value,
 		"format":          resp.Format.Value,

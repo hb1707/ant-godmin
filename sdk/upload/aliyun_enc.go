@@ -1,6 +1,7 @@
 package upload
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -8,6 +9,17 @@ import (
 	"io"
 	"strconv"
 )
+
+type ObjectInfoEnc struct {
+	FileSize       string `json:"FileSize"`
+	Format         string `json:"Format"`
+	FrameCount     int    `json:"FrameCount"`
+	ImageHeight    int    `json:"ImageHeight"`
+	ImageWidth     int    `json:"ImageWidth"`
+	ResolutionUnit int    `json:"ResolutionUnit"`
+	XResolution    int    `json:"XResolution"`
+	YResolution    int    `json:"YResolution"`
+}
 
 type AliyunOSSEnc struct {
 	BasePath   string
@@ -62,22 +74,57 @@ func (c *AliyunOSSEnc) AllObjects(path string, continuation string) (pathList []
 	return
 }
 
-// GetInfo 文件的信息
-func (c *AliyunOSSEnc) GetInfo(key string) (info map[string]string, err error) {
-	// 将Object下载到本地文件，并保存到指定的本地路径中。如果指定的本地文件存在会覆盖，不存在则新建。
-	bucket, err := NewBucketEnc(c.BucketName)
+// GetUrl 获取文件的访问地址
+func (c *AliyunOSSEnc) GetUrl(key string, isPrivate bool) string {
+	bucket, err := NewBucket(c.BucketName)
 	if err != nil {
-		return nil, err
+		return ""
 	}
-	// 生成用于下载的签名URL，并指定签名URL的有效时间为60秒。
-	signedURL, err := bucket.SignURL(key, oss.HTTPGet, 60)
+	// 生成一个临时的访问URL，过期时间为1小时
+	signedURL, err := bucket.SignURL(key, oss.HTTPGet, 3600)
 	if err != nil {
-		return nil, err
+		return ""
+	}
+	return signedURL
+}
+
+// GetInfo 文件的信息
+func (c *AliyunOSSEnc) GetInfo(key string) (info map[string]any, err error) {
+	bucket, err := NewBucket(c.BucketName)
+	if err != nil {
+		return nil, errors.New("AliyunOSSEnc.GetInfo().NewBucket() Error:" + err.Error())
+	}
+	// 构建图片信息处理指令
+	process := "image/info"
+	result, err := bucket.GetObject(key, oss.Process(process))
+	if err != nil {
+		return nil, fmt.Errorf("获取图片信息失败: %w", err)
+	}
+	defer result.Close()
+
+	// 读取并解析图片信息
+	infoB, err := io.ReadAll(result)
+	if err != nil {
+		return nil, fmt.Errorf("读取图片信息失败: %w", err)
+	}
+	var resp ObjectInfoEnc
+	err = json.Unmarshal(infoB, &resp)
+	if err != nil {
+		return nil, fmt.Errorf("解析图片信息失败: %w", err)
 	}
 
-	return map[string]string{
-		"url": signedURL,
-	}, nil
+	info = map[string]any{
+		"key":             key,
+		"size":            resp.FileSize,
+		"format":          resp.Format,
+		"frame_count":     resp.FrameCount,
+		"image_height":    resp.ImageHeight,
+		"image_width":     resp.ImageWidth,
+		"resolution_unit": resp.ResolutionUnit,
+		"x_resolution":    resp.XResolution,
+		"y_resolution":    resp.YResolution,
+	}
+	return
 }
 func (c *AliyunOSSEnc) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
 	bucket, err := NewBucketEnc(c.BucketName)

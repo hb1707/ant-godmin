@@ -30,8 +30,16 @@ func (*IPFS) AllObjects(path string, continuation string) (pathList []map[string
 	return
 }
 
+// GetUrl 获取文件的访问地址
+func (*IPFS) GetUrl(key string, isPrivate bool) string {
+	if isPrivate {
+		return setting.IPFS.IpfsEndpoint + "/ipfs/" + key
+	}
+	return setting.IPFS.IpfsEndpoint + "/ipfs/" + key
+}
+
 // GetInfo 文件的信息
-func (*IPFS) GetInfo(key string) (info map[string]string, err error) {
+func (*IPFS) GetInfo(key string) (info map[string]any, err error) {
 	return
 }
 func (*IPFS) Upload(file io.Reader, newFileName string, other ...string) (string, error) {
