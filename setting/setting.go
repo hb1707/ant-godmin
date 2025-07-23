@@ -53,6 +53,7 @@ var AliyunOSS struct {
 	BucketName      string
 	BucketNameUser  string
 	BucketUrl       string
+	BucketUrlUser   string
 	BasePath        string
 }
 var AliyunOSSEnc struct {
@@ -62,6 +63,7 @@ var AliyunOSSEnc struct {
 	BucketName      string
 	BucketNameUser  string
 	BucketUrl       string
+	BucketUrlUser   string
 	BasePath        string
 }
 
@@ -159,6 +161,7 @@ func confUpload() {
 		AliyunOSS.BucketName = upload.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
 		AliyunOSS.BucketNameUser = upload.Key("ALIYUN_OSS_BUCKET_NAME_USER").MustString("")
 		AliyunOSS.BucketUrl = upload.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
+		AliyunOSS.BucketUrlUser = upload.Key("ALIYUN_OSS_BUCKET_URL_USER").MustString("")
 		AliyunOSS.BasePath = upload.Key("ALIYUN_OSS_BASE_PATH").MustString("")
 	}
 	uploadEnc, err := Cfg.GetSection("upload_encryption")
@@ -169,6 +172,7 @@ func confUpload() {
 		AliyunOSSEnc.BucketName = uploadEnc.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
 		AliyunOSSEnc.BucketNameUser = uploadEnc.Key("ALIYUN_OSS_BUCKET_NAME_USER").MustString("")
 		AliyunOSSEnc.BucketUrl = uploadEnc.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
+		AliyunOSSEnc.BucketUrlUser = uploadEnc.Key("ALIYUN_OSS_BUCKET_URL_USER").MustString("")
 		AliyunOSSEnc.BasePath = uploadEnc.Key("ALIYUN_OSS_BASE_PATH").MustString("")
 	}
 }
