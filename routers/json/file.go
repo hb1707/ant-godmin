@@ -22,9 +22,8 @@ import (
 )
 
 type UserPathPrams struct {
-	UidHash string `uri:"uid_hash" binding:"required"`
-	Ext     string `uri:"ext" binding:"required"`
-	Name    string `uri:"name" binding:"required"`
+	Hash     string `uri:"hash" binding:"required"`
+	Filepath string `uri:"filepath" binding:"required"`
 }
 
 func GetUserFile(c *gin.Context) {
@@ -33,10 +32,10 @@ func GetUserFile(c *gin.Context) {
 		jsonErr(c, http.StatusBadRequest, err)
 		return
 	}
-	uidHash := params.UidHash
-	ext := params.Ext
-	name := params.Name
-	key := path.Join(setting.Upload.UserPath, uidHash, ext, name)
+	hash := params.Hash
+
+	pathStr := params.Filepath
+	key := path.Join(setting.Upload.UserPath, hash, pathStr)
 
 	oss := upload.NewUpload(upload.TypeAliyunOss)
 	oss.SetBucket(setting.AliyunOSS.BucketNameUser)
