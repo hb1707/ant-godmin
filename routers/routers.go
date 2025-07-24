@@ -34,7 +34,9 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 		gin.SetMode(gin.DebugMode) //debug
 	}
 	r.Static(upload.RoutePath, setting.Upload.LocalPath)
-	r.GET(upload.RoutePathUser+"/:hash/*filepath", json.GetUserFile) //setting.Upload.UserPath
+	//if upload.RoutePathUser == "/udata" {
+	//	r.GET("/data/:hash/*filepath", json.GetUserFile) //setting.Upload.UserPath
+	//}
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
 	})
