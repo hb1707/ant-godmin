@@ -16,6 +16,7 @@ const (
 )
 
 type Files struct {
+	UUID      string           `json:"uuid" gorm:"column:uuid;type:varchar(64) not null;default:'';comment:文件唯一标识"`                   // 文件唯一标识
 	TypeId    uint             `json:"type_id" gorm:"column:type_id;type:tinyint UNSIGNED not null;default:0;comment:分类id"`           //分类id 0 图片 2其他 3证件 4APK
 	CloudType consts.CloudType `json:"cloud_type" gorm:"column:cloud_type;type:tinyint UNSIGNED not null;default:0;comment:云类型"`      //云类型
 	FileType  consts.FileType  `json:"file_type" gorm:"column:file_type;type:tinyint UNSIGNED not null;default:0;comment:文件类型"`       //文件类型,0 未知，1 图片，2 JSON
