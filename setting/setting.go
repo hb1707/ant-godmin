@@ -55,6 +55,7 @@ var AliyunOSS struct {
 	BucketUrl       string
 	BucketUrlUser   string
 	BasePath        string
+	MncTopic        string
 }
 var AliyunOSSEnc struct {
 	Endpoint        string
@@ -65,6 +66,7 @@ var AliyunOSSEnc struct {
 	BucketUrl       string
 	BucketUrlUser   string
 	BasePath        string
+	MncTopic        string
 }
 
 var Email struct {
@@ -163,6 +165,7 @@ func confUpload() {
 		AliyunOSS.BucketUrl = upload.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
 		AliyunOSS.BucketUrlUser = upload.Key("ALIYUN_OSS_BUCKET_URL_USER").MustString("")
 		AliyunOSS.BasePath = upload.Key("ALIYUN_OSS_BASE_PATH").MustString("")
+		AliyunOSS.MncTopic = upload.Key("ALIYUN_OSS_MNC_TOPIC").MustString("")
 	}
 	uploadEnc, err := Cfg.GetSection("upload_encryption")
 	if err == nil {
@@ -174,6 +177,7 @@ func confUpload() {
 		AliyunOSSEnc.BucketUrl = uploadEnc.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
 		AliyunOSSEnc.BucketUrlUser = uploadEnc.Key("ALIYUN_OSS_BUCKET_URL_USER").MustString("")
 		AliyunOSSEnc.BasePath = uploadEnc.Key("ALIYUN_OSS_BASE_PATH").MustString("")
+		AliyunOSSEnc.MncTopic = uploadEnc.Key("ALIYUN_OSS_MNC_TOPIC").MustString("")
 	}
 }
 
