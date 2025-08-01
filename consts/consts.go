@@ -41,6 +41,7 @@ const (
 	FileTypeVideo    FileType = 6
 	FileTypeDocument FileType = 7
 	FileTypeMarkdown FileType = 8
+	FileTypeMusic    FileType = 9
 )
 
 type CloudType int
