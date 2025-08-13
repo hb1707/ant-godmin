@@ -53,6 +53,7 @@ func (f *FileService) SaveSql(req model.Files, key string, originalName string) 
 		err := sql.AddOrUpdate()
 		req.TempExist = true
 		req.Url = fileUrl
+		req.Path = req.Path
 		req.Key = key
 		return err, req
 	} else {
@@ -67,6 +68,7 @@ func (f *FileService) SaveSql(req model.Files, key string, originalName string) 
 			Domain:    req.Domain,
 			UserSpace: req.UserSpace,
 			Url:       fileUrl,
+			Path:      req.Path,
 			Name:      filepath.Base(originalName),
 			Tag:       req.Tag,
 			Key:       key,
@@ -223,6 +225,7 @@ func (f *FileService) DownloadFile(req model.Files, saveSql bool) (err error, fi
 		Name:      newFileNamePath,
 		Tag:       req.Tag,
 		Key:       req.Key,
+		Path:      req.Path,
 	}
 	if !saveSql {
 		return nil, newFile
