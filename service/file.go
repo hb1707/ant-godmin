@@ -358,7 +358,7 @@ func (f *FileService) WxAdd(appid string, req model.Files) (err error, outFile m
 }
 func (f *FileService) prevPathType(filename string) (newFileName string) {
 	pathType := f.PathType
-	match, _ := regexp.MatchString(`^[A-Za-z0-9_]+$`, pathType)
+	match, _ := regexp.MatchString(`^[A-Za-z0-9_\/]+$`, pathType)
 	if match && pathType != "" {
 		filename = pathType + "/" + filename
 	}
