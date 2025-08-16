@@ -37,6 +37,9 @@ func NewFileService(pathType string) *FileService {
 }
 
 func (f *FileService) SaveSql(req model.Files, key string, originalName string) (error, model.Files) {
+	if req.FileType == consts.FileTypeOther {
+		req.FileType = Ext2FileType(req.Url)
+	}
 	fileUrl := req.Url
 	if req.FileId > 0 {
 		var exist model.FilesTemp
@@ -360,4 +363,41 @@ func (f *FileService) prevPathType(filename string) (newFileName string) {
 		filename = pathType + "/" + filename
 	}
 	return filename
+}
+
+//ext := filepath.Ext(header.Filename)
+//	if ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".bmp" || ext == ".tiff" || ext == ".webp" {
+//		req.FileType = consts.FileTypeImage
+//	} else if ext == ".mp4" || ext == ".avi" || ext == ".mov" || ext == ".wmv" || ext == ".mkv" || ext == ".flv" || ext == ".webm" {
+//		req.FileType = consts.FileTypeVideo
+//	} else if ext == ".mp3" || ext == ".wav" || ext == ".ogg" || ext == ".flac" || ext == ".aac" || ext == ".wma" || ext == ".m4a" {
+//		req.FileType = consts.FileTypeAudio
+//	} else if ext == ".pdf" || ext == ".docx" || ext == ".doc" || ext == ".pptx" || ext == ".ppt" || ext == ".xls" || ext == ".xlsx" || ext == ".txt" || ext == ".csv" {
+//		req.FileType = consts.FileTypeDocument
+//	} else if ext == ".md" || ext == ".markdown" {
+//		req.FileType = consts.FileTypeMarkdown
+//	} else {
+//		req.FileType = consts.FileTypeOther
+//	}
+
+func Ext2FileType(url string) consts.FileType {
+	ext := strings.ToLower(filepath.Ext(url))
+	switch ext {
+	case ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp":
+		return consts.FileTypeImage
+	case ".mp4", ".avi", ".mov", ".wmv", ".mkv", ".flv", ".webm":
+		return consts.FileTypeVideo
+	case ".mp3", ".wav", ".ogg", ".flac", ".aac", ".wma", ".m4a":
+		return consts.FileTypeAudio
+	case ".pdf", ".docx", ".doc", ".pptx", ".ppt", ".xls", ".xlsx", ".txt", ".csv":
+		return consts.FileTypeDocument
+	case ".md", ".markdown":
+		return consts.FileTypeMarkdown
+	case ".json":
+		return consts.FileTypeJson
+	case ".zip", ".rar", ".tar", ".gz", ".7z":
+		return consts.FileTypeArchive
+	default:
+		return consts.FileTypeOther
+	}
 }

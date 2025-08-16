@@ -42,6 +42,7 @@ const (
 	FileTypeDocument FileType = 7
 	FileTypeMarkdown FileType = 8
 	FileTypeMusic    FileType = 9
+	FileTypeArchive  FileType = 10  // 压缩文件
 	FileTypePath     FileType = 100 // 文件夹
 )
 

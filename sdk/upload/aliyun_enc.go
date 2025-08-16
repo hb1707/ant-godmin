@@ -80,6 +80,10 @@ func (c *AliyunOSSEnc) GetUrl(key string, isPrivate bool) string {
 	if err != nil {
 		return ""
 	}
+	//exist, err := bucket.IsObjectExist(key)
+	//if err != nil || !exist {
+	//	return ""
+	//}
 	// 生成一个临时的访问URL，过期时间为1小时
 	signedURL, err := bucket.SignURL(key, oss.HTTPGet, 3600)
 	if err != nil {
