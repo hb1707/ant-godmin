@@ -9,6 +9,7 @@ import (
 	"github.com/hb1707/ant-godmin/sdk/wx"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/hb1707/exfun/fun"
+	"html"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -150,14 +151,55 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	} else {
 		oss = upload.NewUpload(upload.TypeAliyunOss)
 	}
-	newFileName := req.Name
-	res, _ := http.Get(req.From)
+
+	fileUrl := req.From
+	fileUrlArr := strings.Split(fileUrl, "?")
+	ext := filepath.Ext(fileUrl)
+	if len(fileUrlArr) > 1 {
+		ext = filepath.Ext(fileUrlArr[0])
+		if req.FileType == consts.FileTypeOther {
+			req.FileType = Ext2FileType(fileUrlArr[0])
+		}
+	} else {
+		if req.FileType == consts.FileTypeOther {
+			req.FileType = Ext2FileType(fileUrl)
+		}
+	}
+	// 处理特殊字符
+	fileUrl = html.UnescapeString(fileUrl)
+	res, err := http.Get(fileUrl)
+	if err != nil {
+		return err, model.Files{}
+	}
+	if res == nil || res.StatusCode > 400 {
+		return errors.New(fmt.Sprintf("StatusCode: %d", res.StatusCode)), model.Files{}
+	}
+	// 检查是否是html，json，xml等内容
+	if strings.Contains(res.Header.Get("Content-Type"), "text/html") || strings.Contains(res.Header.Get("Content-Type"), "application/xml") {
+		return errors.New("不支持的文件格式"), model.Files{}
+	}
+	if cd := res.Header.Get("Content-Disposition"); cd != "" && ext == "" {
+		var extMatch = new([]string)
+		fun.PregMatch(`filename="?([^";]+)"?`, cd, extMatch)
+		if len(*extMatch) > 0 {
+			ext = filepath.Ext((*extMatch)[0])
+		}
+	}
+	extPath := strings.TrimPrefix(ext, ".")
+	if extPath == "" {
+		extPath = "other"
+	}
 	file := io.Reader(res.Body)
+	newFileName := req.Name
+	if req.UserSpace != "" {
+		newFileName = req.UserSpace + "/" + extPath + "/" + newFileName
+	}
 	newFileName = f.prevPathType(newFileName)
 	key, err := oss.Upload(file, newFileName)
 	if err != nil {
 		return err, model.Files{}
 	}
+
 	if req.FileType == consts.FileTypeImage {
 		if req.Other.Width == 0 || req.Other.Height == 0 {
 			info, _ := oss.GetInfo(key)
@@ -167,12 +209,12 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 			req.Other.Ext = path.Ext(newFileName)
 		}
 	}
-	fileUrl := f.CloudOutputUrl + "/" + key
+	fileUrlNew := f.CloudOutputUrl + "/" + key
 	if req.UserSpace != "" {
-		fileUrl = f.LocalOutputUrl + "/" + key
+		fileUrlNew = f.LocalOutputUrl + "/" + key
 	}
 	req.CloudType = consts.CloudTypeAliyun
-	req.Url = fileUrl
+	req.Url = fileUrlNew
 	err, req = f.SaveSql(req, key, req.Name)
 	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "")
 	return err, req
