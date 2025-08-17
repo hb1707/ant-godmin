@@ -49,7 +49,7 @@ func (f *FileService) SaveSql(req model.Files, key string, originalName string) 
 		}
 		var temp model.FilesTemp
 		sql := model.NewFileTemp()
-		temp.Id = exist.Id
+		sql.Id = exist.Id
 		temp.FileId = req.FileId
 		temp.Url = fileUrl
 		temp.Key = key
@@ -83,7 +83,7 @@ func (f *FileService) SaveSql(req model.Files, key string, originalName string) 
 			model.NewFile().Where("url = ?", fileUrl).One(&exist)
 		}
 		sql := model.NewFile()
-		newFile.Id = exist.Id
+		sql.Id = exist.Id
 		sql.Request(&newFile)
 		err := sql.AddOrUpdate()
 		newFile.Url = strings.ReplaceAll(newFile.Url, "{DOMAIN}", req.Domain)
