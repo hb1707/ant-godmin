@@ -13,7 +13,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/hb1707/ant-godmin/consts"
 	"github.com/hb1707/ant-godmin/model"
@@ -180,11 +179,24 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	if strings.Contains(res.Header.Get("Content-Type"), "text/html") || strings.Contains(res.Header.Get("Content-Type"), "application/xml") {
 		return errors.New("不支持的文件格式"), model.Files{}
 	}
+	nameHead := ""
 	if cd := res.Header.Get("Content-Disposition"); cd != "" && ext == "" {
 		var extMatch = new([]string)
-		fun.PregMatch(`filename="?([^";]+)"?`, cd, extMatch)
+		fun.PregMatch(`filename=(?:"([^"]+)"|([^;\s]+))`, cd, extMatch)
 		if len(*extMatch) > 0 {
-			ext = filepath.Ext((*extMatch)[0])
+			for i := 0; i < len(*extMatch); i++ {
+				if i == 0 {
+					continue
+				}
+				if (*extMatch)[i] != "" {
+					ext = filepath.Ext((*extMatch)[i])
+					if ext != "" {
+						nameHead = (*extMatch)[i]
+						ext = strings.ToLower(ext)
+						break
+					}
+				}
+			}
 		}
 	}
 	extPath := strings.TrimPrefix(ext, ".")
@@ -194,8 +206,12 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	file := io.Reader(res.Body)
 	newFileName := req.Name
 	if req.Name == "" {
-		req.Name = filepath.Base(fileUrl)
-		newFileName = fmt.Sprintf("%s_%s%s", time.Now().Format("20060102"), fun.MD5(fileUrl), ext)
+		if nameHead != "" {
+			req.Name = nameHead
+		} else {
+			req.Name = filepath.Base(fileUrl)
+		}
+		newFileName = fmt.Sprintf("%s%s", fun.MD5(fileUrl), ext)
 	}
 
 	if req.UserSpace != "" {
