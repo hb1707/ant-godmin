@@ -149,8 +149,14 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	var oss upload.Cloud
 	if isEnc {
 		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
+		if req.UserSpace != "" {
+			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
+		}
 	} else {
 		oss = upload.NewUpload(upload.TypeAliyunOss)
+		if req.UserSpace != "" {
+			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
+		}
 	}
 
 	fileUrl := req.From
@@ -340,8 +346,14 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 	var oss upload.Cloud
 	if isEnc {
 		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
+		if req.UserSpace != "" {
+			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
+		}
 	} else {
 		oss = upload.NewUpload(upload.TypeAliyunOss)
+		if req.UserSpace != "" {
+			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
+		}
 	}
 	var localSql model.Files
 	var sq = model.NewFile()
