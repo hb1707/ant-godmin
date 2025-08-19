@@ -3,12 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/hb1707/ant-godmin/consts"
-	"github.com/hb1707/ant-godmin/model"
-	"github.com/hb1707/ant-godmin/sdk/upload"
-	"github.com/hb1707/ant-godmin/sdk/wx"
-	"github.com/hb1707/ant-godmin/setting"
-	"github.com/hb1707/exfun/fun"
 	"html"
 	"io"
 	"mime/multipart"
@@ -19,6 +13,14 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/hb1707/ant-godmin/consts"
+	"github.com/hb1707/ant-godmin/model"
+	"github.com/hb1707/ant-godmin/sdk/upload"
+	"github.com/hb1707/ant-godmin/sdk/wx"
+	"github.com/hb1707/ant-godmin/setting"
+	"github.com/hb1707/exfun/fun"
 )
 
 type FileService struct {
@@ -191,6 +193,11 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	}
 	file := io.Reader(res.Body)
 	newFileName := req.Name
+	if req.Name == "" {
+		req.Name = filepath.Base(fileUrl)
+		newFileName = fmt.Sprintf("%s_%s%s", time.Now().Format("20060102"), fun.MD5(fileUrl), ext)
+	}
+
 	if req.UserSpace != "" {
 		newFileName = req.UserSpace + "/" + extPath + "/" + newFileName
 	}
