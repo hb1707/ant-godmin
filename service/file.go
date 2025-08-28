@@ -205,6 +205,34 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 			}
 		}
 	}
+	if ext == "" && strings.Contains(res.Header.Get("Content-Type"), "/") {
+		ext = "." + strings.Split(res.Header.Get("Content-Type"), "/")[1]
+		if strings.Contains(ext, ";") {
+			ext = strings.Split(ext, ";")[0]
+		}
+		ext = strings.ToLower(ext)
+		if ext == ".jpeg" {
+			ext = ".jpg"
+		}
+		if ext == ".svg+xml" {
+			ext = ".svg"
+		}
+		if ext == ".plain" {
+			ext = ".txt"
+		}
+		if ext == ".x-icon" {
+			ext = ".ico"
+		}
+		if ext == ".vnd.microsoft.icon" {
+			ext = ".ico"
+		}
+		if ext == ".javascript" {
+			ext = ".js"
+		}
+		if ext == ".json" {
+			req.FileType = consts.FileTypeJson
+		}
+	}
 	extPath := strings.TrimPrefix(ext, ".")
 	if extPath == "" {
 		extPath = "other"
