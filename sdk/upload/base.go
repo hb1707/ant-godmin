@@ -1,15 +1,16 @@
 package upload
 
 import (
-	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/hb1707/ant-godmin/setting"
 )
 
 type Cloud interface {
 	AllObjects(path string, next string) ([]map[string]string, string, error)
-	GetUrl(key string, isPrivate bool) string
+	GetUrl(key string, isPrivate bool, expire int64) string
 	GetInfo(key string) (map[string]any, error)
 	SetPath(path string)
 	SetBucket(bucketName string)

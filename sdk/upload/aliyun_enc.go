@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"strconv"
+	"strings"
+
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/hb1707/ant-godmin/setting"
 )
 
 type ObjectInfoEnc struct {
@@ -75,7 +77,10 @@ func (c *AliyunOSSEnc) AllObjects(path string, continuation string) (pathList []
 }
 
 // GetUrl 获取文件的访问地址
-func (c *AliyunOSSEnc) GetUrl(key string, isPrivate bool) string {
+func (c *AliyunOSSEnc) GetUrl(key string, isPrivate bool, expire int64) string {
+	if expire <= 0 {
+		expire = 3600 // 默认过期时间为1小时
+	}
 	bucket, err := NewBucket(c.BucketName)
 	if err != nil {
 		return ""
@@ -85,11 +90,21 @@ func (c *AliyunOSSEnc) GetUrl(key string, isPrivate bool) string {
 	//	return ""
 	//}
 	// 生成一个临时的访问URL，过期时间为1小时
-	signedURL, err := bucket.SignURL(key, oss.HTTPGet, 3600)
-	if err != nil {
-		return ""
+	keyParams := strings.Split(key, "?")
+	if len(keyParams) > 1 {
+		key = keyParams[0]
+		signedURL, err := bucket.SignURL(key, oss.HTTPGet, expire, oss.Process(keyParams[1]))
+		if err != nil {
+			return ""
+		}
+		return signedURL
+	} else {
+		signedURL, err := bucket.SignURL(key, oss.HTTPGet, expire)
+		if err != nil {
+			return ""
+		}
+		return signedURL
 	}
-	return signedURL
 }
 
 // GetInfo 文件的信息

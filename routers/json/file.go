@@ -2,6 +2,13 @@ package json
 
 import (
 	"errors"
+	"net/http"
+	"path"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/consts"
@@ -13,12 +20,6 @@ import (
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/hb1707/exfun/fun"
 	"github.com/xuri/excelize/v2"
-	"net/http"
-	"path"
-	"path/filepath"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type UserPathPrams struct {
@@ -39,7 +40,7 @@ func GetUserFile(c *gin.Context) {
 
 	oss := upload.NewUpload(upload.TypeAliyunOss)
 	oss.SetBucket(setting.AliyunOSS.BucketNameUser)
-	filePath := oss.GetUrl(key, true)
+	filePath := oss.GetUrl(key, true, 3600)
 	response, err := http.Get(filePath)
 	if err != nil || response.StatusCode != http.StatusOK {
 		c.Status(http.StatusServiceUnavailable)

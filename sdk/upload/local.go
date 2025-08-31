@@ -2,7 +2,6 @@ package upload
 
 import (
 	"errors"
-	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"mime"
 	"net/http"
@@ -10,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/hb1707/ant-godmin/setting"
 )
 
 var RoutePath = "/upload"
@@ -33,7 +34,7 @@ func (c *Local) AllObjects(path string, continuation string) (pathList []map[str
 }
 
 // GetUrl 获取文件的访问地址
-func (c *Local) GetUrl(key string, isPrivate bool) string {
+func (c *Local) GetUrl(key string, isPrivate bool, expire int64) string {
 	if isPrivate {
 		return RoutePathUser + "/" + key
 	}

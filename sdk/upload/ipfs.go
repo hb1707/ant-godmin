@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
+
+	"github.com/hb1707/ant-godmin/setting"
 )
 
 type IPFS struct{}
@@ -31,7 +32,7 @@ func (*IPFS) AllObjects(path string, continuation string) (pathList []map[string
 }
 
 // GetUrl 获取文件的访问地址
-func (*IPFS) GetUrl(key string, isPrivate bool) string {
+func (*IPFS) GetUrl(key string, isPrivate bool, expire int64) string {
 	if isPrivate {
 		return setting.IPFS.IpfsEndpoint + "/ipfs/" + key
 	}
