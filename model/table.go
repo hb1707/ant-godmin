@@ -268,7 +268,7 @@ func (t *TableBase) Get(id uint) (any, bool) {
 	return value, true
 }
 
-// Delete 删除缓存
-func (t *TableBase) Delete(id uint) {
+// Clear 删除缓存
+func (t *TableBase) Clear(id uint) {
 	t.Map.Delete(id)
 }
