@@ -41,7 +41,8 @@ type TableBase struct {
 	updateByFieldValue interface{}            `json:"-" form:"-" gorm:"-"`
 	Limit              int                    `json:"-" form:"-" gorm:"-"`
 	Page               int                    `json:"-" form:"-" gorm:"-"`
-	Map                sync.Map               `json:"-" form:"-" gorm:"-"`
+	mapData            sync.Map               `json:"-" form:"-" gorm:"-"`
+	mapTimeoutAt       time.Time              `json:"-" form:"-" gorm:"-"`
 }
 
 func init() {

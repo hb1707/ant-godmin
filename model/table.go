@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
@@ -255,13 +257,17 @@ func (t *TableBase) UpdateExprNotIdOnly(field string, expr string, value interfa
 }
 
 // Set 缓存
-func (t *TableBase) Set(key any, value any) {
-	t.Map.Store(key, value)
+func (t *TableBase) Set(key any, value any, timeout ...time.Duration) {
+	t.mapTimeoutAt = time.Now().Add(timeout[0])
+	t.mapData.Store(key, value)
 }
 
 // Get 获取缓存
 func (t *TableBase) Get(key any) (any, bool) {
-	value, ok := t.Map.Load(key)
+	if !t.mapTimeoutAt.IsZero() && time.Now().After(t.mapTimeoutAt) {
+		return nil, false
+	}
+	value, ok := t.mapData.Load(key)
 	if !ok {
 		return nil, false
 	}
@@ -270,5 +276,5 @@ func (t *TableBase) Get(key any) (any, bool) {
 
 // Clear 删除缓存
 func (t *TableBase) Clear(any any) {
-	t.Map.Delete(any)
+	t.mapData.Delete(any)
 }
