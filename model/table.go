@@ -253,22 +253,3 @@ func (t *TableBase) UpdateExprNotIdOnly(field string, expr string, value interfa
 		t.DB.UpdateColumn(field, gorm.Expr(expr, value))
 	}
 }
-
-// Set 缓存
-func (t *TableBase) Set(id uint, value any) {
-	t.Map.Store(id, value)
-}
-
-// Get 获取缓存
-func (t *TableBase) Get(id uint) (any, bool) {
-	value, ok := t.Map.Load(id)
-	if !ok {
-		return nil, false
-	}
-	return value, true
-}
-
-// Delete 删除缓存
-func (t *TableBase) Delete(id uint) {
-	t.Map.Delete(id)
-}
