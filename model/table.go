@@ -258,6 +258,9 @@ func (t *TableBase) UpdateExprNotIdOnly(field string, expr string, value interfa
 
 // Set 缓存
 func (t *TableBase) Set(key any, value any, timeout ...time.Duration) {
+	if len(timeout) == 0 {
+		timeout = append(timeout, time.Hour)
+	}
 	t.mapTimeoutAt = time.Now().Add(timeout[0])
 	t.mapData.Store(key, value)
 }
