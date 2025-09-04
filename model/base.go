@@ -4,6 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	log2 "log"
+	"os"
+	"sync"
+	"time"
+
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/hb1707/exfun/fun"
@@ -11,9 +16,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	log2 "log"
-	"os"
-	"time"
 )
 
 var (
@@ -39,6 +41,7 @@ type TableBase struct {
 	updateByFieldValue interface{}            `json:"-" form:"-" gorm:"-"`
 	Limit              int                    `json:"-" form:"-" gorm:"-"`
 	Page               int                    `json:"-" form:"-" gorm:"-"`
+	Map                sync.Map               `json:"-" form:"-" gorm:"-"`
 }
 
 func init() {
