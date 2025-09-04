@@ -255,13 +255,13 @@ func (t *TableBase) UpdateExprNotIdOnly(field string, expr string, value interfa
 }
 
 // Set 缓存
-func (t *TableBase) Set(id uint, value any) {
-	t.Map.Store(id, value)
+func (t *TableBase) Set(key any, value any) {
+	t.Map.Store(key, value)
 }
 
 // Get 获取缓存
-func (t *TableBase) Get(id uint) (any, bool) {
-	value, ok := t.Map.Load(id)
+func (t *TableBase) Get(key any) (any, bool) {
+	value, ok := t.Map.Load(key)
 	if !ok {
 		return nil, false
 	}
@@ -269,6 +269,6 @@ func (t *TableBase) Get(id uint) (any, bool) {
 }
 
 // Clear 删除缓存
-func (t *TableBase) Clear(id uint) {
-	t.Map.Delete(id)
+func (t *TableBase) Clear(any any) {
+	t.Map.Delete(any)
 }
