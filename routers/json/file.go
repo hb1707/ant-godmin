@@ -71,7 +71,7 @@ func UploadOSS(c *gin.Context) {
 	fileType, _ := strconv.Atoi(c.DefaultQuery("file_type", "1"))
 	photoId, _ := strconv.Atoi(c.DefaultQuery("photo_id", "0")) //todo: 20220621之后准备废弃
 	fileId, _ := strconv.Atoi(c.DefaultQuery("file_id", "0"))
-	fileName := c.DefaultQuery("file_name", "")
+	fileName := c.PostForm("file_name")
 	req.TypeId = uint(typeId)
 	req.FileType = consts.FileType(fileType)
 	uid, _ := auth.Identity(c)
