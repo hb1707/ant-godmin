@@ -1,6 +1,8 @@
 package routers
 
 import (
+	"net/http"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/hb1707/ant-godmin/auth"
@@ -8,7 +10,6 @@ import (
 	"github.com/hb1707/ant-godmin/routers/json"
 	"github.com/hb1707/ant-godmin/sdk/upload"
 	"github.com/hb1707/ant-godmin/setting"
-	"net/http"
 )
 
 // List 路由列表设定
@@ -19,6 +20,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 	//config.AllowAllOrigins = true
 	config.AllowCredentials = true
 	config.AllowOrigins = allowOrigins
+	config.AllowWildcard = true
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	if len(allowHeader) > 0 {
 		config.AddAllowHeaders(allowHeader...)
