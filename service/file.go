@@ -93,6 +93,7 @@ func (f *FileService) SaveSql(req model.Files, key string, originalName string) 
 		var exist model.Files
 		if fileUrl != "" {
 			model.NewFile().Where("url = ?", fileUrl).One(&exist)
+			newFile.Id = exist.Id
 		}
 		sql := model.NewFile()
 		sql.Id = exist.Id
