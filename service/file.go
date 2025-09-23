@@ -62,7 +62,18 @@ func (f *FileService) SaveSql(req model.Files, key string, originalName string) 
 		req.Key = key
 		return err, req
 	} else {
-		fileUrl = strings.ReplaceAll(fileUrl, req.Domain, "{DOMAIN}")
+		if req.Domain == "" {
+			// 从url中提取domain，注意要带上https://
+			if strings.Contains(fileUrl, "://") {
+				domainArr := strings.Split(fileUrl, "/")
+				if len(domainArr) > 2 {
+					req.Domain = domainArr[0] + "//" + domainArr[2]
+				}
+			}
+		}
+		if req.Domain != "" {
+			fileUrl = strings.ReplaceAll(fileUrl, req.Domain, "{DOMAIN}")
+		}
 		newFile := model.Files{
 			UUID:      req.UUID,
 			CloudType: req.CloudType,
