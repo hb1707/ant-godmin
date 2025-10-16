@@ -1,8 +1,6 @@
 module github.com/hb1707/ant-godmin
 
-go 1.23.0
-
-toolchain go1.23.7
+go 1.24
 
 require (
 	github.com/alibabacloud-go/darabonba-openapi v0.2.1
@@ -18,7 +16,7 @@ require (
 	github.com/goccy/go-json v0.10.5
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
-	github.com/hb1707/exfun v0.0.0-20230608090108-0046c3544426
+	github.com/hb1707/exfun v0.0.7
 	github.com/sashabaranov/go-openai v1.40.0
 	github.com/silenceper/wechat/v2 v2.1.7
 	github.com/volcengine/volcengine-go-sdk v1.1.19

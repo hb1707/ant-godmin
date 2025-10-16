@@ -2,13 +2,14 @@ package common
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/sdk/aliyun"
 	qywxAdmin "github.com/hb1707/ant-godmin/sdk/qywx"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/hb1707/exfun/fun"
-	"strings"
-	"time"
 )
 
 var appInfo setting.AppInfo
@@ -29,9 +30,9 @@ func ReadinessNotice() {
 		card.Source.Desc = fmt.Sprintf("服务已更新 %s", time.Now().Format("2006-01-02 15:04:05"))
 		card.Source.DescColor = 1
 		card.MainTitle = new(qywxAdmin.MainTitle)
-		card.MainTitle.Title = strings.ToUpper(sae) + " 服务已启动"
+		card.MainTitle.Title = fmt.Sprintf("%s [%s] 服务已启动", strings.ToUpper(sae), fun.Domain(setting.App.APIURL, ""))
 		card.MainTitle.Desc = fmt.Sprintf("版本：%s\n更新通道：%s\n更新内容：%s", appInfo.Version, appInfo.Channel, appInfo.Desc)
-		card.TaskId = fmt.Sprintf("ver_%s_%s", sae, time.Now().Format("20060102150405"))
+		card.TaskId = fmt.Sprintf("ver_%s_%s_%s", sae, time.Now().Format("20060102150405"), fun.MD5(setting.App.APIURL))
 		card.ButtonList = []qywxAdmin.Button{
 			{Text: "忽略", Style: 2, Key: "ver_" + sae + "_ignore"},
 			{Text: "部署/回滚", Style: 1, Key: "ver_" + sae + "_rollback"},
