@@ -41,18 +41,18 @@ func (t *Settings) Edit(must ...string) *Settings {
 	return &user
 }
 
-var SettingsCache = map[string]string{}
+var SettingsCache = map[string]Settings{}
 var cacheTime = time.Now()
 
 func reLoad() {
 	list := NewSettings().All("id desc")
 	for _, settings := range list {
-		SettingsCache[settings.Key] = settings.Value
+		SettingsCache[settings.Key] = settings
 	}
 	cacheTime = time.Now()
 }
 
-func SettingGet(k string) string {
+func SettingGet(k string, timeOut time.Duration) string {
 	if _, exist := SettingsCache[k]; !exist || cacheTime.Add(time.Minute*10).Before(time.Now()) {
 		reLoad()
 	}
@@ -63,11 +63,20 @@ func SettingGet(k string) string {
 		up.Value = ""
 		sql.Request(&up)
 		sql.AddOrUpdate([]string{"setting_key", "setting_value"})
-		SettingsCache[k] = ""
+		up.UpdatedAt = time.Now()
+		SettingsCache[k] = up
 	}
-	return SettingsCache[k]
+	if timeOut == 0 || SettingsCache[k].UpdatedAt.Add(timeOut).After(time.Now()) {
+		return SettingsCache[k].Value
+	} else {
+		return ""
+	}
 }
+
 func SettingSet(k string, v string) {
 	NewSettings("setting_key = ?", k).UpdateFieldNotId("setting_value", v)
-	SettingsCache[k] = v
+	SettingsCache[k] = Settings{
+		Key:   k,
+		Value: v,
+	}
 }
