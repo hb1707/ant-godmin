@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/hb1707/ant-godmin/pkg/log"
 	"time"
+
+	"github.com/hb1707/ant-godmin/pkg/log"
 )
 
 type Settings struct {
@@ -14,9 +15,9 @@ type Settings struct {
 func NewSettings(where ...interface{}) *Settings {
 	var t = new(Settings)
 	if len(where) > 0 {
-		t.DB = DB.Model(&Settings{}).Where(where[0], where[1:]...).Select("setting_key,setting_value")
+		t.DB = DB.Model(&Settings{}).Where(where[0], where[1:]...)
 	} else {
-		t.DB = DB.Model(&Settings{}).Select("setting_key,setting_value")
+		t.DB = DB.Model(&Settings{})
 	}
 	return t
 }
