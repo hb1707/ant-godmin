@@ -471,8 +471,48 @@ func (f *FileService) WxAdd(appid string, req model.Files) (err error, outFile m
 	req.CloudType = consts.CloudTypeWxOa
 	req.Url = res
 	return f.SaveSql(req, appid, newFileName)
-
 }
+func (f *FileService) Clear(req model.Files, isEnc bool) error {
+	var oss upload.Cloud
+	if isEnc {
+		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
+		if req.UserSpace != "" {
+			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
+		}
+	} else {
+		oss = upload.NewUpload(upload.TypeAliyunOss)
+		if req.UserSpace != "" {
+			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
+		}
+	}
+	var localSql model.Files
+	var sq = model.NewFile()
+	fileUrl := req.Url
+	if req.Domain == "" {
+		// 从url中提取domain，注意要带上https://
+		if strings.Contains(fileUrl, "://") {
+			domainArr := strings.Split(fileUrl, "/")
+			if len(domainArr) > 2 {
+				req.Domain = domainArr[0] + "//" + domainArr[2]
+			}
+		}
+	}
+	if req.Domain != "" {
+		fileUrl = strings.ReplaceAll(fileUrl, req.Domain, "{DOMAIN}")
+	}
+	sq.Where("url = ? AND cloud_type = ?", fileUrl, req.CloudType)
+	sq.One(&localSql, "created_at desc")
+	if localSql.Id > 0 {
+		sql := model.NewFile()
+		return sql.DB.Where("id = ?", localSql.Id).Delete(&sql).Error
+	}
+	err := oss.Delete(localSql.Key)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (f *FileService) prevPathType(filename string) (newFileName string) {
 	pathType := f.PathType
 	match, _ := regexp.MatchString(`^[A-Za-z0-9_\/]+$`, pathType)
