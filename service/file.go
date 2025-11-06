@@ -13,9 +13,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hb1707/ant-godmin/consts"
 	"github.com/hb1707/ant-godmin/model"
+	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/sdk/upload"
 	"github.com/hb1707/ant-godmin/sdk/wx"
 	"github.com/hb1707/ant-godmin/setting"
@@ -472,45 +474,30 @@ func (f *FileService) WxAdd(appid string, req model.Files) (err error, outFile m
 	req.Url = res
 	return f.SaveSql(req, appid, newFileName)
 }
-func (f *FileService) Clear(req model.Files, isEnc bool) error {
+
+// OssFilesClear 清理OSS已删除的文件
+func OssFilesClear(timeSleep time.Duration) {
+
+	var localSql []model.Files
+	sql := model.NewFile()
+	sql.DB.Unscoped()
+	sql.Where("deleted_at IS NOT NULL")
+	sql.List(&localSql)
 	var oss upload.Cloud
-	if isEnc {
-		oss = upload.NewUpload(upload.TypeAliyunOssEnc)
-		if req.UserSpace != "" {
-			oss.SetBucket(setting.AliyunOSSEnc.BucketNameUser)
-		}
-	} else {
+
+	for _, v := range localSql {
 		oss = upload.NewUpload(upload.TypeAliyunOss)
-		if req.UserSpace != "" {
+		if v.UserSpace != "" {
 			oss.SetBucket(setting.AliyunOSS.BucketNameUser)
 		}
-	}
-	var localSql model.Files
-	var sq = model.NewFile()
-	fileUrl := req.Url
-	if req.Domain == "" {
-		// 从url中提取domain，注意要带上https://
-		if strings.Contains(fileUrl, "://") {
-			domainArr := strings.Split(fileUrl, "/")
-			if len(domainArr) > 2 {
-				req.Domain = domainArr[0] + "//" + domainArr[2]
-			}
+		err := oss.Delete(v.Key)
+		if err != nil {
+			log.Warning("OssFilesClear error:", err.Error())
+		}
+		if timeSleep > 0 {
+			time.Sleep(timeSleep)
 		}
 	}
-	if req.Domain != "" {
-		fileUrl = strings.ReplaceAll(fileUrl, req.Domain, "{DOMAIN}")
-	}
-	sq.Where("url = ? AND cloud_type = ?", fileUrl, req.CloudType)
-	sq.One(&localSql, "created_at desc")
-	if localSql.Id > 0 {
-		sql := model.NewFile()
-		return sql.DB.Where("id = ?", localSql.Id).Delete(&sql).Error
-	}
-	err := oss.Delete(localSql.Key)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (f *FileService) prevPathType(filename string) (newFileName string) {
