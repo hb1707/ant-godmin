@@ -7,7 +7,7 @@ import (
 	offConfig "github.com/silenceper/wechat/v2/officialaccount/config"
 )
 
-func WxOaUploadImg(appId string, image string) (string, error) {
+func OaUploadImg(appId string, image string) (string, error) {
 	wc := wechat.NewWechat()
 	cfg := &offConfig.Config{
 		AppID:     appId,

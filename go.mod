@@ -89,5 +89,5 @@ require (
 
 replace (
 	github.com/r3labs/sse/v2 => github.com/hb1707/sse/v2 v2.10.0
-	github.com/silenceper/wechat/v2 => github.com/hb1707/wechat/v2 v2.1.7
+	github.com/silenceper/wechat/v2 => github.com/hb1707/wechat/v2 v2.1.10
 )

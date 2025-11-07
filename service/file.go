@@ -464,7 +464,7 @@ func (f *FileService) WxAdd(appid string, req model.Files) (err error, outFile m
 	defer file.Close()
 	newFileName := req.Name
 	newFileName = f.prevPathType(newFileName)
-	res, err := wx.WxOaUploadImg(appid, localPath)
+	res, err := wx.OaUploadImg(appid, localPath)
 	if err != nil {
 		return err, model.Files{}
 

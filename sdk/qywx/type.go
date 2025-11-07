@@ -2,6 +2,7 @@ package qywx
 
 import (
 	"github.com/silenceper/wechat/v2/cache"
+	messageMiniprogram "github.com/silenceper/wechat/v2/miniprogram/message"
 	"github.com/silenceper/wechat/v2/work/message"
 )
 
@@ -17,7 +18,7 @@ func Memory(appid string) cache.Cache {
 	return WxMemory[appid]
 }
 
-// SendTextRequest 发送文本消息的请求
+// TemplateCardRequest 发送文本消息的请求
 type TemplateCardRequest struct {
 	*message.SendRequestCommon
 	TemplateCard *TemplateCardButton `json:"template_card"`
@@ -140,4 +141,29 @@ type Button struct {
 	Text  string `json:"text"`
 	Style int    `json:"style,omitempty"`
 	Key   string `json:"key,omitempty"`
+}
+
+// TemplateUpdate  更新模版卡片消息内容
+type TemplateUpdate struct {
+	Userids      []string `json:"userids"`
+	Partyids     []int    `json:"partyids"`
+	Tagids       []int    `json:"tagids"`
+	Atall        int      `json:"atall"`
+	Agentid      int      `json:"agentid"`
+	ResponseCode string   `json:"response_code"`
+	*UpdateButton
+	*TemplateCard
+}
+type UpdateButton struct {
+	messageMiniprogram.CommonToken `json:"-"`
+	Button                         struct {
+		ReplaceName string `xml:"ReplaceName" json:"replace_name"`
+	} `xml:"Button" json:"button"`
+}
+
+// TemplateCard 被动回复模板卡片
+// https://open.work.weixin.qq.com/api/doc/90000/90135/90241
+type TemplateCard struct {
+	messageMiniprogram.CommonToken `json:"-"`
+	TemplateCard                   interface{} `xml:"TemplateCard" json:"template_card"`
 }
