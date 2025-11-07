@@ -1,15 +1,16 @@
 package auth
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/silenceper/wechat/v2"
 	"github.com/silenceper/wechat/v2/work/addresslist"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
-	workJS "github.com/silenceper/wechat/v2/work/js"
+	"github.com/silenceper/wechat/v2/work/jsapi"
 	"github.com/silenceper/wechat/v2/work/oauth"
-	"strconv"
-	"time"
 )
 
 func GetQyOpenID(appid, code string) (oauth.ResUserInfo, error) {
@@ -39,7 +40,7 @@ func GetQyWxUserID(appid, code string) (oauth.ResUserInfo, error) {
 	return res, err
 }
 
-func GetQyWxConfig(appid, url string) (conf *workJS.Config) {
+func GetQyWxConfig(appid, url string) (conf *jsapi.Config) {
 	wc := wechat.NewWechat()
 	cfg := &workConfig.Config{
 		CorpID:     setting.QyWxAppConfig[appid].Corpid,
@@ -47,7 +48,7 @@ func GetQyWxConfig(appid, url string) (conf *workJS.Config) {
 		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
-	wxJs := miniapp.GetJs()
+	wxJs := miniapp.JsSdk()
 	conf, err := wxJs.GetConfig(url)
 	if err != nil {
 		log.Error(err)
@@ -57,9 +58,9 @@ func GetQyWxConfig(appid, url string) (conf *workJS.Config) {
 }
 
 var cacheGetQyWxAgentConfigTime = make(map[string]time.Time)
-var cacheQyWxAgentConfig = make(map[string]*workJS.Config)
+var cacheQyWxAgentConfig = make(map[string]*jsapi.Config)
 
-func GetQyWxAgentConfig(appid, url string) (conf *workJS.Config) {
+func GetQyWxAgentConfig(appid, url string) (conf *jsapi.Config) {
 	var cacheKey = appid + url
 	if time.Since(cacheGetQyWxAgentConfigTime[cacheKey]) < time.Hour && cacheQyWxAgentConfig[cacheKey] != nil {
 		return cacheQyWxAgentConfig[cacheKey]
@@ -72,7 +73,7 @@ func GetQyWxAgentConfig(appid, url string) (conf *workJS.Config) {
 		Cache:      Memory(appid),
 	}
 	miniapp := wc.GetWork(cfg)
-	wxJs := miniapp.GetJs()
+	wxJs := miniapp.JsSdk()
 	conf, err := wxJs.GetConfig(url)
 	if err != nil {
 		log.Error(err)

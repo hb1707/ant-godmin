@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hb1707/exfun v0.0.7
 	github.com/sashabaranov/go-openai v1.40.0
-	github.com/silenceper/wechat/v2 v2.1.7
+	github.com/silenceper/wechat/v2 v2.1.10
 	github.com/volcengine/volcengine-go-sdk v1.1.19
 	github.com/xuri/excelize/v2 v2.8.1
 	gorm.io/driver/mysql v1.5.6
@@ -90,4 +90,5 @@ require (
 replace (
 	github.com/r3labs/sse/v2 => github.com/hb1707/sse/v2 v2.10.0
 	github.com/silenceper/wechat/v2 => github.com/hb1707/wechat/v2 v2.1.10
+	//github.com/silenceper/wechat/v2 => ../../../DEV/wechat
 )

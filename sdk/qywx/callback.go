@@ -2,16 +2,17 @@ package qywx
 
 import (
 	"bytes"
+	"io"
+	"log"
+	"net/http"
+	"strconv"
+
 	"github.com/hb1707/ant-godmin/auth"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/silenceper/wechat/v2"
 	workConfig "github.com/silenceper/wechat/v2/work/config"
 	"github.com/silenceper/wechat/v2/work/kf"
 	"github.com/silenceper/wechat/v2/work/message"
-	"io"
-	"log"
-	"net/http"
-	"strconv"
 )
 
 func WxKfDecrypt(appid string, req kf.SignatureOptions) string {
