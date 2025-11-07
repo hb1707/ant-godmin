@@ -39,7 +39,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/clbanning/mxj/v2 v2.5.6 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
-	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
@@ -89,6 +88,6 @@ require (
 
 replace (
 	github.com/r3labs/sse/v2 => github.com/hb1707/sse/v2 v2.10.0
-	github.com/silenceper/wechat/v2 => github.com/hb1707/wechat/v2 v2.1.10
-	//github.com/silenceper/wechat/v2 => ../../../DEV/wechat
+	github.com/silenceper/wechat/v2 => github.com/hb1707/wechat/v2 v2.1.10-hb
+//github.com/silenceper/wechat/v2 => ../../../DEV/wechat
 )
