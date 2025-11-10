@@ -1,4 +1,4 @@
-package redis
+package rdb
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hb1707/ant-godmin/setting"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -25,17 +26,14 @@ type ClientRedis struct {
 }
 
 // defaultContext 默认上下文（5秒超时）
-func defaultContext() context.Context {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	// 注意：这里的 cancel 会在操作完成后由 redis 客户端自动处理
-	// 如果需要更精确的控制，请使用 WithContext 或 WithTimeout 方法
-	_ = cancel
-	return ctx
+func defaultContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 5*time.Second)
 }
 
 // Config Redis 配置选项
 type Config struct {
 	Addr         string
+	Username     string
 	Password     string
 	DB           int
 	PoolSize     int
@@ -47,9 +45,10 @@ type Config struct {
 }
 
 // DefaultConfig 默认配置
-func DefaultConfig(addr, password string, db int) *Config {
+func DefaultConfig(addr, username, password string, db int) *Config {
 	return &Config{
 		Addr:         addr,
+		Username:     username,
 		Password:     password,
 		DB:           db,
 		PoolSize:     10,
@@ -62,14 +61,19 @@ func DefaultConfig(addr, password string, db int) *Config {
 }
 
 // InitRedis 初始化 Redis 客户端（简化版）
-func InitRedis(addr string, password string, db int) error {
-	return InitRedisWithConfig(DefaultConfig(addr, password, db))
+func InitRedis() error {
+	addr := fmt.Sprintf("%s:%d", setting.Redis.Host, setting.Redis.Port)
+	username := setting.Redis.Username
+	password := setting.Redis.Password
+	db := setting.Redis.DB
+	return InitRedisWithConfig(DefaultConfig(addr, username, password, db))
 }
 
 // InitRedisWithConfig 使用配置初始化 Redis 客户端
 func InitRedisWithConfig(cfg *Config) error {
 	Client = redis.NewClient(&redis.Options{
 		Addr:         cfg.Addr,
+		Username:     cfg.Username,
 		Password:     cfg.Password,
 		DB:           cfg.DB,
 		PoolSize:     cfg.PoolSize,
@@ -107,9 +111,10 @@ func GetRedisClient() *redis.Client {
 
 // New 创建一个新的 ClientRedis 实例，用于链式调用
 func New() *ClientRedis {
+	ctx, _ := defaultContext()
 	return &ClientRedis{
 		client: Client,
-		ctx:    defaultContext(),
+		ctx:    ctx,
 	}
 }
 
@@ -121,9 +126,7 @@ func (r *ClientRedis) WithContext(ctx context.Context) *ClientRedis {
 
 // WithTimeout 设置超时时间
 func (r *ClientRedis) WithTimeout(timeout time.Duration) *ClientRedis {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	// 注意：cancel 会在操作完成后由 redis 客户端自动处理
-	_ = cancel
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
 	r.ctx = ctx
 	return r
 }
@@ -416,6 +419,109 @@ func (r *ClientRedis) ZRem(key string, members ...interface{}) error {
 		return ErrClientNotInitialized
 	}
 	return r.client.ZRem(r.ctx, key, members...).Err()
+}
+
+// ========== 发布订阅操作 ==========
+
+// Publish 发布消息到指定频道
+func (r *ClientRedis) Publish(channel string, message interface{}) error {
+	if r.client == nil {
+		return ErrClientNotInitialized
+	}
+	return r.client.Publish(r.ctx, channel, message).Err()
+}
+
+// PublishJSON 发布 JSON 格式消息到指定频道
+func (r *ClientRedis) PublishJSON(channel string, message interface{}) error {
+	if r.client == nil {
+		return ErrClientNotInitialized
+	}
+	data, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("failed to marshal json: %w", err)
+	}
+	return r.client.Publish(r.ctx, channel, data).Err()
+}
+
+// Subscribe 订阅一个或多个频道
+func (r *ClientRedis) Subscribe(channels ...string) *redis.PubSub {
+	if r.client == nil {
+		return nil
+	}
+	return r.client.Subscribe(r.ctx, channels...)
+}
+
+// PSubscribe 订阅一个或多个模式
+func (r *ClientRedis) PSubscribe(patterns ...string) *redis.PubSub {
+	if r.client == nil {
+		return nil
+	}
+	return r.client.PSubscribe(r.ctx, patterns...)
+}
+
+// SubscribeHandler 订阅频道的消息处理器类型
+type SubscribeHandler func(channel string, message string)
+
+// SubscribeWithHandler 订阅频道并使用处理器处理消息
+func (r *ClientRedis) SubscribeWithHandler(ctx context.Context, handler SubscribeHandler, channels ...string) error {
+	if r.client == nil {
+		return ErrClientNotInitialized
+	}
+
+	pubsub := r.client.Subscribe(ctx, channels...)
+	defer func() {
+		_ = pubsub.Close()
+	}()
+
+	// 等待订阅确认
+	_, err := pubsub.Receive(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to receive subscription confirmation: %w", err)
+	}
+
+	// 接收消息
+	ch := pubsub.Channel()
+	for {
+		select {
+		case msg := <-ch:
+			if msg != nil {
+				handler(msg.Channel, msg.Payload)
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+}
+
+// PSubscribeWithHandler 订阅模式并使用处理器处理消息
+func (r *ClientRedis) PSubscribeWithHandler(ctx context.Context, handler SubscribeHandler, patterns ...string) error {
+	if r.client == nil {
+		return ErrClientNotInitialized
+	}
+
+	pubsub := r.client.PSubscribe(ctx, patterns...)
+	defer func() {
+		_ = pubsub.Close()
+	}()
+
+	// 等待订阅确认
+	_, err := pubsub.Receive(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to receive subscription confirmation: %w", err)
+	}
+
+	// 接收消息
+	ch := pubsub.Channel()
+	for {
+		select {
+		case msg := <-ch:
+			if msg != nil {
+				handler(msg.Channel, msg.Payload)
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }
 
 // ========== 全局便捷函数 ==========
