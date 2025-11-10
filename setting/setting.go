@@ -2,9 +2,10 @@ package setting
 
 import (
 	"fmt"
-	"github.com/go-ini/ini"
 	"log"
 	"os"
+
+	"github.com/go-ini/ini"
 )
 
 var (
@@ -105,6 +106,7 @@ func init() {
 	readENV()
 	confApp()
 	confDB()
+	confRedis()
 	confUpload()
 	confLog()
 	confTencentYun()
