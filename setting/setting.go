@@ -90,6 +90,18 @@ var Log struct {
 	PATH string
 }
 
+// ClickHouse 数据库配置
+var ClickHouse struct {
+	ENABLE      bool
+	HOST        string
+	PORT        string
+	DATABASE    string
+	USERNAME    string
+	PASSWORD    string
+	OPTIONS     string
+	AUTOMIGRATE bool
+}
+
 func init() {
 	var err error
 	var envPath = "./config/.env"
@@ -116,6 +128,7 @@ func init() {
 	confCoze()
 	confVolc()
 	confDify()
+	confClickHouse() // 新增：加载 ClickHouse 配置
 }
 
 func readENV() {
@@ -214,4 +227,21 @@ func confLog() {
 		log.Fatalf("未找到配置 'log': %v", err)
 	}
 	Log.PATH = clog.Key("LOG_PATH").MustString("")
+}
+
+// ClickHouse 配置读取（可选，不存在 section 时不致命）
+func confClickHouse() {
+	section, err := Cfg.GetSection("clickhouse")
+	if err != nil {
+		// 未配置 ClickHouse，直接返回
+		return
+	}
+	ClickHouse.ENABLE = section.Key("CH_ENABLE").MustBool(false)
+	ClickHouse.HOST = section.Key("CH_HOST").MustString("")
+	ClickHouse.PORT = section.Key("CH_PORT").MustString("9000")
+	ClickHouse.DATABASE = section.Key("CH_DATABASE").MustString("default")
+	ClickHouse.USERNAME = section.Key("CH_USERNAME").MustString("default")
+	ClickHouse.PASSWORD = section.Key("CH_PASSWORD").MustString("")
+	ClickHouse.OPTIONS = section.Key("CH_OPTIONS").MustString("")
+	ClickHouse.AUTOMIGRATE = section.Key("CH_AUTO_MIGRATE").MustBool(false)
 }

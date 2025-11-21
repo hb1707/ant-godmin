@@ -18,8 +18,10 @@ import (
 )
 
 var (
-	sqlDB  *sql.DB
-	DB     *gorm.DB
+	sqlDB *sql.DB
+	DB    *gorm.DB
+	CHDB  *gorm.DB
+
 	err    error
 	confDB = setting.DB
 )
@@ -48,6 +50,7 @@ func init() {
 	}
 }
 
+// OpenDB 初始化 MySQL 数据库连接
 func OpenDB() {
 	var logLevel = logger.Silent
 	if setting.App.RUNMODE == "dev" {
@@ -90,7 +93,13 @@ func OpenDB() {
 	}
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
+	err := OpenClickHouse()
+	if err != nil {
+		log.Error(err)
+		return
+	}
 }
+
 func CreateTable(dst ...interface{}) {
 	if confDB.PRE != "" && confDB.AUTOMIGRATE {
 		createTable()
@@ -102,6 +111,7 @@ func CreateTable(dst ...interface{}) {
 		log.Info("数据库表已生成")
 	}
 }
+
 func createTable() {
 	if confDB.PRE != "" && confDB.AUTOMIGRATE {
 		err := DB.AutoMigrate(&Files{}, &FilesTemp{}, &Settings{}, &Tables{}, &Fields{})
