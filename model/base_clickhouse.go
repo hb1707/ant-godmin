@@ -16,7 +16,7 @@ import (
 )
 
 type TableBaseClickhouse struct {
-	Id        uint                   `json:"id" form:"id" gorm:"type:int(10) UNSIGNED not null;primaryKey;"`
+	Id        string                 `json:"id" form:"id" gorm:"type:UUID;"`
 	CreatedAt time.Time              `json:"created_at"`
 	UpdatedAt time.Time              `json:"updated_at"`
 	DeletedAt gorm.DeletedAt         `gorm:"index" json:"-"` // 删除时间
