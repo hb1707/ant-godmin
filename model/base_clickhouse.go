@@ -17,9 +17,9 @@ import (
 
 type TableBaseClickhouse struct {
 	Id        string                 `json:"id" form:"id" gorm:"type:UUID;"`
-	CreatedAt time.Time              `json:"created_at"`
-	UpdatedAt time.Time              `json:"updated_at"`
-	DeletedAt gorm.DeletedAt         `gorm:"index" json:"-"` // 删除时间
+	CreatedAt time.Time              `json:"created_at" gorm:"column:created_at;type:DateTime64(3);"`
+	UpdatedAt time.Time              `json:"updated_at" gorm:"column:updated_at;type:Nullable(DateTime64(3));"`
+	DeletedAt gorm.DeletedAt         `json:"-" gorm:"column:deleted_at;type:Nullable(DateTime64(3))"` // 删除时间
 	DB        *gorm.DB               `json:"-" form:"-" gorm:"-"`
 	Req       interface{}            `json:"-" form:"-" gorm:"-"`
 	Data      map[string]interface{} `json:"-" form:"-" gorm:"-"`
