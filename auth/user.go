@@ -1,14 +1,15 @@
 package auth
 
 import (
+	"strconv"
+	"time"
+
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/exfun/fun"
 	"github.com/silenceper/wechat/v2/work/addresslist"
-	"strconv"
-	"time"
 )
 
 var TypeMap = map[string]string{
@@ -64,6 +65,10 @@ func TokenGenerator(user *TokenUser) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		//"uid":         user.ID,
 		//"nickName":    user.RealName,
+		"bid":         user.Bid,
+		"sub":         user.Sub,
+		"role":        user.Role,
+		"uidHash":     user.UidHash,
 		"token":       userToken,
 		"tokenExpire": expire,
 	}, nil
