@@ -24,6 +24,7 @@ type Files struct {
 	Domain         string           `json:"domain" gorm:"column:domain;type:varchar(64) not null;default:'';comment:域名"`                         //域名
 	UserSpace      string           `json:"user_space" gorm:"column:user_space;type:varchar(64) not null;default:'';comment:用户空间"`             //用户空间
 	Uid            uint             `json:"uid" gorm:"column:uid;type:int UNSIGNED not null;default:0;comment:用户id"`                             //用户id
+	Bid            uint             `json:"bid" gorm:"column:bid;type:int UNSIGNED not null;default:0;comment:分区id"`                             //分区id
 	From           string           `json:"from" gorm:"column:from;type:text;default:'';comment:来源"`                                             //来源
 	Name           string           `json:"name" gorm:"column:name;type:varchar(255) not null;default:'';comment:文件名"`                          // 文件名
 	Url            string           `json:"url" gorm:"column:url;type:varchar(255) not null;default:'';comment:文件地址"`                          // 文件地址
