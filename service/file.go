@@ -83,6 +83,7 @@ func (f *FileService) SaveSql(req model.Files, key string, originalName string) 
 			TypeId:    req.TypeId,
 			From:      req.From,
 			Uid:       req.Uid,
+			Bid:       req.Bid,
 			Domain:    req.Domain,
 			UserSpace: req.UserSpace,
 			Url:       fileUrl,
