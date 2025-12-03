@@ -36,7 +36,7 @@ type Files struct {
 	Cover          string           `json:"cover" gorm:"column:cover;type:varchar(255) not null;default:'';comment:封面"`                          //封面
 	Status         FileStatus       `json:"status" gorm:"column:status;type:varchar(2) not null;default:'';comment:文件状态"`                      //文件状态
 	Path           string           `json:"path" gorm:"column:path;type:varchar(255) not null;default:'';comment:文件路径"`                        //文件路径
-	AmountConsumed float64          `json:"amount_consumed" gorm:"column:amount_consumed;type:type:decimal(10,2);default:0;comment:消耗金额"`      //消耗金额
+	AmountConsumed float64          `json:"amount_consumed" gorm:"column:amount_consumed;type:decimal(10,2);default:0;comment:消耗金额"`           //消耗金额
 	Author         string           `json:"author" gorm:"-"`
 	FileId         uint             `json:"file_id" gorm:"-"`
 	UrlEnc         string           `json:"url_enc" gorm:"-"`
