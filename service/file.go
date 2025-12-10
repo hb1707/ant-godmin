@@ -77,21 +77,23 @@ func (f *FileService) SaveSql(req model.Files, key string, originalName string) 
 			fileUrl = strings.ReplaceAll(fileUrl, req.Domain, "{DOMAIN}")
 		}
 		newFile := model.Files{
-			UUID:      req.UUID,
-			CloudType: req.CloudType,
-			FileType:  req.FileType,
-			TypeId:    req.TypeId,
-			From:      req.From,
-			Uid:       req.Uid,
-			Bid:       req.Bid,
-			Domain:    req.Domain,
-			UserSpace: req.UserSpace,
-			Url:       fileUrl,
-			Path:      req.Path,
-			Name:      filepath.Base(originalName),
-			Tag:       req.Tag,
-			Key:       key,
-			Other:     req.Other,
+			UUID:           req.UUID,
+			CloudType:      req.CloudType,
+			FileType:       req.FileType,
+			TypeId:         req.TypeId,
+			From:           req.From,
+			Uid:            req.Uid,
+			Bid:            req.Bid,
+			Domain:         req.Domain,
+			UserSpace:      req.UserSpace,
+			Url:            fileUrl,
+			Path:           req.Path,
+			Name:           filepath.Base(originalName),
+			Tag:            req.Tag,
+			Key:            key,
+			Other:          req.Other,
+			Content:        req.Content,
+			AmountConsumed: req.AmountConsumed,
 		}
 		var exist model.Files
 		if fileUrl != "" {
