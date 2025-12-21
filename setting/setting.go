@@ -29,6 +29,7 @@ var App struct {
 }
 
 var DB struct {
+	DRIVER      string
 	HOST        string
 	PORT        string
 	DATABASE    string
@@ -157,6 +158,7 @@ func confDB() {
 	if err != nil {
 		log.Fatalf("未找到配置 'database': %v", err)
 	}
+	DB.DRIVER = database.Key("DB_DRIVER").MustString("mysql")
 	DB.HOST = database.Key("DB_HOST").MustString("")
 	DB.PORT = database.Key("DB_PORT").MustString("")
 	DB.DATABASE = database.Key("DB_DATABASE").MustString("")
