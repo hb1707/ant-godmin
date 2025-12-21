@@ -68,7 +68,11 @@ func EditFields(c *gin.Context) {
 	}
 
 	if req.Type == model.FieldTypeBool {
-		defaultValue = fun.If2String(req.InputDefault == "true", "1", "0")
+		if setting.DB.DRIVER == "postgres" {
+			defaultValue = fun.If2String(req.InputDefault == "true", "TRUE", "FALSE")
+		} else {
+			defaultValue = fun.If2String(req.InputDefault == "true", "1", "0")
+		}
 		notNull = "NOT NULL"
 	} else if req.Type == model.FieldTypeInt {
 		inputDefault, _ := strconv.Atoi(req.InputDefault)

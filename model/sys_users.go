@@ -12,7 +12,7 @@ type SysUsers struct {
 	RealName    string    `json:"realName" gorm:"type:varchar(100);not null;default:系统用户;comment:用户实名"`        // 用户昵称
 	NickName    string    `json:"nickName" gorm:"type:varchar(100);not null;default:系统用户;comment:用户昵称"`        // 用户昵称
 	HeaderImg   string    `json:"avatar" gorm:"type:varchar(255);not null;default:'';comment:用户头像"`            // 用户头像
-	AuthorityId string    `json:"authorityId" gorm:"type:varchar(10);not null;default:999;comment:用户角色ID"`     // 用户角色ID
+	AuthorityId string    `json:"authorityId" gorm:"type:varchar(10);not null;default:'999';comment:用户角色ID"`   // 用户角色ID
 	SideMode    string    `json:"sideMode" gorm:"type:varchar(10);not null;default:dark;comment:用户角色ID"`       // 用户侧边主题
 	ActiveColor string    `json:"activeColor" gorm:"type:varchar(10);not null;default:#1890ff;comment:用户角色ID"` // 活跃颜色
 	BaseColor   string    `json:"baseColor" gorm:"type:varchar(10);not null;default:#fff;comment:用户角色ID"`      // 基础颜色

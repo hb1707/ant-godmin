@@ -5,7 +5,7 @@ import (
 )
 
 type Logs struct {
-	Uid     int                  `json:"uid" form:"uid" gorm:"column:uid;comment:用户ID;type:smallint"`
+	Uid     int                  `json:"uid" form:"uid" gorm:"column:uid;comment:用户ID;type:integer"`
 	Action  consts.LogActionType `json:"action" form:"action" gorm:"column:action;comment:操作;type:varchar(10)"`
 	TypeId  string               `json:"type_id" form:"type_id" gorm:"column:type_id;comment:类型;type:varchar(10)"`
 	Title   string               `json:"title" form:"title" gorm:"column:title;comment:标题;type:text"`

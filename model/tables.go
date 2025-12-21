@@ -8,7 +8,7 @@ type Tables struct {
 	Image     string `json:"image" gorm:"column:image;type:varchar(255);not null;"`          // image
 	Desc      string `json:"desc" gorm:"column:desc;type:text;"`                             // desc
 	Role      string `json:"role" gorm:"column:role;type:varchar(100);not null;"`            // role
-	Sort      int    `json:"sort" gorm:"column:sort;not null;"`                              // sort
+	Sort      int    `json:"sort" gorm:"column:sort;not null;type:integer;"`                 // sort
 	TableBase
 }
 type TablesForm struct {
