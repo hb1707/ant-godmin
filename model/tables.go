@@ -3,12 +3,12 @@ package model
 import "github.com/hb1707/ant-godmin/pkg/log"
 
 type Tables struct {
-	TableName string `json:"tableName" gorm:"column:table_name;type:varchar(100) not null;"` // table
-	Label     string `json:"label" gorm:"column:label;type:varchar(100) not null;"`          // label
-	Image     string `json:"image" gorm:"column:image;type:varchar(255) not null;"`          // image
+	TableName string `json:"tableName" gorm:"column:table_name;type:varchar(100);not null;"` // table
+	Label     string `json:"label" gorm:"column:label;type:varchar(100);not null;"`          // label
+	Image     string `json:"image" gorm:"column:image;type:varchar(255);not null;"`          // image
 	Desc      string `json:"desc" gorm:"column:desc;type:text;"`                             // desc
-	Role      string `json:"role" gorm:"column:role;type:varchar(100) not null;"`            // role
-	Sort      int    `json:"sort" gorm:"column:sort;type:int not null;"`                     // sort
+	Role      string `json:"role" gorm:"column:role;type:varchar(100);not null;"`            // role
+	Sort      int    `json:"sort" gorm:"column:sort;not null;"`                              // sort
 	TableBase
 }
 type TablesForm struct {

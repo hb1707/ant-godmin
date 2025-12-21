@@ -10,6 +10,7 @@ import (
 	"github.com/hb1707/exfun/fun"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func ListFields(c *gin.Context) {
@@ -52,6 +53,11 @@ func EditFields(c *gin.Context) {
 		jsonErr(c, http.StatusBadRequest, errors.New("type error"))
 		return
 	}
+	if setting.DB.DRIVER == "postgres" {
+		if fieldType == "tinyint" {
+			fieldType = "smallint"
+		}
+	}
 	var exist = model.NewFields("id = ?", req.Id).GetOne("sort asc")
 	fields := model.NewFields()
 	var defaultValue = ""
@@ -89,23 +95,91 @@ func EditFields(c *gin.Context) {
 	if exist.Id > 0 && exist.FieldName != "" {
 		fields.Id = exist.Id
 		//修改字段
-		model.DB.Exec(fmt.Sprintf("ALTER TABLE `%s` CHANGE COLUMN `%s` `%s` %s %s COMMENT \"%s\"",
-			setting.DB.PRE+table,
-			exist.FieldName,
-			req.InputName,
-			fieldType,
-			defaultValue,
-			req.InputLabel,
-		))
+		if setting.DB.DRIVER == "postgres" {
+			// Postgres: 修改列名和修改类型是分开的
+			if exist.FieldName != req.InputName {
+				model.DB.Exec(fmt.Sprintf("ALTER TABLE %s RENAME COLUMN %s TO %s",
+					setting.DB.PRE+table,
+					exist.FieldName,
+					req.InputName,
+				))
+			}
+			// 修改类型和 NOT NULL
+			typeAndNull := fieldType
+			if defaultValue != "" {
+				typeAndNull += " " + defaultValue
+			}
+			// PostgreSQL 的 ALTER COLUMN 语法比较特殊，通常需要多次 ALTER
+			// 这里简化处理，直接尝试修改类型。
+			// 实际中可能需要更加复杂的逻辑来处理 DEFAULT 和 NOT NULL
+			pgType := fieldType
+			if notNull != "" {
+				// fieldType 已经包含 notNull 了，这里需要把 notNull 剥离出来，因为 ALTER TYPE 不带 NOT NULL
+				pgType = strings.ReplaceAll(fieldType, notNull, "")
+			}
+			model.DB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE %s",
+				setting.DB.PRE+table,
+				req.InputName,
+				pgType,
+			))
+			if notNull != "" {
+				model.DB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s SET %s",
+					setting.DB.PRE+table,
+					req.InputName,
+					notNull,
+				))
+			}
+			if defaultValue != "" {
+				model.DB.Exec(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s SET %s",
+					setting.DB.PRE+table,
+					req.InputName,
+					defaultValue,
+				))
+			}
+			// PostgreSQL 设置注释
+			model.DB.Exec(fmt.Sprintf("COMMENT ON COLUMN %s.%s IS '%s'",
+				setting.DB.PRE+table,
+				req.InputName,
+				req.InputLabel,
+			))
+		} else {
+			model.DB.Exec(fmt.Sprintf("ALTER TABLE `%s` CHANGE COLUMN `%s` `%s` %s %s COMMENT \"%s\"",
+				setting.DB.PRE+table,
+				exist.FieldName,
+				req.InputName,
+				fieldType,
+				defaultValue,
+				req.InputLabel,
+			))
+		}
 	} else {
 		//新增字段
-		model.DB.Exec(fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s %s COMMENT \"%s\"",
-			setting.DB.PRE+table,
-			req.InputName,
-			fieldType,
-			defaultValue,
-			req.InputLabel,
-		))
+		if setting.DB.DRIVER == "postgres" {
+			pgType := fieldType
+			if notNull != "" {
+				pgType = strings.ReplaceAll(fieldType, notNull, "")
+			}
+			model.DB.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s %s %s",
+				setting.DB.PRE+table,
+				req.InputName,
+				pgType,
+				notNull,
+				defaultValue,
+			))
+			model.DB.Exec(fmt.Sprintf("COMMENT ON COLUMN %s.%s IS '%s'",
+				setting.DB.PRE+table,
+				req.InputName,
+				req.InputLabel,
+			))
+		} else {
+			model.DB.Exec(fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s %s COMMENT \"%s\"",
+				setting.DB.PRE+table,
+				req.InputName,
+				fieldType,
+				defaultValue,
+				req.InputLabel,
+			))
+		}
 	}
 	fields.TableName = table
 	fields.Label = req.InputLabel

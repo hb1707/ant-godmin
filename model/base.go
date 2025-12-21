@@ -32,7 +32,7 @@ type DatelineMap struct {
 }
 
 type TableBase struct {
-	Id                 uint                   `json:"id" form:"id" gorm:"type:int(10) UNSIGNED not null AUTO_INCREMENT;primaryKey;"`
+	Id                 uint                   `json:"id" form:"id" gorm:"primaryKey;autoIncrement;"`
 	CreatedAt          time.Time              `json:"created_at"`
 	UpdatedAt          time.Time              `json:"updated_at"`
 	DeletedAt          gorm.DeletedAt         `gorm:"index" json:"-"` // 删除时间

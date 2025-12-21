@@ -42,10 +42,18 @@ func EditTables(c *gin.Context) {
 	if exist.TableName != "" {
 		table.Id = exist.Id
 		//修改表名
-		model.DB.Exec(fmt.Sprintf("ALTER TABLE `%s` RENAME TO `%s`", setting.DB.PRE+exist.TableName, req.InputName))
+		if setting.DB.DRIVER == "postgres" {
+			model.DB.Exec(fmt.Sprintf("ALTER TABLE %s RENAME TO %s", setting.DB.PRE+exist.TableName, req.InputName))
+		} else {
+			model.DB.Exec(fmt.Sprintf("ALTER TABLE `%s` RENAME TO `%s`", setting.DB.PRE+exist.TableName, req.InputName))
+		}
 	} else {
 		//新增表
-		model.DB.Exec(fmt.Sprintf("CREATE TABLE `%s` (`id` int NOT NULL AUTO_INCREMENT, `created_at` datetime NULL DEFAULT NULL, `updated_at` datetime NULL DEFAULT NULL, `deleted_at` datetime NULL DEFAULT NULL, PRIMARY KEY (`id`) USING BTREE) ", setting.DB.PRE+req.InputName))
+		if setting.DB.DRIVER == "postgres" {
+			model.DB.Exec(fmt.Sprintf("CREATE TABLE %s (id SERIAL PRIMARY KEY, created_at timestamp with time zone, updated_at timestamp with time zone, deleted_at timestamp with time zone)", setting.DB.PRE+req.InputName))
+		} else {
+			model.DB.Exec(fmt.Sprintf("CREATE TABLE `%s` (`id` int NOT NULL AUTO_INCREMENT, `created_at` datetime NULL DEFAULT NULL, `updated_at` datetime NULL DEFAULT NULL, `deleted_at` datetime NULL DEFAULT NULL, PRIMARY KEY (`id`) USING BTREE) ", setting.DB.PRE+req.InputName))
+		}
 	}
 	table.TableName = req.InputName
 	table.Label = req.InputLabel

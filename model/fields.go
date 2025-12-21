@@ -29,21 +29,21 @@ var FieldTypeMap = map[FieldType]string{
 }
 
 type Fields struct {
-	TableName    string    `json:"tableName" gorm:"column:table_name;type:varchar(100) not null;default:'';"`       // table
-	Label        string    `json:"label" gorm:"column:label;type:varchar(100) not null;default:'';"`                // label
-	FieldName    string    `json:"fieldName" gorm:"column:field_name;type:varchar(100) not null;default:'';"`       // name
-	FieldType    FieldType `json:"fieldType" gorm:"column:field_type;type:varchar(100) not null;default:'';"`       // type
-	Role         string    `json:"role" gorm:"column:role;type:varchar(100) not null;default:'100';"`               // role
-	Sort         int       `json:"sort" gorm:"column:sort;type:int not null;default:0;"`                            // sort
-	MinRequired  int       `json:"minRequired" gorm:"column:min_required;type:int not null;default:0;"`             // min
-	MaxRequired  int       `json:"maxRequired" gorm:"column:max_required;type:int not null;default:0;"`             // max
-	AllowSearch  bool      `json:"allowSearch" gorm:"column:allow_search;type:tinyint not null;default:0;"`         // allow search
-	DefaultValue string    `json:"defaultValue" gorm:"column:default_value;type:varchar(100) not null;default:'';"` // default value
-	Tips         string    `json:"tips" gorm:"column:tips;type:varchar(100) not null;default:'';"`                  // tips
-	TextRegexp   string    `json:"textRegexp" gorm:"column:text_regexp;type:varchar(255) not null;default:'';"`     // text regexp
-	IsUnique     bool      `json:"isUnique" gorm:"column:is_unique;type:tinyint not null;default:0;"`               // is unique
-	IsPrivate    bool      `json:"isPrivate" gorm:"column:is_private;type:tinyint not null;default:0;"`             // is private
-	IsRequired   bool      `json:"isRequired" gorm:"column:is_required;type:tinyint not null;default:0;"`           // is required
+	TableName    string    `json:"tableName" gorm:"column:table_name;type:varchar(100);not null;default:'';"`       // table
+	Label        string    `json:"label" gorm:"column:label;type:varchar(100);not null;default:'';"`                // label
+	FieldName    string    `json:"fieldName" gorm:"column:field_name;type:varchar(100);not null;default:'';"`       // name
+	FieldType    FieldType `json:"fieldType" gorm:"column:field_type;type:varchar(100);not null;default:'';"`       // type
+	Role         string    `json:"role" gorm:"column:role;type:varchar(100);not null;default:'100';"`               // role
+	Sort         int       `json:"sort" gorm:"column:sort;not null;default:0;"`                                     // sort
+	MinRequired  int       `json:"minRequired" gorm:"column:min_required;not null;default:0;"`                      // min
+	MaxRequired  int       `json:"maxRequired" gorm:"column:max_required;not null;default:0;"`                      // max
+	AllowSearch  bool      `json:"allowSearch" gorm:"column:allow_search;not null;default:0;"`                      // allow search
+	DefaultValue string    `json:"defaultValue" gorm:"column:default_value;type:varchar(100);not null;default:'';"` // default value
+	Tips         string    `json:"tips" gorm:"column:tips;type:varchar(100);not null;default:'';"`                  // tips
+	TextRegexp   string    `json:"textRegexp" gorm:"column:text_regexp;type:varchar(255);not null;default:'';"`     // text regexp
+	IsUnique     bool      `json:"isUnique" gorm:"column:is_unique;not null;default:0;"`                            // is unique
+	IsPrivate    bool      `json:"isPrivate" gorm:"column:is_private;not null;default:0;"`                          // is private
+	IsRequired   bool      `json:"isRequired" gorm:"column:is_required;not null;default:0;"`                        // is required
 	TableBase
 }
 
