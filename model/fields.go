@@ -42,7 +42,7 @@ type Fields struct {
 	FieldName    string    `json:"fieldName" gorm:"column:field_name;type:varchar(100);not null;default:'';"`       // name
 	FieldType    FieldType `json:"fieldType" gorm:"column:field_type;type:varchar(100);not null;default:'';"`       // type
 	Role         string    `json:"role" gorm:"column:role;type:varchar(100);not null;default:'100';"`               // role
-	Sort         int       `json:"sort" gorm:"column:sort;not null;default:0;type:integer;"`                        // sort
+	Sort         int       `json:"sort" gorm:"column:sort_num;not null;default:0;type:integer;"`                    // sort
 	MinRequired  int       `json:"minRequired" gorm:"column:min_required;not null;default:0;type:integer;"`         // min
 	MaxRequired  int       `json:"maxRequired" gorm:"column:max_required;not null;default:0;type:integer;"`         // max
 	AllowSearch  bool      `json:"allowSearch" gorm:"column:allow_search;not null;default:false;"`                  // allow search
