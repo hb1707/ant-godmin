@@ -6,7 +6,7 @@ type Tables struct {
 	TableName string `json:"tableName" gorm:"column:table_name;type:varchar(100);not null;"` // table
 	Label     string `json:"label" gorm:"column:label;type:varchar(100);not null;"`          // label
 	Image     string `json:"image" gorm:"column:image;type:varchar(255);not null;"`          // image
-	Desc      string `json:"desc" gorm:"column:desc;type:text;"`                             // desc
+	Desc      string `json:"desc" gorm:"column:description;type:text;"`                      // desc
 	Role      string `json:"role" gorm:"column:role;type:varchar(100);not null;"`            // role
 	Sort      int    `json:"sort" gorm:"column:sort_num;not null;type:integer;"`             // sort
 	TableBase
