@@ -28,14 +28,6 @@ var FieldTypeMap = map[FieldType]string{
 	FieldTypeImage:  "varchar",
 }
 
-func init() {
-	if confDB.DRIVER == "mysql" {
-		FieldTypeMap[FieldTypeBool] = "tinyint"
-		FieldTypeMap[FieldTypeTime] = "datetime"
-		FieldTypeMap[FieldTypeJson] = "json"
-	}
-}
-
 type Fields struct {
 	TableName    string    `json:"tableName" gorm:"column:table_name;type:varchar(100);not null;default:'';"`       // table
 	Label        string    `json:"label" gorm:"column:label;type:varchar(100);not null;default:'';"`                // label

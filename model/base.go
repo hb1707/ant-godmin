@@ -45,7 +45,12 @@ type TableBase struct {
 	Page               int                    `json:"-" form:"-" gorm:"-"`
 }
 
-func init() {
+func InitDB() {
+	if confDB.DRIVER == "mysql" {
+		FieldTypeMap[FieldTypeBool] = "tinyint"
+		FieldTypeMap[FieldTypeTime] = "datetime"
+		FieldTypeMap[FieldTypeJson] = "json"
+	}
 	if DB == nil && confDB.HOST != "" {
 		OpenDB()
 	}

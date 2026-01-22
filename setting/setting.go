@@ -130,6 +130,7 @@ func InitConf(path string) {
 	confVolc()
 	confDify()
 	confClickHouse() // 新增：加载 ClickHouse 配置
+
 }
 
 func readENV() {

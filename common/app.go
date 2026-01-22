@@ -15,7 +15,7 @@ import (
 var appInfo setting.AppInfo
 var ReadinessProbe bool
 
-func init() {
+func InitApp() {
 	appInfo = setting.ReadAppInfo("./app.json")
 }
 
