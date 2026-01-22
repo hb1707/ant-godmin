@@ -103,12 +103,12 @@ var ClickHouse struct {
 	AUTOMIGRATE bool
 }
 
-func InitConf() {
+func InitConf(path string) {
 	var err error
-	var envPath = "./config/.env"
+	var envPath = path + ".env"
 	if os.Getenv("APP_ENV") == "dev" {
 		fmt.Println("DEV模式开启")
-		envPath = "./config/.env.dev"
+		envPath = path + ".env.dev"
 		IsTest = true
 	}
 	Cfg, err = ini.Load(envPath)

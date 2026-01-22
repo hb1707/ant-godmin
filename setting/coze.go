@@ -9,6 +9,7 @@ var CozeTeam struct {
 	ClientSecret   string
 	EnterpriseId   string // 企业ID
 	OrganizationId string // 组织ID
+	TermToken      string
 }
 
 func confCoze() {
@@ -23,5 +24,6 @@ func confCoze() {
 		CozeTeam.ClientSecret = czTeam.Key("CLIENT_SECRET").String()
 		CozeTeam.EnterpriseId = czTeam.Key("ENTERPRISE_ID").String()
 		CozeTeam.OrganizationId = czTeam.Key("ORGANIZATION_ID").String()
+		CozeTeam.TermToken = czTeam.Key("TERM_TOKEN").String()
 	}
 }
