@@ -5,8 +5,10 @@ var Coze struct {
 	ClientSecret string
 }
 var CozeTeam struct {
-	ClientId     string
-	ClientSecret string
+	ClientId       string
+	ClientSecret   string
+	EnterpriseId   string // 企业ID
+	OrganizationId string // 组织ID
 }
 
 func confCoze() {
@@ -19,5 +21,7 @@ func confCoze() {
 	if err == nil {
 		CozeTeam.ClientId = czTeam.Key("CLIENT_ID").String()
 		CozeTeam.ClientSecret = czTeam.Key("CLIENT_SECRET").String()
+		CozeTeam.EnterpriseId = czTeam.Key("ENTERPRISE_ID").String()
+		CozeTeam.OrganizationId = czTeam.Key("ORGANIZATION_ID").String()
 	}
 }
