@@ -23,8 +23,7 @@ var (
 	DB    *gorm.DB
 	CHDB  *gorm.DB
 
-	err    error
-	confDB = setting.DB
+	err error
 )
 
 type DatelineMap struct {
@@ -46,12 +45,12 @@ type TableBase struct {
 }
 
 func InitDB() {
-	if confDB.DRIVER == "mysql" {
+	if setting.DB.DRIVER == "mysql" {
 		FieldTypeMap[FieldTypeBool] = "tinyint"
 		FieldTypeMap[FieldTypeTime] = "datetime"
 		FieldTypeMap[FieldTypeJson] = "json"
 	}
-	if DB == nil && confDB.HOST != "" {
+	if DB == nil && setting.DB.HOST != "" {
 		OpenDB()
 	}
 }
@@ -71,7 +70,7 @@ func OpenDB() {
 			Colorful:      true,        // Disable color
 		},
 	)
-
+	confDB := setting.DB
 	if confDB.DRIVER == "postgres" {
 		dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable TimeZone=Asia/Shanghai",
 			confDB.HOST,
@@ -124,7 +123,7 @@ func OpenDB() {
 }
 
 func CreateTable(dst ...interface{}) {
-	if confDB.PRE != "" && confDB.AUTOMIGRATE {
+	if setting.DB.PRE != "" && setting.DB.AUTOMIGRATE {
 		createTable()
 		dst = append(dst)
 		err := DB.AutoMigrate(dst...)
@@ -136,7 +135,7 @@ func CreateTable(dst ...interface{}) {
 }
 
 func createTable() {
-	if confDB.PRE != "" && confDB.AUTOMIGRATE {
+	if setting.DB.PRE != "" && setting.DB.AUTOMIGRATE {
 		err := DB.AutoMigrate(&Files{}, &FilesTemp{}, &Settings{}, &Tables{}, &Fields{})
 		if err != nil {
 			log.Fatal(err)

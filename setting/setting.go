@@ -132,7 +132,9 @@ func InitConf(path string) {
 	confClickHouse() // 新增：加载 ClickHouse 配置
 
 }
-
+func GetCfg() *ini.File {
+	return Cfg
+}
 func readENV() {
 	App.RUNMODE = os.Getenv("RUN_MODE")
 }
@@ -155,7 +157,7 @@ func confApp() {
 	}
 }
 func confDB() {
-	database, err := Cfg.GetSection("database")
+	database, err := GetCfg().GetSection("database")
 	if err != nil {
 		log.Fatalf("未找到配置 'database': %v", err)
 	}

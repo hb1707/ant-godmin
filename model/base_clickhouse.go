@@ -71,7 +71,7 @@ func OpenClickHouse() error {
 		&gorm.Config{
 			Logger: newLogger,
 			NamingStrategy: schema.NamingStrategy{
-				TablePrefix:   confDB.PRE,
+				TablePrefix:   setting.DB.PRE,
 				SingularTable: true,
 			},
 		})

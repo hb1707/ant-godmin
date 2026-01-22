@@ -17,9 +17,9 @@ type ReqPageSize struct {
 func NewTable(table string, where ...interface{}) *TableBase {
 	var t = new(TableBase)
 	if len(where) > 0 {
-		t.DB = DB.Table(confDB.PRE+table).Where(where[0], where[1:]...)
+		t.DB = DB.Table(setting.DB.PRE+table).Where(where[0], where[1:]...)
 	} else {
-		t.DB = DB.Table(confDB.PRE + table)
+		t.DB = DB.Table(setting.DB.PRE + table)
 	}
 	return t
 }
