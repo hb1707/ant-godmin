@@ -103,7 +103,7 @@ var ClickHouse struct {
 	AUTOMIGRATE bool
 }
 
-func init() {
+func InitConf() {
 	var err error
 	var envPath = "./config/.env"
 	if os.Getenv("APP_ENV") == "dev" {
