@@ -2,12 +2,13 @@ package log
 
 import (
 	"fmt"
-	"github.com/hb1707/ant-godmin/setting"
 	"io"
 	"log"
 	"os"
 	"runtime"
 	"time"
+
+	"github.com/hb1707/ant-godmin/setting"
 )
 
 var (
@@ -112,6 +113,9 @@ func Info(er ...interface{}) {
 }
 
 func Debug(er ...interface{}) {
+	if setting.App.RUNMODE != "dev" && setting.App.RUNMODE != "debug" {
+		return
+	}
 	log.SetPrefix("[ DEBUG ]")
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	file, err := os.OpenFile(LPath+"debug_"+time.Now().Format("20060102")+".log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)

@@ -5,11 +5,36 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/redis/go-redis/v9"
 )
+
+type filteredRedisLogger struct {
+	logger *log.Logger
+}
+
+func newFilteredRedisLogger() filteredRedisLogger {
+	// Keep the same output style as go-redis default logger:
+	// prefix: "redis: ", flags: LstdFlags|Lshortfile, output: stderr
+	return filteredRedisLogger{
+		logger: log.New(os.Stderr, "redis: ", log.LstdFlags|log.Lshortfile),
+	}
+}
+
+func (l filteredRedisLogger) Printf(ctx context.Context, format string, v ...interface{}) {
+	msg := fmt.Sprintf(format, v...)
+	if strings.Contains(msg, "maintnotifications") ||
+		strings.Contains(msg, "maint_notifications") ||
+		strings.Contains(msg, "auto mode fallback") {
+		return
+	}
+	_ = l.logger.Output(2, msg)
+}
 
 var (
 	// ErrClientNotInitialized Redis 客户端未初始化
@@ -71,6 +96,8 @@ func InitRedis() error {
 
 // InitRedisWithConfig 使用配置初始化 Redis 客户端
 func InitRedisWithConfig(cfg *Config) error {
+	redis.SetLogger(newFilteredRedisLogger())
+
 	Client = redis.NewClient(&redis.Options{
 		Addr:         cfg.Addr,
 		Username:     cfg.Username,
