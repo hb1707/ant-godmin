@@ -2,8 +2,9 @@ package json
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 var ErrorParameter = errors.New("PARAMETER_ERROR")
@@ -19,8 +20,8 @@ func jsonResult(c *gin.Context, code int, data interface{}, other ...gin.H) {
 		}
 	}
 	okData["success"] = true
-	okData["data"] = data
-	//okData["result"] = data //待删除
+	okData["data"] = data //待删除
+	okData["result"] = data
 	okData["status"] = "ok"
 	c.JSON(code, okData)
 }
