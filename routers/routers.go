@@ -15,6 +15,7 @@ import (
 // List 路由列表设定
 func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engine {
 	r := gin.New()
+	r.MaxMultipartMemory = 8 << 20 // 8 MiB
 	//r.TrustedPlatform = ""
 	config := cors.DefaultConfig()
 	//config.AllowAllOrigins = true
