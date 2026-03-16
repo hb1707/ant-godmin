@@ -34,7 +34,7 @@ type TableBase struct {
 	Id                 uint                   `json:"id" form:"id" gorm:"primaryKey;autoIncrement;"`
 	CreatedAt          time.Time              `json:"created_at" gorm:"column:created_at;type:timestamp;autoCreateTime"`
 	UpdatedAt          time.Time              `json:"updated_at" gorm:"column:updated_at;type:timestamp;autoUpdateTime"`
-	DeletedAt          gorm.DeletedAt         `gorm:"index" json:"-"` // 删除时间
+	DeletedAt          gorm.DeletedAt         `json:"-" gorm:"index;type:timestamp"` // 删除时间
 	DB                 *gorm.DB               `json:"-" form:"-" gorm:"-"`
 	Req                interface{}            `json:"-" form:"-" gorm:"-"`
 	Data               map[string]interface{} `json:"-" form:"-" gorm:"-"`
