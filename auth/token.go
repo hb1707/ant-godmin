@@ -1,15 +1,16 @@
 package auth
 
 import (
+	"net/http"
+	"strconv"
+	"time"
+
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/hb1707/ant-godmin/consts"
 	"github.com/hb1707/ant-godmin/model"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/exfun/fun"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 var (
@@ -312,11 +313,18 @@ func GetUidHash(c *gin.Context) string {
 }
 
 func GetBid(c *gin.Context) uint {
-	sub, exists := c.Get("bid")
-	if exists {
-		return sub.(uint)
+	var bidUser uint
+	if bidVal, exists := c.Get("bid"); exists {
+		switch v := bidVal.(type) {
+		case uint:
+			bidUser = v
+		case int:
+			if v >= 0 {
+				bidUser = uint(v)
+			}
+		}
 	}
-	return 0
+	return bidUser
 }
 func GetBidSub(c *gin.Context) string {
 	sub, exists := c.Get("sub")
