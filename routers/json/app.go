@@ -23,7 +23,9 @@ func AppBegin(c *gin.Context) {
 		})
 		return
 	}
-	timeStart = time.Now()
+	if timeStart.IsZero() {
+		timeStart = time.Now()
+	}
 	common.ReadinessNotice()
 	c.JSON(200, gin.H{
 		"message": "pong",
