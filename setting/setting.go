@@ -50,6 +50,7 @@ var IPFS struct {
 
 var AliyunOSS struct {
 	Endpoint        string
+	Region          string
 	AccessKeyId     string
 	AccessKeySecret string
 	BucketName      string
@@ -61,6 +62,7 @@ var AliyunOSS struct {
 }
 var AliyunOSSEnc struct {
 	Endpoint        string
+	Region          string
 	AccessKeyId     string
 	AccessKeySecret string
 	BucketName      string
@@ -178,6 +180,7 @@ func confUpload() {
 		IPFS.IpfsEndpoint = upload.Key("IPFS_ENDPOINT").MustString("")
 		IPFS.IpfsGateway = upload.Key("IPFS_GATEWAY").MustString("")
 		AliyunOSS.Endpoint = upload.Key("ALIYUN_OSS_ENDPOINT").MustString("")
+		AliyunOSS.Region = upload.Key("ALIYUN_OSS_REGION").MustString("cn-hangzhou")
 		AliyunOSS.AccessKeyId = upload.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
 		AliyunOSS.AccessKeySecret = upload.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
 		AliyunOSS.BucketName = upload.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
@@ -190,6 +193,7 @@ func confUpload() {
 	uploadEnc, err := Cfg.GetSection("upload_encryption")
 	if err == nil {
 		AliyunOSSEnc.Endpoint = uploadEnc.Key("ALIYUN_OSS_ENDPOINT").MustString("")
+		AliyunOSSEnc.Region = upload.Key("ALIYUN_OSS_REGION").MustString("cn-hangzhou")
 		AliyunOSSEnc.AccessKeyId = uploadEnc.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
 		AliyunOSSEnc.AccessKeySecret = uploadEnc.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
 		AliyunOSSEnc.BucketName = uploadEnc.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
