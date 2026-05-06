@@ -26,6 +26,7 @@ var App struct {
 	STATICURL string
 	AuthKey   string
 	AesKey    string
+	IsVPC     bool
 }
 
 var DB struct {
@@ -157,6 +158,7 @@ func confApp() {
 	if App.RUNMODE == "" {
 		App.RUNMODE = app.Key("APP_MODE").MustString("dev")
 	}
+	App.IsVPC = app.Key("IS_VPC").MustBool(false)
 }
 func confDB() {
 	database, err := GetCfg().GetSection("database")
