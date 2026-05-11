@@ -151,10 +151,15 @@ func (c *AliyunOSSEnc) Upload(file io.Reader, newFileName string, other ...strin
 		return "", errors.New("AliyunOSSEnc.Upload().NewBucket Error:" + err.Error())
 	}
 	ossPath := c.BasePath + newFileName
+	explicitContentType := ""
 	if len(other) > 0 {
-		err = bucket.PutObject(ossPath, file, oss.ContentType(other[0]))
-	} else {
+		explicitContentType = other[0]
+	}
+	contentType := resolveContentType(newFileName, explicitContentType)
+	if contentType == "" {
 		err = bucket.PutObject(ossPath, file)
+	} else {
+		err = bucket.PutObject(ossPath, file, oss.ContentType(contentType))
 	}
 	if err != nil {
 		return "", errors.New("AliyunOSSEnc.Upload().bucket.PutObject() Error:" + err.Error())

@@ -2,8 +2,11 @@ package upload
 
 import (
 	"io"
+	"mime"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/hb1707/ant-godmin/setting"
 )
@@ -49,6 +52,23 @@ func NewUpload(cloudType cloudType) Cloud {
 			SavePath: setting.Upload.LocalPath,
 		}
 	}
+}
+
+// resolveContentType returns explicit content-type first, then infers by file extension.
+// It appends UTF-8 charset for text responses to avoid browser mojibake.
+func resolveContentType(fileName string, explicit string) string {
+	contentType := strings.TrimSpace(explicit)
+	if contentType == "" {
+		contentType = mime.TypeByExtension(strings.ToLower(filepath.Ext(fileName)))
+	}
+	if contentType == "" {
+		return ""
+	}
+	lowerContentType := strings.ToLower(contentType)
+	if (strings.HasPrefix(lowerContentType, "text/") || lowerContentType == "application/json") && !strings.Contains(lowerContentType, "charset=") {
+		contentType += "; charset=utf-8"
+	}
+	return contentType
 }
 
 // GetFileExt 获取文件类型
