@@ -6,9 +6,7 @@ var Dify struct {
 }
 
 func confDify() {
-	vc, err := Cfg.GetSection("dify")
-	if err == nil {
-		Dify.BaseUrl = vc.Key("BASE_URL").String()
-		Dify.SecretKey = vc.Key("KEY_SECRET").String()
-	}
+	vc, _ := Cfg.GetSection("dify")
+	Dify.BaseUrl = getString(vc, "dify", "BASE_URL", "")
+	Dify.SecretKey = getString(vc, "dify", "KEY_SECRET", "")
 }

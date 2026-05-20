@@ -9,12 +9,10 @@ var Redis struct {
 }
 
 func confRedis() {
-	rd, err := Cfg.GetSection("redis")
-	if err == nil {
-		Redis.Host = rd.Key("REDIS_HOST").MustString("localhost")
-		Redis.Port = rd.Key("REDIS_PORT").MustInt(6379)
-		Redis.Username = rd.Key("REDIS_USERNAME").MustString("default")
-		Redis.Password = rd.Key("REDIS_PASSWORD").MustString("")
-		Redis.DB = rd.Key("REDIS_DB").MustInt(0)
-	}
+	rd, _ := Cfg.GetSection("redis")
+	Redis.Host = getString(rd, "redis", "REDIS_HOST", "localhost")
+	Redis.Port = getInt(rd, "redis", "REDIS_PORT", 6379)
+	Redis.Username = getString(rd, "redis", "REDIS_USERNAME", "default")
+	Redis.Password = getString(rd, "redis", "REDIS_PASSWORD", "")
+	Redis.DB = getInt(rd, "redis", "REDIS_DB", 0)
 }

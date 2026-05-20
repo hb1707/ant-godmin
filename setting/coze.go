@@ -14,18 +14,15 @@ var CozeTeam struct {
 }
 
 func confCoze() {
-	cz, err := Cfg.GetSection("coze")
-	if err == nil {
-		Coze.ClientId = cz.Key("CLIENT_ID").String()
-		Coze.ClientSecret = cz.Key("CLIENT_SECRET").String()
-	}
-	czTeam, err := Cfg.GetSection("coze_team")
-	if err == nil {
-		CozeTeam.ClientId = czTeam.Key("CLIENT_ID").String()
-		CozeTeam.ClientSecret = czTeam.Key("CLIENT_SECRET").String()
-		CozeTeam.EnterpriseId = czTeam.Key("ENTERPRISE_ID").String()
-		CozeTeam.OrganizationId = czTeam.Key("ORGANIZATION_ID").String()
-		CozeTeam.TermToken = czTeam.Key("TERM_TOKEN").String()
-		CozeTeam.AdminUserId = czTeam.Key("ADMIN_USER_ID").String()
-	}
+	cz, _ := Cfg.GetSection("coze")
+	Coze.ClientId = getString(cz, "coze", "CLIENT_ID", "")
+	Coze.ClientSecret = getString(cz, "coze", "CLIENT_SECRET", "")
+
+	czTeam, _ := Cfg.GetSection("coze_team")
+	CozeTeam.ClientId = getString(czTeam, "coze_team", "CLIENT_ID", "")
+	CozeTeam.ClientSecret = getString(czTeam, "coze_team", "CLIENT_SECRET", "")
+	CozeTeam.EnterpriseId = getString(czTeam, "coze_team", "ENTERPRISE_ID", "")
+	CozeTeam.OrganizationId = getString(czTeam, "coze_team", "ORGANIZATION_ID", "")
+	CozeTeam.TermToken = getString(czTeam, "coze_team", "TERM_TOKEN", "")
+	CozeTeam.AdminUserId = getString(czTeam, "coze_team", "ADMIN_USER_ID", "")
 }

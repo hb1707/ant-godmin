@@ -25,32 +25,24 @@ var (
 )
 
 func confQyWxAdmin() {
-	app, err := Cfg.GetSection(AdminAppid)
-	if err == nil {
-		QyWxAppConfig[AdminAppid] = QyWxApp{
-			Corpid:         app.Key("QYWX_CORPID").MustString(""),
-			AgentId:        app.Key("QYWX_AGENT_ID").MustInt(0),
-			Secret:         app.Key("QYWX_SECRET").MustString(""),
-			Token:          app.Key("QYWX_TOKEN").MustString(""),
-			EncodingAESKey: app.Key("QYWX_ENCODING_AES_KEY").MustString(""),
-			AdminUserIds:   app.Key("QYWX_ADMIN_USERIDS").MustString(""),
-		}
-		log.Println("[INFO] QyWx Config", AdminAppid, "OK")
-	} else {
-		log.Println("[ERROR] QyWx Config", AdminAppid, "ERROR", err)
+	app, _ := Cfg.GetSection(AdminAppid)
+	QyWxAppConfig[AdminAppid] = QyWxApp{
+		Corpid:         getString(app, AdminAppid, "QYWX_CORPID", ""),
+		AgentId:        getInt(app, AdminAppid, "QYWX_AGENT_ID", 0),
+		Secret:         getString(app, AdminAppid, "QYWX_SECRET", ""),
+		Token:          getString(app, AdminAppid, "QYWX_TOKEN", ""),
+		EncodingAESKey: getString(app, AdminAppid, "QYWX_ENCODING_AES_KEY", ""),
+		AdminUserIds:   getString(app, AdminAppid, "QYWX_ADMIN_USERIDS", ""),
 	}
+	log.Println("[INFO] QyWx Config", AdminAppid, "OK")
 }
 
 func ConfWxApp(section string, appid string) {
-	app, err := Cfg.GetSection(section)
-	if err == nil {
-		WxAppConfig[appid] = WxApp{
-			AppSecret:      app.Key("WX_SECRET").MustString(""),
-			Token:          app.Key("WX_TOKEN").MustString(""),
-			EncodingAESKey: app.Key("WX_ENCODING_AES_KEY").MustString(""),
-		}
-		log.Println("[INFO] Wx Config", section, "OK")
-	} else {
-		log.Println("[ERROR] Wx Config", section, "ERROR", err)
+	app, _ := Cfg.GetSection(section)
+	WxAppConfig[appid] = WxApp{
+		AppSecret:      getString(app, section, "WX_SECRET", ""),
+		Token:          getString(app, section, "WX_TOKEN", ""),
+		EncodingAESKey: getString(app, section, "WX_ENCODING_AES_KEY", ""),
 	}
+	log.Println("[INFO] Wx Config", section, "OK")
 }

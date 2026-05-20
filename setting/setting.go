@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/go-ini/ini"
 )
@@ -142,117 +144,168 @@ func readENV() {
 	App.RUNMODE = os.Getenv("RUN_MODE")
 }
 
+func envKey(sectionName, key string) string {
+	if sectionName == "" {
+		return key
+	}
+	normalized := strings.ToUpper(sectionName)
+	normalized = strings.ReplaceAll(normalized, "-", "_")
+	normalized = strings.ReplaceAll(normalized, ".", "_")
+	return normalized + "_" + key
+}
+
+func getString(section *ini.Section, sectionName, key, def string) string {
+	if section != nil && section.HasKey(key) {
+		value := strings.TrimSpace(section.Key(key).String())
+		if value != "" {
+			return value
+		}
+	}
+	if value, ok := os.LookupEnv(envKey(sectionName, key)); ok && strings.TrimSpace(value) != "" {
+		return value
+	}
+	if value, ok := os.LookupEnv(key); ok && strings.TrimSpace(value) != "" {
+		return value
+	}
+	return def
+}
+
+func getBool(section *ini.Section, sectionName, key string, def bool) bool {
+	if section != nil && section.HasKey(key) {
+		raw := strings.TrimSpace(section.Key(key).String())
+		if raw != "" {
+			if value, err := strconv.ParseBool(raw); err == nil {
+				return value
+			}
+		}
+	}
+	if raw, ok := os.LookupEnv(envKey(sectionName, key)); ok && strings.TrimSpace(raw) != "" {
+		if value, err := strconv.ParseBool(raw); err == nil {
+			return value
+		}
+	}
+	if raw, ok := os.LookupEnv(key); ok && strings.TrimSpace(raw) != "" {
+		if value, err := strconv.ParseBool(raw); err == nil {
+			return value
+		}
+	}
+	return def
+}
+
+func getInt(section *ini.Section, sectionName, key string, def int) int {
+	if section != nil && section.HasKey(key) {
+		raw := strings.TrimSpace(section.Key(key).String())
+		if raw != "" {
+			if value, err := strconv.Atoi(raw); err == nil {
+				return value
+			}
+		}
+	}
+	if raw, ok := os.LookupEnv(envKey(sectionName, key)); ok && strings.TrimSpace(raw) != "" {
+		if value, err := strconv.Atoi(strings.TrimSpace(raw)); err == nil {
+			return value
+		}
+	}
+	if raw, ok := os.LookupEnv(key); ok && strings.TrimSpace(raw) != "" {
+		if value, err := strconv.Atoi(strings.TrimSpace(raw)); err == nil {
+			return value
+		}
+	}
+	return def
+}
+
 func confApp() {
-	app, err := Cfg.GetSection("app")
-	if err != nil {
-		log.Fatalf("未找到配置 'app': %v", err)
-	}
-	App.NAME = app.Key("APP_NAME").MustString("PDP")
-	App.APIURL = app.Key("API_URL").MustString("")
-	App.WEBURL = app.Key("WEB_URL").MustString("")
-	App.WWWURL = app.Key("WWW_URL").MustString(App.WEBURL)
-	App.SHAREURL = app.Key("SHARE_URL").MustString(App.WWWURL)
-	App.STATICURL = app.Key("STATIC_URL").MustString(App.WEBURL)
-	App.AuthKey = app.Key("AUTH_KEY").MustString("")
-	App.AesKey = app.Key("AES_KEY").MustString("")
+	app, _ := Cfg.GetSection("app")
+	App.NAME = getString(app, "app", "APP_NAME", "PDP")
+	App.APIURL = getString(app, "app", "API_URL", "")
+	App.WEBURL = getString(app, "app", "WEB_URL", "")
+	App.WWWURL = getString(app, "app", "WWW_URL", App.WEBURL)
+	App.SHAREURL = getString(app, "app", "SHARE_URL", App.WWWURL)
+	App.STATICURL = getString(app, "app", "STATIC_URL", App.WEBURL)
+	App.AuthKey = getString(app, "app", "AUTH_KEY", "")
+	App.AesKey = getString(app, "app", "AES_KEY", "")
 	if App.RUNMODE == "" {
-		App.RUNMODE = app.Key("APP_MODE").MustString("dev")
+		App.RUNMODE = getString(app, "app", "APP_MODE", "dev")
 	}
-	App.IsVPC = app.Key("IS_VPC").MustBool(false)
+	App.IsVPC = getBool(app, "app", "IS_VPC", false)
 }
 func confDB() {
-	database, err := GetCfg().GetSection("database")
-	if err != nil {
-		log.Fatalf("未找到配置 'database': %v", err)
-	}
-	DB.DRIVER = database.Key("DB_DRIVER").MustString("mysql")
-	DB.HOST = database.Key("DB_HOST").MustString("")
-	DB.PORT = database.Key("DB_PORT").MustString("")
-	DB.DATABASE = database.Key("DB_DATABASE").MustString("")
-	DB.USERNAME = database.Key("DB_USERNAME").MustString("")
-	DB.PASSWORD = database.Key("DB_PASSWORD").MustString("")
-	DB.PRE = database.Key("DB_PRE").MustString("")
-	DB.AUTOMIGRATE = database.Key("DB_AUTO_MIGRATE").MustBool(false)
+	database, _ := GetCfg().GetSection("database")
+	DB.DRIVER = getString(database, "database", "DB_DRIVER", "mysql")
+	DB.HOST = getString(database, "database", "DB_HOST", "")
+	DB.PORT = getString(database, "database", "DB_PORT", "")
+	DB.DATABASE = getString(database, "database", "DB_DATABASE", "")
+	DB.USERNAME = getString(database, "database", "DB_USERNAME", "")
+	DB.PASSWORD = getString(database, "database", "DB_PASSWORD", "")
+	DB.PRE = getString(database, "database", "DB_PRE", "")
+	DB.AUTOMIGRATE = getBool(database, "database", "DB_AUTO_MIGRATE", false)
 }
 func confUpload() {
-	upload, err := Cfg.GetSection("upload")
-	if err == nil {
-		Upload.LocalPath = "." + upload.Key("LOCAL_PATH").MustString("")
-		Upload.UserPath = "." + upload.Key("USER_PATH").MustString("")
-		IPFS.IpfsEndpoint = upload.Key("IPFS_ENDPOINT").MustString("")
-		IPFS.IpfsGateway = upload.Key("IPFS_GATEWAY").MustString("")
-		AliyunOSS.Endpoint = upload.Key("ALIYUN_OSS_ENDPOINT").MustString("")
-		AliyunOSS.Region = upload.Key("ALIYUN_OSS_REGION").MustString("cn-hangzhou")
-		AliyunOSS.AccessKeyId = upload.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
-		AliyunOSS.AccessKeySecret = upload.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
-		AliyunOSS.BucketName = upload.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
-		AliyunOSS.BucketNameUser = upload.Key("ALIYUN_OSS_BUCKET_NAME_USER").MustString("")
-		AliyunOSS.BucketUrl = upload.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
-		AliyunOSS.BucketUrlUser = upload.Key("ALIYUN_OSS_BUCKET_URL_USER").MustString("")
-		AliyunOSS.BasePath = upload.Key("ALIYUN_OSS_BASE_PATH").MustString("")
-		AliyunOSS.MncTopic = upload.Key("ALIYUN_MNC_TOPIC").MustString("")
-	}
-	uploadEnc, err := Cfg.GetSection("upload_encryption")
-	if err == nil {
-		AliyunOSSEnc.Endpoint = uploadEnc.Key("ALIYUN_OSS_ENDPOINT").MustString("")
-		AliyunOSSEnc.Region = upload.Key("ALIYUN_OSS_REGION").MustString("cn-hangzhou")
-		AliyunOSSEnc.AccessKeyId = uploadEnc.Key("ALIYUN_OSS_ACCESS_KEY_ID").MustString("")
-		AliyunOSSEnc.AccessKeySecret = uploadEnc.Key("ALIYUN_OSS_ACCESS_KEY_SECRET").MustString("")
-		AliyunOSSEnc.BucketName = uploadEnc.Key("ALIYUN_OSS_BUCKET_NAME").MustString("")
-		AliyunOSSEnc.BucketNameUser = uploadEnc.Key("ALIYUN_OSS_BUCKET_NAME_USER").MustString("")
-		AliyunOSSEnc.BucketUrl = uploadEnc.Key("ALIYUN_OSS_BUCKET_URL").MustString("")
-		AliyunOSSEnc.BucketUrlUser = uploadEnc.Key("ALIYUN_OSS_BUCKET_URL_USER").MustString("")
-		AliyunOSSEnc.BasePath = uploadEnc.Key("ALIYUN_OSS_BASE_PATH").MustString("")
-		AliyunOSSEnc.MncTopic = uploadEnc.Key("ALIYUN_MNC_TOPIC").MustString("")
-	}
+	upload, _ := Cfg.GetSection("upload")
+	Upload.LocalPath = "." + getString(upload, "upload", "LOCAL_PATH", "")
+	Upload.UserPath = "." + getString(upload, "upload", "USER_PATH", "")
+	IPFS.IpfsEndpoint = getString(upload, "upload", "IPFS_ENDPOINT", "")
+	IPFS.IpfsGateway = getString(upload, "upload", "IPFS_GATEWAY", "")
+	AliyunOSS.Endpoint = getString(upload, "upload", "ALIYUN_OSS_ENDPOINT", "")
+	AliyunOSS.Region = getString(upload, "upload", "ALIYUN_OSS_REGION", "cn-hangzhou")
+	AliyunOSS.AccessKeyId = getString(upload, "upload", "ALIYUN_OSS_ACCESS_KEY_ID", "")
+	AliyunOSS.AccessKeySecret = getString(upload, "upload", "ALIYUN_OSS_ACCESS_KEY_SECRET", "")
+	AliyunOSS.BucketName = getString(upload, "upload", "ALIYUN_OSS_BUCKET_NAME", "")
+	AliyunOSS.BucketNameUser = getString(upload, "upload", "ALIYUN_OSS_BUCKET_NAME_USER", "")
+	AliyunOSS.BucketUrl = getString(upload, "upload", "ALIYUN_OSS_BUCKET_URL", "")
+	AliyunOSS.BucketUrlUser = getString(upload, "upload", "ALIYUN_OSS_BUCKET_URL_USER", "")
+	AliyunOSS.BasePath = getString(upload, "upload", "ALIYUN_OSS_BASE_PATH", "")
+	AliyunOSS.MncTopic = getString(upload, "upload", "ALIYUN_MNC_TOPIC", "")
+
+	uploadEnc, _ := Cfg.GetSection("upload_encryption")
+	AliyunOSSEnc.Endpoint = getString(uploadEnc, "upload_encryption", "ALIYUN_OSS_ENDPOINT", "")
+	AliyunOSSEnc.Region = getString(uploadEnc, "upload_encryption", "ALIYUN_OSS_REGION", "cn-hangzhou")
+	AliyunOSSEnc.AccessKeyId = getString(uploadEnc, "upload_encryption", "ALIYUN_OSS_ACCESS_KEY_ID", "")
+	AliyunOSSEnc.AccessKeySecret = getString(uploadEnc, "upload_encryption", "ALIYUN_OSS_ACCESS_KEY_SECRET", "")
+	AliyunOSSEnc.BucketName = getString(uploadEnc, "upload_encryption", "ALIYUN_OSS_BUCKET_NAME", "")
+	AliyunOSSEnc.BucketNameUser = getString(uploadEnc, "upload_encryption", "ALIYUN_OSS_BUCKET_NAME_USER", "")
+	AliyunOSSEnc.BucketUrl = getString(uploadEnc, "upload_encryption", "ALIYUN_OSS_BUCKET_URL", "")
+	AliyunOSSEnc.BucketUrlUser = getString(uploadEnc, "upload_encryption", "ALIYUN_OSS_BUCKET_URL_USER", "")
+	AliyunOSSEnc.BasePath = getString(uploadEnc, "upload_encryption", "ALIYUN_OSS_BASE_PATH", "")
+	AliyunOSSEnc.MncTopic = getString(uploadEnc, "upload_encryption", "ALIYUN_MNC_TOPIC", "")
 }
 
 func confTencentYun() {
-	tx, err := Cfg.GetSection("txyun")
-	if err == nil {
-		TencentYun.SecretId = tx.Key("SECRET_ID").MustString("")
-		TencentYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
-	}
+	tx, _ := Cfg.GetSection("txyun")
+	TencentYun.SecretId = getString(tx, "txyun", "SECRET_ID", "")
+	TencentYun.SecretKey = getString(tx, "txyun", "SECRET_KEY", "")
 }
 func confAliYun() {
-	tx, err := Cfg.GetSection("aliyun")
-	if err == nil {
-		AliYun.SecretId = tx.Key("SECRET_ID").MustString("")
-		AliYun.SecretKey = tx.Key("SECRET_KEY").MustString("")
-		AliYun.SecretIdSMS = tx.Key("SECRET_ID_S").MustString("")
-		AliYun.SecretKeySMS = tx.Key("SECRET_KEY_S").MustString("")
-	}
+	tx, _ := Cfg.GetSection("aliyun")
+	AliYun.SecretId = getString(tx, "aliyun", "SECRET_ID", "")
+	AliYun.SecretKey = getString(tx, "aliyun", "SECRET_KEY", "")
+	AliYun.SecretIdSMS = getString(tx, "aliyun", "SECRET_ID_S", "")
+	AliYun.SecretKeySMS = getString(tx, "aliyun", "SECRET_KEY_S", "")
 }
 
 func confEmail() {
-	tx, err := Cfg.GetSection("email")
-	if err == nil {
-		Email.PWD = tx.Key("MAIL_SYS_PWD").MustString("")
-		Email.AdminEmail = tx.Key("MAIL_ADMIN").MustString("")
-		Email.SystemMail = tx.Key("MAIL_SYS").MustString("")
-	}
+	tx, _ := Cfg.GetSection("email")
+	Email.PWD = getString(tx, "email", "MAIL_SYS_PWD", "")
+	Email.AdminEmail = getString(tx, "email", "MAIL_ADMIN", "")
+	Email.SystemMail = getString(tx, "email", "MAIL_SYS", "")
 }
 func confLog() {
-	clog, err := Cfg.GetSection("log")
-	if err != nil {
-		log.Fatalf("未找到配置 'log': %v", err)
+	clog, _ := Cfg.GetSection("log")
+	Log.PATH = getString(clog, "log", "LOG_PATH", "")
+	if Log.PATH == "" {
+		log.Println("[WARN] 未配置 LOG_PATH，将使用默认输出")
 	}
-	Log.PATH = clog.Key("LOG_PATH").MustString("")
 }
 
 // ClickHouse 配置读取（可选，不存在 section 时不致命）
 func confClickHouse() {
-	section, err := Cfg.GetSection("clickhouse")
-	if err != nil {
-		// 未配置 ClickHouse，直接返回
-		return
-	}
-	ClickHouse.ENABLE = section.Key("CH_ENABLE").MustBool(false)
-	ClickHouse.HOST = section.Key("CH_HOST").MustString("")
-	ClickHouse.PORT = section.Key("CH_PORT").MustString("9000")
-	ClickHouse.DATABASE = section.Key("CH_DATABASE").MustString("default")
-	ClickHouse.USERNAME = section.Key("CH_USERNAME").MustString("default")
-	ClickHouse.PASSWORD = section.Key("CH_PASSWORD").MustString("")
-	ClickHouse.OPTIONS = section.Key("CH_OPTIONS").MustString("")
-	ClickHouse.AUTOMIGRATE = section.Key("CH_AUTO_MIGRATE").MustBool(false)
+	section, _ := Cfg.GetSection("clickhouse")
+	ClickHouse.ENABLE = getBool(section, "clickhouse", "CH_ENABLE", false)
+	ClickHouse.HOST = getString(section, "clickhouse", "CH_HOST", "")
+	ClickHouse.PORT = getString(section, "clickhouse", "CH_PORT", "9000")
+	ClickHouse.DATABASE = getString(section, "clickhouse", "CH_DATABASE", "default")
+	ClickHouse.USERNAME = getString(section, "clickhouse", "CH_USERNAME", "default")
+	ClickHouse.PASSWORD = getString(section, "clickhouse", "CH_PASSWORD", "")
+	ClickHouse.OPTIONS = getString(section, "clickhouse", "CH_OPTIONS", "")
+	ClickHouse.AUTOMIGRATE = getBool(section, "clickhouse", "CH_AUTO_MIGRATE", false)
 }
