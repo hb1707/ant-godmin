@@ -214,6 +214,28 @@ func GetInt(section *ini.Section, sectionName, key string, def int) int {
 	return def
 }
 
+func GetFloat(section *ini.Section, sectionName, key string, def float64) float64 {
+	if section != nil && section.HasKey(key) {
+		raw := strings.TrimSpace(section.Key(key).String())
+		if raw != "" {
+			if value, err := strconv.ParseFloat(raw, 64); err == nil {
+				return value
+			}
+		}
+	}
+	if raw, ok := os.LookupEnv(envKey(sectionName, key)); ok && strings.TrimSpace(raw) != "" {
+		if value, err := strconv.ParseFloat(strings.TrimSpace(raw), 64); err == nil {
+			return value
+		}
+	}
+	if raw, ok := os.LookupEnv(key); ok && strings.TrimSpace(raw) != "" {
+		if value, err := strconv.ParseFloat(strings.TrimSpace(raw), 64); err == nil {
+			return value
+		}
+	}
+	return def
+}
+
 func confApp() {
 	app, _ := Cfg.GetSection("app")
 	App.NAME = GetString(app, "app", "APP_NAME", "PDP")
