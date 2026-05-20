@@ -8,7 +8,7 @@ var Volc struct {
 
 func confVolc() {
 	vc, _ := Cfg.GetSection("volc")
-	Volc.ApiKey = getString(vc, "volc", "API_KEY", "")
-	Volc.KeyId = getString(vc, "volc", "KEY_ID", "")
-	Volc.SecretKey = getString(vc, "volc", "KEY_SECRET", "")
+	Volc.ApiKey = GetString(vc, "volc", "API_KEY", "")
+	Volc.KeyId = GetString(vc, "volc", "KEY_ID", "")
+	Volc.SecretKey = GetString(vc, "volc", "KEY_SECRET", "")
 }

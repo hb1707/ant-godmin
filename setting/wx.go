@@ -27,12 +27,12 @@ var (
 func confQyWxAdmin() {
 	app, _ := Cfg.GetSection(AdminAppid)
 	QyWxAppConfig[AdminAppid] = QyWxApp{
-		Corpid:         getString(app, AdminAppid, "QYWX_CORPID", ""),
-		AgentId:        getInt(app, AdminAppid, "QYWX_AGENT_ID", 0),
-		Secret:         getString(app, AdminAppid, "QYWX_SECRET", ""),
-		Token:          getString(app, AdminAppid, "QYWX_TOKEN", ""),
-		EncodingAESKey: getString(app, AdminAppid, "QYWX_ENCODING_AES_KEY", ""),
-		AdminUserIds:   getString(app, AdminAppid, "QYWX_ADMIN_USERIDS", ""),
+		Corpid:         GetString(app, AdminAppid, "QYWX_CORPID", ""),
+		AgentId:        GetInt(app, AdminAppid, "QYWX_AGENT_ID", 0),
+		Secret:         GetString(app, AdminAppid, "QYWX_SECRET", ""),
+		Token:          GetString(app, AdminAppid, "QYWX_TOKEN", ""),
+		EncodingAESKey: GetString(app, AdminAppid, "QYWX_ENCODING_AES_KEY", ""),
+		AdminUserIds:   GetString(app, AdminAppid, "QYWX_ADMIN_USERIDS", ""),
 	}
 	log.Println("[INFO] QyWx Config", AdminAppid, "OK")
 }
@@ -40,9 +40,9 @@ func confQyWxAdmin() {
 func ConfWxApp(section string, appid string) {
 	app, _ := Cfg.GetSection(section)
 	WxAppConfig[appid] = WxApp{
-		AppSecret:      getString(app, section, "WX_SECRET", ""),
-		Token:          getString(app, section, "WX_TOKEN", ""),
-		EncodingAESKey: getString(app, section, "WX_ENCODING_AES_KEY", ""),
+		AppSecret:      GetString(app, section, "WX_SECRET", ""),
+		Token:          GetString(app, section, "WX_TOKEN", ""),
+		EncodingAESKey: GetString(app, section, "WX_ENCODING_AES_KEY", ""),
 	}
 	log.Println("[INFO] Wx Config", section, "OK")
 }
