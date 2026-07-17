@@ -14,6 +14,11 @@ import (
 
 // List 路由列表设定
 func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engine {
+	if isRelease {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode) //debug
+	}
 	r := gin.New()
 	r.MaxMultipartMemory = 8 << 20 // 8 MiB
 	//r.TrustedPlatform = ""
@@ -31,11 +36,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
 		SkipPaths: []string{"/online/test", "/online/begin", "/test", "/begin"},
 	}), gin.Recovery(), cors.New(config))
-	if isRelease {
-		gin.SetMode(gin.ReleaseMode)
-	} else {
-		gin.SetMode(gin.DebugMode) //debug
-	}
+
 	r.Static(upload.RoutePath, setting.Upload.LocalPath)
 	//if upload.RoutePathUser == "/udata" {
 	//	r.GET("/data/:hash/*filepath", json.GetUserFile) //setting.Upload.UserPath
