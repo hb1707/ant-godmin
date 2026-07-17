@@ -247,7 +247,7 @@ func confApp() {
 	App.AuthKey = GetString(app, "app", "AUTH_KEY", "")
 	App.AesKey = GetString(app, "app", "AES_KEY", "")
 	if App.RUNMODE == "" {
-		App.RUNMODE = GetString(app, "app", "APP_MODE", "dev")
+		App.RUNMODE = GetString(app, "app", "RUN_MODE", "dev")
 	}
 	App.IsVPC = GetBool(app, "app", "IS_VPC", false)
 }
