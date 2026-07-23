@@ -19,16 +19,17 @@ var IsCMS = false
 var IsReg = false
 
 var App struct {
-	NAME      string
-	RUNMODE   string
-	APIURL    string
-	WEBURL    string
-	SHAREURL  string
-	WWWURL    string
-	STATICURL string
-	AuthKey   string
-	AesKey    string
-	IsVPC     bool
+	NAME           string
+	RUNMODE        string
+	APIURL         string
+	WEBURL         string
+	SHAREURL       string
+	WWWURL         string
+	STATICURL      string
+	AuthKey        string
+	AesKey         string
+	IsVPC          bool
+	SupportBaseURL string
 }
 
 var DB struct {
@@ -250,6 +251,7 @@ func confApp() {
 		App.RUNMODE = GetString(app, "app", "RUN_MODE", "dev")
 	}
 	App.IsVPC = GetBool(app, "app", "IS_VPC", false)
+	App.SupportBaseURL = GetString(app, "app", "SUPPORT_BASE_URL", "")
 }
 func confDB() {
 	database, _ := GetCfg().GetSection("database")
