@@ -11,10 +11,20 @@ import (
 	"github.com/hb1707/ant-godmin/setting"
 )
 
+type DebugLevel int
+
+const (
+	DebugLevelFatal DebugLevel = iota
+	DebugLevelError
+	DebugLevelWarning
+	DebugLevelInfo
+	DebugLevelDebug
+)
+
 var (
 	LPath  = ""
 	Mode   = setting.App.RUNMODE
-	Notice = func(er string) {}
+	Notice = func(er string, lev DebugLevel) {}
 )
 
 func Fatal(er interface{}, lev ...int) {
@@ -36,7 +46,7 @@ func Fatal(er interface{}, lev ...int) {
 	if ok {
 		s = fmt.Sprintf("[ FATAL ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
 	}
-	go Notice(s)
+	go Notice(s, DebugLevelFatal)
 	os.Exit(1)
 }
 func Error(er ...interface{}) {
@@ -55,7 +65,7 @@ func Error(er ...interface{}) {
 	if ok {
 		s = fmt.Sprintf("[ ERROR ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
 	}
-	go Notice(s)
+	go Notice(s, DebugLevelError)
 }
 func ErrorLev(lev int, er ...interface{}) {
 	log.SetPrefix("[ ERROR ]")
@@ -73,7 +83,7 @@ func ErrorLev(lev int, er ...interface{}) {
 	if ok {
 		s = fmt.Sprintf("[ ERROR ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
 	}
-	go Notice(s)
+	go Notice(s, DebugLevelError)
 }
 func Warning(er ...interface{}) {
 
@@ -92,7 +102,7 @@ func Warning(er ...interface{}) {
 	if ok {
 		s = fmt.Sprintf("[ WARNING ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
 	}
-	go Notice(s)
+	go Notice(s, DebugLevelWarning)
 }
 
 func Info(er ...interface{}) {
@@ -131,5 +141,5 @@ func Debug(er ...interface{}) {
 	if ok {
 		s = fmt.Sprintf("[ DEBUG ] %s %s:%d %s", time.Now().Local().Format("2006/01/02 15:04:05"), runtime.FuncForPC(funcName).Name(), line, s)
 	}
-	go Notice(s)
+	go Notice(s, DebugLevelDebug)
 }
