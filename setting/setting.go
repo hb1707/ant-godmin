@@ -20,6 +20,7 @@ var IsReg = false
 
 var App struct {
 	NAME           string
+	NAMESPACE      string
 	RUNMODE        string
 	APIURL         string
 	WEBURL         string
@@ -239,7 +240,8 @@ func GetFloat(section *ini.Section, sectionName, key string, def float64) float6
 
 func confApp() {
 	app, _ := Cfg.GetSection("app")
-	App.NAME = GetString(app, "app", "APP_NAME", "PDP")
+	App.NAME = GetString(app, "app", "APP_NAME", "CORE")
+	App.NAMESPACE = GetString(app, "app", "NAMESPACE", "")
 	App.APIURL = GetString(app, "app", "API_URL", "")
 	App.WEBURL = GetString(app, "app", "WEB_URL", "")
 	App.WWWURL = GetString(app, "app", "WWW_URL", App.WEBURL)
