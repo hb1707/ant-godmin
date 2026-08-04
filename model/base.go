@@ -47,9 +47,9 @@ type TableBase struct {
 type AbsoluteTimeTableBase struct {
 	TableBase
 
-	CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt time.Time      `gorm:"column:updated_at;autoUpdateTime"`
-	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
+	CreatedAt time.Time      `json:"created_at" form:"created_at" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt time.Time      `json:"updated_at" form:"updated_at" gorm:"column:updated_at;autoUpdateTime"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"column:deleted_at;index"`
 }
 
 func InitDB() {
