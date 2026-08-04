@@ -44,6 +44,14 @@ type TableBase struct {
 	Page               int                    `json:"-" form:"-" gorm:"-"`
 }
 
+type AbsoluteTimeTableBase struct {
+	TableBase
+
+	CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt time.Time      `gorm:"column:updated_at;autoUpdateTime"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
+}
+
 func InitDB() {
 	if setting.DB.DRIVER == "mysql" {
 		FieldTypeMap[FieldTypeBool] = "tinyint"
