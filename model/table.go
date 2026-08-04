@@ -1,6 +1,8 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/hb1707/ant-godmin/pkg/log"
 	"github.com/hb1707/ant-godmin/setting"
@@ -22,6 +24,18 @@ func NewTable(table string, where ...interface{}) *TableBase {
 		t.DB = DB.Table(setting.DB.PRE + table)
 	}
 	return t
+}
+
+type TableBaseCarrier interface {
+	GetTableBase() *TableBase
+}
+
+func (t *TableBase) GetTableBase() *TableBase {
+	return t
+}
+
+func (t *AbsoluteTimeTableBase) GetTableBase() *TableBase {
+	return &t.TableBase
 }
 
 func (t *TableBase) Where(where ...interface{}) *TableBase {
@@ -164,8 +178,13 @@ func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 				t.DB.Select(must[0], must[1:]...)
 			}
 			err = t.DB.Create(t.Req).Error
-			kv := fun.Struct2Map(t.Req, "")
-			t.Id = kv["TableBase"].(TableBase).Id
+			if err == nil {
+				carrier, ok := t.Req.(TableBaseCarrier)
+				if !ok {
+					return fmt.Errorf("model must embed TableBase or AbsoluteTimeTableBase")
+				}
+				t.Id = carrier.GetTableBase().Id
+			}
 		}
 	}
 	if failed(err) {
@@ -173,6 +192,7 @@ func (t *TableBase) AddOrUpdate(must ...interface{}) error {
 	}
 	return nil
 }
+
 func (t *TableBase) Del(model interface{}, id ...uint) error {
 	if len(id) > 0 {
 		t.Id = id[0]
