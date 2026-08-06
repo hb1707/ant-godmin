@@ -76,7 +76,7 @@ func DefaultConfig(addr, username, password string, db int) *Config {
 		Username:     username,
 		Password:     password,
 		DB:           db,
-		PoolSize:     160,
+		PoolSize:     64,
 		MinIdleConns: 16,
 		MaxRetries:   3,
 		DialTimeout:  2 * time.Second,
