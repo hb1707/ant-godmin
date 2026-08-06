@@ -78,7 +78,7 @@ func DefaultConfig(addr, username, password string, db int) *Config {
 		DB:           db,
 		PoolSize:     160,
 		MinIdleConns: 16,
-		MaxRetries:   1,
+		MaxRetries:   3,
 		DialTimeout:  2 * time.Second,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 2 * time.Second,
@@ -109,7 +109,7 @@ func InitRedisWithConfig(cfg *Config) error {
 		DialTimeout:  cfg.DialTimeout,
 		ReadTimeout:  cfg.ReadTimeout,
 		WriteTimeout: cfg.WriteTimeout,
-		PoolTimeout:  1 * time.Second,
+		PoolTimeout:  4 * time.Second,
 	})
 
 	// 验证连接
