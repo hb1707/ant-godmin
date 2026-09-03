@@ -1,6 +1,7 @@
 package json
 
 import (
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,29 +15,43 @@ func AppTest(c *gin.Context) {
 	return
 }
 
-// AppReadiness 只表达当前 HTTP 进程已经能够接收请求。
-// 探针会被并发、重复调用，因此这里不能修改进程状态或触发一次性启动逻辑。
-func AppReadiness(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "ready",
-	})
-}
+const readinessDelay = 10 * time.Second
 
-var timeStart time.Time
+var (
+	timeStart           time.Time
+	readinessMu         sync.Mutex
+	readinessNoticeOnce sync.Once
+	readinessNotice     = common.ReadinessNotice
+)
 
 func AppBegin(c *gin.Context) {
-	if !timeStart.IsZero() && time.Since(timeStart) < time.Second*10 {
+	AppReadiness(c)
+}
+
+// AppReadiness 在首次探测后保留一段启动缓冲时间，避免进程刚监听端口就被切入业务流量。
+// /begin 与 /readiness 共用这套判据，保证两个探针并发执行时只会从未就绪单向进入就绪。
+func AppReadiness(c *gin.Context) {
+	if !readinessReady(time.Now()) {
 		c.JSON(500, gin.H{
 			"message": "not ready",
 		})
 		return
 	}
-	if timeStart.IsZero() {
-		timeStart = time.Now()
-	}
-	common.ReadinessNotice()
+
+	// 通知属于“已经真正就绪”的副作用；并发探针和后续轮询都不能重复发送。
+	readinessNoticeOnce.Do(readinessNotice)
 	c.JSON(200, gin.H{
 		"message": "pong",
 	})
-	return
+}
+
+func readinessReady(now time.Time) bool {
+	readinessMu.Lock()
+	defer readinessMu.Unlock()
+
+	if timeStart.IsZero() {
+		timeStart = now
+		return false
+	}
+	return now.Sub(timeStart) >= readinessDelay
 }

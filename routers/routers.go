@@ -34,7 +34,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 		config.AddAllowHeaders("Authorization,x-requested-with,withcredentials")
 	}
 	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		SkipPaths: []string{"/online/test", "/online/begin", "/test", "/begin", "/readiness"},
+		SkipPaths: []string{"/online/test", "/online/begin", "/online/readiness", "/test", "/begin", "/readiness"},
 	}), gin.Recovery(), cors.New(config))
 
 	r.Static(upload.RoutePath, setting.Upload.LocalPath)
