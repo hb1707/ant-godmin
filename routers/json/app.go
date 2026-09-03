@@ -14,6 +14,14 @@ func AppTest(c *gin.Context) {
 	return
 }
 
+// AppReadiness 只表达当前 HTTP 进程已经能够接收请求。
+// 探针会被并发、重复调用，因此这里不能修改进程状态或触发一次性启动逻辑。
+func AppReadiness(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "ready",
+	})
+}
+
 var timeStart time.Time
 
 func AppBegin(c *gin.Context) {

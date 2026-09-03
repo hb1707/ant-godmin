@@ -34,7 +34,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 		config.AddAllowHeaders("Authorization,x-requested-with,withcredentials")
 	}
 	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		SkipPaths: []string{"/online/test", "/online/begin", "/test", "/begin"},
+		SkipPaths: []string{"/online/test", "/online/begin", "/test", "/begin", "/readiness"},
 	}), gin.Recovery(), cors.New(config))
 
 	r.Static(upload.RoutePath, setting.Upload.LocalPath)
@@ -47,6 +47,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 	m := auth.Middleware()
 	r.GET("/online/test", json.AppTest)
 	r.GET("/online/begin", json.AppBegin)
+	r.GET("/online/readiness", json.AppReadiness)
 	api := r.Group("/api")
 	{
 		systemGroup := api.Group("/system")
