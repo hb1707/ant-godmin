@@ -25,11 +25,13 @@ var (
 )
 
 func AppBegin(c *gin.Context) {
-	AppReadiness(c)
+	c.JSON(200, gin.H{
+		"message": "pong",
+	})
 }
 
 // AppReadiness 在首次探测后保留一段启动缓冲时间，避免进程刚监听端口就被切入业务流量。
-// /begin 与 /readiness 共用这套判据，保证两个探针并发执行时只会从未就绪单向进入就绪。
+// 启动探针与就绪探针职责分离：/begin 只确认进程已启动，流量切换仅以这里的结果为准。
 func AppReadiness(c *gin.Context) {
 	if !readinessReady(time.Now()) {
 		c.JSON(500, gin.H{
