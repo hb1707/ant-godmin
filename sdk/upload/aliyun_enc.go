@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/hb1707/ant-godmin/setting"
@@ -76,35 +75,19 @@ func (c *AliyunOSSEnc) AllObjects(path string, continuation string) (pathList []
 	return
 }
 
-// GetUrl 获取文件的访问地址
-func (c *AliyunOSSEnc) GetUrl(key string, isPrivate bool, expire int64) string {
-	if expire <= 0 {
-		expire = 3600 // 默认过期时间为1小时
-	}
-	bucket, err := NewBucket(c.BucketName)
+// GetUrl 私有 OSS 始终使用签名访问；保留 isPrivate 参数以实现 Cloud 接口。
+func (c *AliyunOSSEnc) GetUrl(
+	key string,
+	isPrivate bool,
+	expire int64,
+	filename string,
+) string {
+	// 私有 OSS 使用自己的 endpoint 和凭证。
+	bucket, err := NewBucketEnc(c.BucketName)
 	if err != nil {
 		return ""
 	}
-	//exist, err := bucket.IsObjectExist(key)
-	//if err != nil || !exist {
-	//	return ""
-	//}
-	// 生成一个临时的访问URL，过期时间为1小时
-	keyParams := strings.Split(key, "?")
-	if len(keyParams) > 1 {
-		key = keyParams[0]
-		signedURL, err := bucket.SignURL(key, oss.HTTPGet, expire, oss.Process(keyParams[1]))
-		if err != nil {
-			return ""
-		}
-		return signedURL
-	} else {
-		signedURL, err := bucket.SignURL(key, oss.HTTPGet, expire)
-		if err != nil {
-			return ""
-		}
-		return signedURL
-	}
+	return signedOSSURL(bucket, key, expire, filename)
 }
 
 // GetInfo 文件的信息

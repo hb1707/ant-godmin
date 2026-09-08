@@ -34,7 +34,7 @@ func (c *Local) AllObjects(path string, continuation string) (pathList []map[str
 }
 
 // GetUrl 获取文件的访问地址
-func (c *Local) GetUrl(key string, isPrivate bool, expire int64) string {
+func (c *Local) GetUrl(key string, isPrivate bool, expire int64, fileName string) string {
 	if isPrivate {
 		return RoutePathUser + "/" + key
 	}

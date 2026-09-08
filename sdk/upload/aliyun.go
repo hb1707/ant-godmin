@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/hb1707/ant-godmin/setting"
@@ -94,33 +93,27 @@ func (c *AliyunOSS) AllObjects(path string, continuation string) (pathList []map
 }
 
 // GetUrl 获取文件的访问地址
-func (c *AliyunOSS) GetUrl(key string, isPrivate bool, expire int64) string {
-	if expire <= 0 {
-		expire = 3600 // 默认过期时间为1小时
+func (c *AliyunOSS) GetUrl(
+	key string,
+	isPrivate bool,
+	expire int64,
+	filename string,
+) string {
+	if !isPrivate && filename == "" {
+		return setting.AliyunOSS.BucketUrl + "/" + c.BasePath + key
 	}
-	if isPrivate {
-		bucket, err := NewBucket(c.BucketName)
-		if err != nil {
-			return ""
-		}
-		// 生成一个临时的访问URL，过期时间为1小时
-		keyParams := strings.Split(key, "?")
-		if len(keyParams) > 1 {
-			key = keyParams[0]
-			signedURL, err := bucket.SignURL(key, oss.HTTPGet, expire, oss.Process(keyParams[1]))
-			if err != nil {
-				return ""
-			}
-			return signedURL
-		} else {
-			signedURL, err := bucket.SignURL(key, oss.HTTPGet, expire)
-			if err != nil {
-				return ""
-			}
-			return signedURL
-		}
+
+	// 公有链接改走签名时，仍指向原公有 URL 中的完整对象路径。
+	// 私有调用沿用现有约定：key 已经是完整对象路径。
+	if !isPrivate {
+		key = c.BasePath + key
 	}
-	return setting.AliyunOSS.BucketUrl + "/" + c.BasePath + key
+
+	bucket, err := NewBucket(c.BucketName)
+	if err != nil {
+		return ""
+	}
+	return signedOSSURL(bucket, key, expire, filename)
 }
 
 // GetInfo 文件的信息

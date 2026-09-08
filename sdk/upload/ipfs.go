@@ -32,7 +32,7 @@ func (*IPFS) AllObjects(path string, continuation string) (pathList []map[string
 }
 
 // GetUrl 获取文件的访问地址
-func (*IPFS) GetUrl(key string, isPrivate bool, expire int64) string {
+func (*IPFS) GetUrl(key string, isPrivate bool, expire int64, fileName string) string {
 	if isPrivate {
 		return setting.IPFS.IpfsEndpoint + "/ipfs/" + key
 	}

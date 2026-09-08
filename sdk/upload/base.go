@@ -8,12 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/hb1707/ant-godmin/setting"
 )
 
 type Cloud interface {
 	AllObjects(path string, next string) ([]map[string]string, string, error)
-	GetUrl(key string, isPrivate bool, expire int64) string
+	GetUrl(key string, isPrivate bool, expire int64, filename string) string
 	GetInfo(key string) (map[string]any, error)
 	SetPath(path string)
 	SetBucket(bucketName string)
@@ -142,4 +143,47 @@ func GetFileExt(f *os.File) string {
 	default:
 		return ""
 	}
+}
+
+// signedOSSURL 统一两种 OSS 配置的签名行为。
+// 文件名必须参与签名；inline 指定保存名称，同时保留浏览器预览能力。
+func signedOSSURL(
+	bucket *oss.Bucket,
+	key string,
+	expire int64,
+	filename string,
+) string {
+	if expire <= 0 {
+		expire = 3600
+	}
+
+	var options []oss.Option
+
+	// 兼容现有 key?处理表达式 的传参方式。
+	parts := strings.SplitN(key, "?", 2)
+	if len(parts) == 2 {
+		options = append(options, oss.Process(parts[1]))
+	}
+
+	if filename != "" {
+		disposition := mime.FormatMediaType(
+			"inline",
+			map[string]string{"filename": filename},
+		)
+		options = append(
+			options,
+			oss.ResponseContentDisposition(disposition),
+		)
+	}
+
+	signedURL, err := bucket.SignURL(
+		parts[0],
+		oss.HTTPGet,
+		expire,
+		options...,
+	)
+	if err != nil {
+		return ""
+	}
+	return signedURL
 }
