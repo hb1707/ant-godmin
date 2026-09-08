@@ -157,7 +157,7 @@ func (f *FileService) UploadToOSS(header *multipart.FileHeader, req model.Files,
 	req.CloudType = consts.CloudTypeAliyun
 	req.Url = fileUrl
 	err, req = f.SaveSql(req, key, header.Filename)
-	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "", 3600)
+	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "", 3600, header.Filename)
 	return err, req
 }
 
@@ -290,7 +290,7 @@ func (f *FileService) UploadRemote(req model.Files, isEnc bool) (err error, outF
 	req.CloudType = consts.CloudTypeAliyun
 	req.Url = fileUrlNew
 	err, req = f.SaveSql(req, key, req.Name)
-	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "", 3600)
+	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "", 3600, req.Name)
 	return err, req
 }
 
@@ -440,7 +440,7 @@ func (f *FileService) OSSAdd(req model.Files, isEnc bool) (err error, outFile mo
 	req.CloudType = consts.CloudTypeAliyun
 	req.Url = fileUrl
 	err, req = f.SaveSql(req, key, newFileName)
-	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "", 3600)
+	req.UrlEnc = oss.GetUrl(key, isEnc || req.UserSpace != "", 3600, newFileName)
 	return err, req
 }
 
