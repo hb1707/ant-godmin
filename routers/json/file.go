@@ -37,10 +37,10 @@ func GetUserFile(c *gin.Context) {
 
 	pathStr := params.Filepath
 	key := path.Join(setting.Upload.UserPath, hash, pathStr)
-
+	name := path.Base(pathStr)
 	oss := upload.NewUpload(upload.TypeAliyunOss)
 	oss.SetBucket(setting.AliyunOSS.BucketNameUser)
-	filePath := oss.GetUrl(key, true, 3600)
+	filePath := oss.GetUrl(key, true, 3600, name)
 	response, err := http.Get(filePath)
 	if err != nil || response.StatusCode != http.StatusOK {
 		c.Status(http.StatusServiceUnavailable)
