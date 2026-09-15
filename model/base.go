@@ -122,8 +122,26 @@ func OpenDB() {
 	if err != nil {
 		log.Fatal(err, 3)
 	}
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
+	// 一条连接在数据库侧是常驻资源，而多个服务共享同一个实例的连接配额；
+	// 单进程上限过大时，少数服务就能占满整个实例，其余服务连不上。
+	// 容量按服务独立配置（DB_MAX_OPEN_CONNS / DB_MAX_IDLE_CONNS），缺省值保守。
+	// 空闲连接限时回收、长连接定期重建：既释放用不上的额度，也避免服务端单方面
+	// 断开后本地仍持有失效连接（MySQL 默认 8 小时 wait_timeout 即属此类）。
+	maxIdle := setting.DB.MAXIDLECONNS
+	if maxIdle <= 0 {
+		maxIdle = 5
+	}
+	maxOpen := setting.DB.MAXOPENCONNS
+	if maxOpen <= 0 {
+		maxOpen = 25
+	}
+	if maxIdle > maxOpen {
+		maxIdle = maxOpen
+	}
+	sqlDB.SetMaxIdleConns(maxIdle)
+	sqlDB.SetMaxOpenConns(maxOpen)
+	sqlDB.SetConnMaxIdleTime(5 * time.Minute)
+	sqlDB.SetConnMaxLifetime(30 * time.Minute)
 	errCH := OpenClickHouse()
 	if errCH != nil {
 		log.Error(errCH)

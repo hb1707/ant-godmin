@@ -42,6 +42,10 @@ var DB struct {
 	PASSWORD    string
 	PRE         string
 	AUTOMIGRATE bool
+	// 多个服务共享同一个数据库实例的连接配额，单进程上限过大时少数服务就能占满整个实例。
+	// 因此连接池容量按服务独立配置，默认取保守值，个别服务确认不够用时再在自己的 env 里放宽。
+	MAXOPENCONNS int
+	MAXIDLECONNS int
 }
 var Upload struct {
 	LocalPath string
@@ -265,6 +269,8 @@ func confDB() {
 	DB.PASSWORD = GetString(database, "database", "DB_PASSWORD", "")
 	DB.PRE = GetString(database, "database", "DB_PRE", "")
 	DB.AUTOMIGRATE = GetBool(database, "database", "DB_AUTO_MIGRATE", false)
+	DB.MAXOPENCONNS = GetInt(database, "database", "DB_MAX_OPEN_CONNS", 25)
+	DB.MAXIDLECONNS = GetInt(database, "database", "DB_MAX_IDLE_CONNS", 5)
 }
 func confUpload() {
 	upload, _ := Cfg.GetSection("upload")
