@@ -25,6 +25,12 @@ const (
 	FileSourceKindAIEnhanced     FileSourceKind = "ai_enhanced"
 )
 
+// Files 文件表。
+//
+// file_key 上声明的是查询索引，不是唯一约束：同一 key 允许存在历史行，
+// 调用方按时间取最新一条。它承担的是「按对象 key 反查文件行」这条路径
+// （私有文件出口签发存储跳转前要用它取展示文件名），没有索引时该查询会沿
+// 主键回溯扫描整表，key 不存在时必须扫完，实测可达数十秒并长时间占用连接。
 type Files struct {
 	UUID                 string           `json:"uuid" gorm:"column:uuid;type:varchar(128);not null;default:'';comment:文件唯一标识"`            // 文件唯一标识
 	TypeId               uint             `json:"type_id" gorm:"column:type_id;not null;default:0;comment:分类id;type:integer"`              //分类id 0 图片 2其他 3证件 4APK
@@ -38,7 +44,7 @@ type Files struct {
 	Name                 string           `json:"name" gorm:"column:name;type:text;not null;default:'';comment:文件名"`                       // 文件名
 	Url                  string           `json:"url" gorm:"column:url;type:text;not null;default:'';comment:文件地址"`                        // 文件地址
 	Tag                  string           `json:"tag" gorm:"column:tag;type:varchar(255);not null;default:'';comment:文件标签"`                // 文件标签
-	Key                  string           `json:"key" gorm:"column:file_key;type:text;not null;default:'';comment:编号"`                     // 编号
+	Key                  string           `json:"key" gorm:"column:file_key;type:text;not null;default:'';index;comment:编号"`               // 编号
 	TempExist            bool             `json:"temp_exist" gorm:"column:temp_exist;not null;default:false;comment:临时文件是否存在"`             // 临时文件是否存在
 	Other                FileOther        `json:"other" gorm:"column:other;type:json;comment:其他信息"`                                        //其他信息
 	Content              string           `json:"content" gorm:"column:content;type:text;comment:文件内容"`                                    //文件内容
