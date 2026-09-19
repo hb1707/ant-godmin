@@ -27,32 +27,45 @@ const (
 
 // Files 文件表。
 //
+// url 上声明的是查询索引：liblib 回调把任务 id 暂存在该列再反查占位行，
+// vpc 侧也按 url 查重。缺索引时这条路径是全表并行扫描（96 万行、851 MB），
+// 2026-09-18 线上 12 小时内有 467 条慢查询、最慢 52 秒。
+//
+// 另有两条复合索引只能由下游 migration 维护，无法在此声明：
+//
+//	(uid, file_type, created_at DESC)  —— 文件列表的过滤与排序
+//	(type_id, path, id DESC)           —— 按目录浏览
+//
+// 原因是 created_at 与 id 都在共用的 TableBase 上，不能为单张表加索引标记；
+// 在子结构体里重新声明会遮蔽嵌入字段，破坏 TableBase 方法对 Id 的访问。
+// 见 center 的 docs/migrations/144_add_hot_lookup_indexes.sql。
+//
 // file_key 上声明的是查询索引，不是唯一约束：同一 key 允许存在历史行，
 // 调用方按时间取最新一条。它承担的是「按对象 key 反查文件行」这条路径
 // （私有文件出口签发存储跳转前要用它取展示文件名），没有索引时该查询会沿
 // 主键回溯扫描整表，key 不存在时必须扫完，实测可达数十秒并长时间占用连接。
 type Files struct {
-	UUID                 string           `json:"uuid" gorm:"column:uuid;type:varchar(128);not null;default:'';comment:文件唯一标识"`            // 文件唯一标识
-	TypeId               uint             `json:"type_id" gorm:"column:type_id;not null;default:0;comment:分类id;type:integer"`              //分类id 0 图片 2其他 3证件 4APK
-	CloudType            consts.CloudType `json:"cloud_type" gorm:"column:cloud_type;not null;default:0;comment:云类型;type:integer"`         //云类型
-	FileType             consts.FileType  `json:"file_type" gorm:"column:file_type;not null;default:0;comment:文件类型;type:integer"`          //文件类型,0 未知，1 图片，2 JSON
-	Domain               string           `json:"domain" gorm:"column:domain;type:varchar(128);not null;default:'';comment:域名"`            //域名
-	UserSpace            string           `json:"user_space" gorm:"column:user_space;type:varchar(64);not null;default:'';comment:用户空间"`   //用户空间
-	Uid                  uint             `json:"uid" gorm:"column:uid;not null;default:0;comment:用户id;type:integer"`                      //用户id
-	Bid                  uint             `json:"bid" gorm:"column:bid;not null;default:0;comment:分区id;type:integer"`                      //分区id
-	From                 string           `json:"from" gorm:"column:from_path;type:text;default:'';comment:来源"`                            //来源
-	Name                 string           `json:"name" gorm:"column:name;type:text;not null;default:'';comment:文件名"`                       // 文件名
-	Url                  string           `json:"url" gorm:"column:url;type:text;not null;default:'';comment:文件地址"`                        // 文件地址
-	Tag                  string           `json:"tag" gorm:"column:tag;type:varchar(255);not null;default:'';comment:文件标签"`                // 文件标签
-	Key                  string           `json:"key" gorm:"column:file_key;type:text;not null;default:'';index;comment:编号"`               // 编号
-	TempExist            bool             `json:"temp_exist" gorm:"column:temp_exist;not null;default:false;comment:临时文件是否存在"`             // 临时文件是否存在
-	Other                FileOther        `json:"other" gorm:"column:other;type:json;comment:其他信息"`                                        //其他信息
-	Content              string           `json:"content" gorm:"column:content;type:text;comment:文件内容"`                                    //文件内容
-	Cover                string           `json:"cover" gorm:"column:cover;type:text;not null;default:'';comment:封面"`                      //封面
-	Status               FileStatus       `json:"status" gorm:"column:status;type:varchar(3);not null;default:'';comment:文件状态"`            //文件状态
-	Path                 string           `json:"path" gorm:"column:path;type:text;not null;default:'';comment:文件路径"`                      //文件路径
-	AmountConsumed       float64          `json:"amount_consumed" gorm:"column:amount_consumed;type:decimal(10,2);default:0;comment:消耗金额"` //消耗金额
-	ProcessingStatusJson []byte           `json:"processing_status_json" gorm:"column:processing_status_json;type:json;comment:处理状态"`      //处理状态
+	UUID                 string           `json:"uuid" gorm:"column:uuid;type:varchar(128);not null;default:'';comment:文件唯一标识"`             // 文件唯一标识
+	TypeId               uint             `json:"type_id" gorm:"column:type_id;not null;default:0;comment:分类id;type:integer"`               //分类id 0 图片 2其他 3证件 4APK
+	CloudType            consts.CloudType `json:"cloud_type" gorm:"column:cloud_type;not null;default:0;comment:云类型;type:integer"`          //云类型
+	FileType             consts.FileType  `json:"file_type" gorm:"column:file_type;not null;default:0;comment:文件类型;type:integer"`           //文件类型,0 未知，1 图片，2 JSON
+	Domain               string           `json:"domain" gorm:"column:domain;type:varchar(128);not null;default:'';comment:域名"`             //域名
+	UserSpace            string           `json:"user_space" gorm:"column:user_space;type:varchar(64);not null;default:'';comment:用户空间"`    //用户空间
+	Uid                  uint             `json:"uid" gorm:"column:uid;not null;default:0;comment:用户id;type:integer"`                       //用户id
+	Bid                  uint             `json:"bid" gorm:"column:bid;not null;default:0;comment:分区id;type:integer"`                       //分区id
+	From                 string           `json:"from" gorm:"column:from_path;type:text;default:'';comment:来源"`                             //来源
+	Name                 string           `json:"name" gorm:"column:name;type:text;not null;default:'';comment:文件名"`                        // 文件名
+	Url                  string           `json:"url" gorm:"column:url;type:text;not null;default:'';index:idx_lms_files_url;comment:文件地址"` // 文件地址
+	Tag                  string           `json:"tag" gorm:"column:tag;type:varchar(255);not null;default:'';comment:文件标签"`                 // 文件标签
+	Key                  string           `json:"key" gorm:"column:file_key;type:text;not null;default:'';index;comment:编号"`                // 编号
+	TempExist            bool             `json:"temp_exist" gorm:"column:temp_exist;not null;default:false;comment:临时文件是否存在"`              // 临时文件是否存在
+	Other                FileOther        `json:"other" gorm:"column:other;type:json;comment:其他信息"`                                         //其他信息
+	Content              string           `json:"content" gorm:"column:content;type:text;comment:文件内容"`                                     //文件内容
+	Cover                string           `json:"cover" gorm:"column:cover;type:text;not null;default:'';comment:封面"`                       //封面
+	Status               FileStatus       `json:"status" gorm:"column:status;type:varchar(3);not null;default:'';comment:文件状态"`             //文件状态
+	Path                 string           `json:"path" gorm:"column:path;type:text;not null;default:'';comment:文件路径"`                       //文件路径
+	AmountConsumed       float64          `json:"amount_consumed" gorm:"column:amount_consumed;type:decimal(10,2);default:0;comment:消耗金额"`  //消耗金额
+	ProcessingStatusJson []byte           `json:"processing_status_json" gorm:"column:processing_status_json;type:json;comment:处理状态"`       //处理状态
 	ContentSha256        string           `json:"content_sha256" gorm:"column:content_sha256;type:char(64);not null;default:'';comment:文件内容SHA256摘要"`
 	MimeType             string           `json:"mime_type" gorm:"column:mime_type;type:varchar(128);not null;default:'';comment:文件MIME类型"`
 	SourceKind           FileSourceKind   `json:"source_kind" gorm:"column:source_kind;type:varchar(32);not null;default:'';comment:文件来源类型"`
