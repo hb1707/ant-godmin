@@ -6,6 +6,7 @@ import (
 	"fmt"
 	log2 "log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/hb1707/ant-godmin/pkg/log"
@@ -152,6 +153,9 @@ func CreateTable(dst ...interface{}) {
 	if setting.DB.PRE != "" && setting.DB.AUTOMIGRATE {
 		createTable()
 		dst = append(dst)
+		if err := normalizePostgresCharTypes(dst...); err != nil {
+			log.Fatal(err)
+		}
 		err := DB.AutoMigrate(dst...)
 		if err != nil {
 			log.Fatal(err)
@@ -162,13 +166,50 @@ func CreateTable(dst ...interface{}) {
 
 func createTable() {
 	if setting.DB.PRE != "" && setting.DB.AUTOMIGRATE {
-		err := DB.AutoMigrate(&Files{}, &FilesTemp{}, &Settings{}, &Tables{}, &Fields{})
+		models := []interface{}{&Files{}, &FilesTemp{}, &Settings{}, &Tables{}, &Fields{}}
+		if err := normalizePostgresCharTypes(models...); err != nil {
+			log.Fatal(err)
+		}
+		err := DB.AutoMigrate(models...)
 		if err != nil {
 			log.Fatal(err)
 		}
 		log.Info("数据库表已生成")
 	}
 }
+
+// normalizePostgresCharTypes 在 PostgreSQL 上迁移前，把模型声明的 char(n) 换成同义的 bpchar(n)。
+//
+// PostgreSQL 把 char(n) 列的类型名报告为 bpchar，而 gorm 的 postgres 迁移器按类型名前缀比较、
+// 同义词表里又没有 bpchar，于是每次启动都判定类型不一致，对这类列执行
+// ALTER COLUMN TYPE：持有整表排他锁并重建该列上的全部索引（线上 lms_files 每次锁 7~8 秒，
+// 期间所有读写排队）。换成 bpchar(n) 后类型本身不变，只是让比较认出二者相同；
+// 新建表时 bpchar(n) 与 char(n) 也是同一类型。模型源码继续写 char(n)，MySQL 等方言不受影响。
+//
+// 改写的是 gorm 缓存中的已解析 schema，AutoMigrate 用同一份缓存，因此必须在它之前调用；
+// DataType 只参与 DDL 生成，不影响增删改查。
+func normalizePostgresCharTypes(models ...interface{}) error {
+	if DB == nil || DB.Dialector.Name() != "postgres" {
+		return nil
+	}
+	for _, m := range models {
+		stmt := &gorm.Statement{DB: DB}
+		if err := stmt.Parse(m); err != nil {
+			return err
+		}
+		for _, field := range stmt.Schema.Fields {
+			declared := strings.ToLower(strings.TrimSpace(string(field.DataType)))
+			for _, prefix := range []string{"char(", "character("} {
+				if strings.HasPrefix(declared, prefix) {
+					field.DataType = schema.DataType("bpchar" + declared[len(prefix)-1:])
+					break
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func CloseDB() {
 	err = sqlDB.Close()
 	if err != nil {
