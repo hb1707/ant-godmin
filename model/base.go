@@ -6,6 +6,7 @@ import (
 	"fmt"
 	log2 "log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -156,6 +157,9 @@ func CreateTable(dst ...interface{}) {
 		if err := normalizePostgresCharTypes(dst...); err != nil {
 			log.Fatal(err)
 		}
+		if err := alignPostgresExistingColumns(dst...); err != nil {
+			log.Fatal(err)
+		}
 		err := DB.AutoMigrate(dst...)
 		if err != nil {
 			log.Fatal(err)
@@ -168,6 +172,9 @@ func createTable() {
 	if setting.DB.PRE != "" && setting.DB.AUTOMIGRATE {
 		models := []interface{}{&Files{}, &FilesTemp{}, &Settings{}, &Tables{}, &Fields{}}
 		if err := normalizePostgresCharTypes(models...); err != nil {
+			log.Fatal(err)
+		}
+		if err := alignPostgresExistingColumns(models...); err != nil {
 			log.Fatal(err)
 		}
 		err := DB.AutoMigrate(models...)
@@ -208,6 +215,83 @@ func normalizePostgresCharTypes(models ...interface{}) error {
 		}
 	}
 	return nil
+}
+
+// alignPostgresExistingColumns 消除 gorm 对已存在列的两类误判，避免每次启动都 ALTER 同一批列。
+//
+// gorm 比较已存在的列时，只要注释或默认值「看起来」不同就判定要改列，而 postgres 迁移器改列时
+// 一律发 ALTER COLUMN TYPE / SET DEFAULT，持整表排他锁。下面两类差异改了也不会收敛，
+// 于是每次进程启动都重来一遍（2026-10 线上 agent 每次启动对 8 张表发 19 条）：
+//   - 注释：列注释由迁移脚本写入、模型标签没写时，gorm 判定不同而改列，但改列时并不同步注释
+//     （模型注释为空就不发 COMMENT ON），下次照旧不同；
+//   - 非字符串类型的默认值：jsonb 库里读回的是去掉引号与类型转换的 {}，模型标签写的是 '{}'；
+//     数值库里读回 1，模型写 1.0。gorm 对这类字段逐字比较，永远不等。
+//
+// 处理只针对已存在的列，只改 gorm 缓存的已解析 schema（与 AutoMigrate 共用），不改任何库表；
+// 新建表、新增列仍按模型标签生成 DDL。模型显式声明了不同的注释或默认值时不干预，照常迁移。
+func alignPostgresExistingColumns(models ...interface{}) error {
+	if DB == nil || DB.Dialector.Name() != "postgres" {
+		return nil
+	}
+	migrator := DB.Migrator()
+	for _, m := range models {
+		if !migrator.HasTable(m) {
+			continue
+		}
+		stmt := &gorm.Statement{DB: DB}
+		if err := stmt.Parse(m); err != nil {
+			return err
+		}
+		columnTypes, err := migrator.ColumnTypes(m)
+		if err != nil {
+			return err
+		}
+		columns := make(map[string]gorm.ColumnType, len(columnTypes))
+		for _, ct := range columnTypes {
+			columns[ct.Name()] = ct
+		}
+		for _, field := range stmt.Schema.Fields {
+			if ct, ok := columns[field.DBName]; ok && field.DBName != "" {
+				alignFieldWithExistingColumn(field, ct)
+			}
+		}
+	}
+	return nil
+}
+
+// alignFieldWithExistingColumn 对单个已存在列做对齐，规则见 alignPostgresExistingColumns。
+func alignFieldWithExistingColumn(field *schema.Field, column gorm.ColumnType) {
+	if field.PrimaryKey {
+		return
+	}
+	if field.Comment == "" {
+		if comment, ok := column.Comment(); ok && comment != "" {
+			field.Comment = comment
+		}
+	}
+	switch field.GORMDataType {
+	case schema.String, schema.Time, schema.Bool:
+		// gorm 对这几类已有专门的等价比较，不需要也不应干预。
+		return
+	}
+	if !field.HasDefaultValue {
+		return
+	}
+	dv, ok := column.DefaultValue()
+	if !ok || dv == field.DefaultValue {
+		return
+	}
+	declared := strings.Trim(field.DefaultValue, "'\"")
+	if dv == declared {
+		field.DefaultValue = dv
+		return
+	}
+	// 数值默认值按值比较：库里读回 1，模型写 1.0，二者相等。
+	if a, errA := strconv.ParseFloat(dv, 64); errA == nil {
+		if b, errB := strconv.ParseFloat(declared, 64); errB == nil && a == b {
+			field.DefaultValue = dv
+		}
+	}
 }
 
 func CloseDB() {
