@@ -2,6 +2,7 @@ package model
 
 import (
 	"strings"
+	"time"
 
 	"github.com/hb1707/ant-godmin/consts"
 	"gorm.io/gorm"
@@ -69,6 +70,11 @@ type Files struct {
 	ContentSha256        string           `json:"content_sha256" gorm:"column:content_sha256;type:char(64);not null;default:'';comment:文件内容SHA256摘要"`
 	MimeType             string           `json:"mime_type" gorm:"column:mime_type;type:varchar(128);not null;default:'';comment:文件MIME类型"`
 	SourceKind           FileSourceKind   `json:"source_kind" gorm:"column:source_kind;type:varchar(32);not null;default:'';comment:文件来源类型"`
+
+	// WorkAccessWithdrawnAt 只表达该文件记录的作品访问撤回，不是目录移除或解析状态。
+	// 消费方按 Files ID 及冻结内容摘要核对；同字节的其他持有者不继承此撤回。
+	// 由应用的显式迁移创建列，普通目录删除不得写入此字段。
+	WorkAccessWithdrawnAt *time.Time `json:"-" form:"-" gorm:"column:work_access_withdrawn_at;type:timestamptz;comment:文件作品访问撤回绝对时刻"`
 
 	Author string `json:"author" gorm:"-"`
 	FileId uint   `json:"file_id" gorm:"-"`
