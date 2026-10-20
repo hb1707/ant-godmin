@@ -45,9 +45,7 @@ func List(isRelease bool, allowOrigins []string, allowHeader []string) *gin.Engi
 		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
 	})
 	m := auth.Middleware()
-	r.GET("/online/test", json.AppTest)
-	r.GET("/online/begin", json.AppBegin)
-	r.GET("/online/readiness", json.AppReadiness)
+	RegisterHealthRoutes(r.Group("/online"))
 	api := r.Group("/api")
 	{
 		systemGroup := api.Group("/system")
