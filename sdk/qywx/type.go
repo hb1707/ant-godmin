@@ -1,21 +1,17 @@
 package qywx
 
 import (
+	"github.com/hb1707/ant-godmin/sdk/wxcache"
 	"github.com/silenceper/wechat/v2/cache"
 	messageMiniprogram "github.com/silenceper/wechat/v2/miniprogram/message"
 	"github.com/silenceper/wechat/v2/work/message"
 )
 
-var WxMemory map[string]cache.Cache
+// wxMemory 被错误日志告警等多个 goroutine 同时取用，必须并发安全。
+var wxMemory = wxcache.NewStore(0)
 
 func Memory(appid string) cache.Cache {
-	if WxMemory == nil {
-		WxMemory = make(map[string]cache.Cache)
-	}
-	if WxMemory[appid] == nil {
-		WxMemory[appid] = cache.NewMemory()
-	}
-	return WxMemory[appid]
+	return wxMemory.Get(appid)
 }
 
 // TemplateCardRequest 发送文本消息的请求

@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"github.com/hb1707/ant-godmin/pkg/log"
+	"github.com/hb1707/ant-godmin/sdk/wxcache"
 	"github.com/hb1707/ant-godmin/setting"
 	"github.com/silenceper/wechat/v2"
 	"github.com/silenceper/wechat/v2/cache"
@@ -14,21 +15,11 @@ import (
 	"time"
 )
 
-var WxMemory map[string]cache.Cache
-var WxMemoryAt map[string]time.Time
+// wxMemory 被并发的 HTTP 请求同时取用；沿用每 5 分钟整份换新的既有行为。
+var wxMemory = wxcache.NewStore(5 * time.Minute)
 
 func Memory(appid string) cache.Cache {
-	if WxMemory == nil {
-		WxMemory = make(map[string]cache.Cache)
-	}
-	if WxMemoryAt == nil {
-		WxMemoryAt = make(map[string]time.Time)
-	}
-	if WxMemory[appid] == nil || time.Since(WxMemoryAt[appid]) > time.Minute*5 {
-		WxMemory[appid] = cache.NewMemory()
-		WxMemoryAt[appid] = time.Now()
-	}
-	return WxMemory[appid]
+	return wxMemory.Get(appid)
 }
 
 var cacheGetMpAccessTokenTime = make(map[string]time.Time)
