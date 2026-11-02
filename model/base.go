@@ -6,7 +6,6 @@ import (
 	"fmt"
 	log2 "log"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -89,7 +88,7 @@ func OpenDB() {
 			confDB.DATABASE,
 			confDB.PASSWORD,
 		)
-		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: newLogger, NamingStrategy: schema.NamingStrategy{
+		DB, err = gorm.Open(newPostgresDialector(postgres.Config{DSN: dsn}), &gorm.Config{Logger: newLogger, NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   confDB.PRE,
 			SingularTable: true,
 		}})
@@ -287,10 +286,8 @@ func alignFieldWithExistingColumn(field *schema.Field, column gorm.ColumnType) {
 		return
 	}
 	// 数值默认值按值比较：库里读回 1，模型写 1.0，二者相等。
-	if a, errA := strconv.ParseFloat(dv, 64); errA == nil {
-		if b, errB := strconv.ParseFloat(declared, 64); errB == nil && a == b {
-			field.DefaultValue = dv
-		}
+	if equalPostgresNumericDefaults(dv, declared) {
+		field.DefaultValue = dv
 	}
 }
 
