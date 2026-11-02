@@ -320,7 +320,7 @@ func TestClickHouseDryRunAndPrimaryKeyDifferences(t *testing.T) {
 	if err := db.Session(&gorm.Session{DryRun: true}).Table(name).AutoMigrate(&changed{}); err != nil {
 		t.Fatal(err)
 	}
-	if len(q.ddl) != 3 {
+	if len(q.ddl) != 2 {
 		t.Fatalf("DryRun 漏真实差异: %v", q.ddl)
 	}
 	var typ, def, comment string
@@ -334,7 +334,7 @@ func TestClickHouseDryRunAndPrimaryKeyDifferences(t *testing.T) {
 	if err := db.Table(name).AutoMigrate(&changed{}); err != nil {
 		t.Fatal(err)
 	}
-	if len(q.ddl) != 3 {
+	if len(q.ddl) != 2 {
 		t.Fatalf("主键字段真实差异被忽略: %v", q.ddl)
 	}
 	chConverges(t, db, q, name, &changed{})

@@ -186,12 +186,43 @@ func (m clickHouseColumnMigrator) MigrateColumn(value interface{}, field *schema
 			params := []interface{}{clause.Table{Name: stmt.Table}, clause.Column{Name: field.DBName}}
 			return m.DB.Exec("ALTER TABLE ?"+cluster+" MODIFY COLUMN ? "+sql, append(params, args...)...).Error
 		}
-		// 默认值与注释分别修改，既不附带改型，也不丢弃已有的 codec/TTL/默认值。
+		// 只有真实改型才合并新属性：旧默认值/TTL 可能不兼容新类型，
+		// 新表达式也可能不兼容旧类型，不能简单交换两条 ALTER 的顺序。
 		if !sameType {
-			if err := modify("?", clause.Expr{SQL: desiredType}); err != nil {
+			// ClickHouse 24.3 即使在同一 ALTER 中先 REMOVE 再改型，也会用旧
+			// 默认值校验新类型；删除属性必须先独立完成。失败仍原样向上传递。
+			if !sameDefault && defaultSQL == "" {
+				if err := modify("REMOVE DEFAULT"); err != nil {
+					return err
+				}
+				sameDefault = true
+			}
+			if !sameTTL && strings.TrimSpace(ttl) == "" {
+				if err := modify("REMOVE TTL"); err != nil {
+					return err
+				}
+				sameTTL = true
+			}
+			sql := "?"
+			args := []interface{}{clause.Expr{SQL: desiredType}}
+			if !sameDefault {
+				sql += " DEFAULT ?"
+				args = append(args, clause.Expr{SQL: defaultSQL})
+			}
+			if !sameCodec {
+				sql += " ?"
+				args = append(args, clause.Expr{SQL: codec})
+			}
+			if !sameTTL {
+				sql += " TTL ?"
+				args = append(args, clause.Expr{SQL: ttl})
+			}
+			if err := modify(sql, args...); err != nil {
 				return err
 			}
+			sameDefault, sameTTL, sameCodec = true, true, true
 		}
+		// 仅属性有差异时仍独立修改，避免无必要的类型变更。
 		if !sameDefault {
 			if defaultSQL == "" {
 				err = modify("REMOVE DEFAULT")
@@ -228,13 +259,21 @@ func (m clickHouseColumnMigrator) MigrateColumn(value interface{}, field *schema
 }
 
 // SQL 引号内的数字是字符串，不参与数值归一；标识符中的位宽也不作为独立数字。
-var clickHouseExpressionTokens = regexp.MustCompile("(?s:/\\*.*?\\*/)|--[^\\n]*|'(?:[^'\\\\]|\\\\.|'')*'|\"(?:[^\"\\\\]|\\\\.|\"\")*\"|`[^`]*`|[a-zA-Z_][a-zA-Z_0-9]*|(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?")
+var clickHouseExpressionTokens = regexp.MustCompile("(?s:/\\*.*?\\*/)|--[^\\n]*|'(?:[^'\\\\]|\\\\.|'')*'|\"(?:[^\"\\\\]|\\\\.|\"\")*\"|`[^`]*`|[a-zA-Z_][a-zA-Z_0-9]*|0[xX][0-9a-fA-F_]+(?:\\.[0-9a-fA-F_]*)?(?:[pP][+-]?[0-9_]+)?|0[bB][01_]+|(?:[0-9][0-9_]*(?:\\.[0-9_]*)?|\\.[0-9_]+)(?:[eE][+-]?[0-9_]+)?")
 
 func clickHouseNumericSignature(sql string) string {
 	var numbers []string
 	for _, token := range clickHouseExpressionTokens.FindAllString(sql, -1) {
 		if (token[0] >= '0' && token[0] <= '9') || token[0] == '.' {
-			if n, ok := new(big.Rat).SetString(token); ok {
+			// 使用精确有理数展开进制/指数和分隔符；十进制前导零不是八进制。
+			number := strings.ReplaceAll(token, "_", "")
+			if !strings.ContainsAny(number, ".eExXbBpP") {
+				if n, ok := new(big.Int).SetString(number, 10); ok {
+					numbers = append(numbers, n.String())
+					continue
+				}
+			}
+			if n, ok := new(big.Rat).SetString(number); ok {
 				numbers = append(numbers, n.RatString())
 			} else {
 				numbers = append(numbers, token)
