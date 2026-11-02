@@ -82,7 +82,8 @@ type Files struct {
 	TableBase
 }
 type FilesTemp struct {
-	FileId uint   `json:"file_id" gorm:"not null;default:0;comment:源文件id;type:integer"`  //源文件id
+	// 既有 PostgreSQL 列承接 uint 文件引用，保持 bigint；收窄为 integer 会丢失范围并触发依赖改型。
+	FileId uint   `json:"file_id" gorm:"not null;default:0;comment:源文件id;type:bigint"`   //源文件id
 	Url    string `json:"url" gorm:"type:varchar(255);not null;default:'';comment:文件地址"` //文件地址
 	Key    string `json:"key" gorm:"type:varchar(255);not null;default:'';comment:编号"`   // 编号
 	TableBase
