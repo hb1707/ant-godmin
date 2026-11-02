@@ -66,6 +66,7 @@ type postgresColumnState struct {
 	typeSQL    string
 	nativeType string
 	literalSQL sql.NullString
+	typeMod    int32
 }
 
 // MigrateColumn 保留上游对类型、长度、精度、序列和唯一约束的处理，
@@ -89,6 +90,25 @@ func (m postgresColumnMigrator) MigrateColumn(value interface{}, field *schema.F
 		if nullable, ok := column.Nullable(); ok {
 			typeField.NotNull = !nullable
 		}
+		// 无精度 numeric 与 numeric(p,s) 是真实差异。上游只在模型声明 p/s 时比较，
+		// 反向解除数据库已有的精度限制也必须执行真实改型，不能把两者判为相同。
+		if strings.EqualFold(strings.TrimSpace(m.DataTypeOf(&typeField)), "numeric") {
+			if err := m.RunWithValue(value, func(stmt *gorm.Statement) error {
+				current, err := m.postgresColumnState(stmt, field)
+				if err != nil {
+					return err
+				}
+				// pgx 对无限精度 numeric 也可能报告哨兵 precision，必须以 catalog typmod 为准。
+				if current.nativeType != "numeric" || current.typeMod < 0 {
+					return nil
+				}
+				col := clause.Column{Name: field.DBName}
+				return m.DB.Exec("ALTER TABLE ? ALTER COLUMN ? TYPE numeric USING ?::numeric", m.CurrentTable(stmt), col, col).Error
+			}); err != nil {
+				return err
+			}
+		}
+
 		// 使用 GORM 核心的类型/唯一约束比较，不调用 PostgreSQL 外层的注释更新。
 		if err := m.Migrator.Migrator.MigrateColumn(value, &typeField, postgresTypeColumn{column}); err != nil {
 			return err
@@ -163,14 +183,14 @@ func (m postgresColumnMigrator) postgresColumnState(stmt *gorm.Statement, field 
 	err := queryDB.Raw(`SELECT a.attnotnull, pg_catalog.pg_get_expr(d.adbin, d.adrelid),
 		pg_catalog.format_type(a.atttypid, NULL),
 		CASE WHEN t.typnamespace = 'pg_catalog'::regnamespace THEN t.typname ELSE pg_catalog.format_type(a.atttypid, NULL) END,
-		pg_catalog.quote_literal(CAST(? AS text))
+		pg_catalog.quote_literal(CAST(? AS text)), a.atttypmod
 		FROM pg_catalog.pg_attribute a
 		JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
 		JOIN pg_catalog.pg_class c ON c.oid = a.attrelid
 		JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
 		LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
 		WHERE n.nspname = ? AND c.relname = ? AND a.attname = ? AND a.attnum > 0 AND NOT a.attisdropped`,
-		literal, currentSchema, table, field.DBName).Row().Scan(&current.notNull, &current.defaultSQL, &current.typeSQL, &current.nativeType, &current.literalSQL)
+		literal, currentSchema, table, field.DBName).Row().Scan(&current.notNull, &current.defaultSQL, &current.typeSQL, &current.nativeType, &current.literalSQL, &current.typeMod)
 	return current, err
 }
 

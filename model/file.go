@@ -65,7 +65,7 @@ type Files struct {
 	Cover                string           `json:"cover" gorm:"column:cover;type:text;not null;default:'';comment:封面"`                       //封面
 	Status               FileStatus       `json:"status" gorm:"column:status;type:varchar(3);not null;default:'';comment:文件状态"`             //文件状态
 	Path                 string           `json:"path" gorm:"column:path;type:text;not null;default:'';comment:文件路径"`                       //文件路径
-	AmountConsumed       float64          `json:"amount_consumed" gorm:"column:amount_consumed;type:decimal(10,2);default:0;comment:消耗金额"`  //消耗金额
+	AmountConsumed       float64          `json:"amount_consumed" gorm:"column:amount_consumed;type:numeric;default:0;comment:消耗金额"`        //消耗金额
 	ProcessingStatusJson []byte           `json:"processing_status_json" gorm:"column:processing_status_json;type:json;comment:处理状态"`       //处理状态
 	ContentSha256        string           `json:"content_sha256" gorm:"column:content_sha256;type:char(64);not null;default:'';comment:文件内容SHA256摘要"`
 	MimeType             string           `json:"mime_type" gorm:"column:mime_type;type:varchar(128);not null;default:'';comment:文件MIME类型"`
