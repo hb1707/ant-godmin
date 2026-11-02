@@ -67,7 +67,7 @@ func OpenClickHouse() error {
 		options,
 	)
 
-	chdb, errOpen := gorm.Open(clickhouse.Open(dsn),
+	chdb, errOpen := gorm.Open(clickHouseDialector{Dialector: clickhouse.Open(dsn).(*clickhouse.Dialector)},
 		&gorm.Config{
 			Logger: newLogger,
 			NamingStrategy: schema.NamingStrategy{
