@@ -2,6 +2,8 @@ package model
 
 import (
 	"database/sql"
+	"errors"
+	stdlog "log"
 	"math/big"
 	"regexp"
 	"strings"
@@ -45,6 +47,28 @@ type postgresColumnMigrator struct {
 	queryMigrator postgres.Migrator
 }
 
+// 自动迁移只报告已有列改型；显式 SQL 迁移由负责人审阅后单独执行。
+// 私有标记仅供 MigrateColumn 消化，真实数据库错误仍向上传递。
+var errPostgresTypeMigrationDeferred = errors.New("postgres existing column type change requires explicit migration")
+
+// AlterColumn 禁止通过自动迁移接口改写已有列类型；需要单独审阅的显式 SQL。
+func (m postgresColumnMigrator) AlterColumn(value interface{}, name string) error {
+	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
+		field := stmt.Schema.LookUpField(name)
+		if field == nil {
+			return gorm.ErrInvalidField
+		}
+		m.reportDeferredColumn(stmt, field, "TYPE", m.DataTypeOf(field))
+		return errPostgresTypeMigrationDeferred
+	})
+}
+
+func (m postgresColumnMigrator) reportDeferredColumn(stmt *gorm.Statement, field *schema.Field, operation, desired string) {
+	// 生产 GORM 日志是 Silent；结构差异必须用独立日志报告，且不能因文件日志失败退出。
+	// 仅记录结构标识，不执行默认表达式，也不输出数据或连接配置。
+	stdlog.Printf("[stage_trace] stage=postgres_migration_deferred table=%s column=%s operation=%s desired=%s action=explicit_migration_required", stmt.Table, field.DBName, operation, desired)
+}
+
 func (m postgresColumnMigrator) ColumnTypes(value interface{}) ([]gorm.ColumnType, error) {
 	// 上游 GetRows 通过具体方言类型识别 pgx simple protocol。读取元数据必须保留
 	// 原方言，否则改型后的 SELECT * 会复用旧结果类型的执行计划而启动失败。
@@ -69,8 +93,8 @@ type postgresColumnState struct {
 	typeMod    int32
 }
 
-// MigrateColumn 保留上游对类型、长度、精度、序列和唯一约束的处理，
-// 将默认值、非空及注释差异拆开，避免它们触发驱动附带的 ALTER COLUMN TYPE。
+// MigrateColumn 复用上游类型差异判定，但将已有列改型与收紧非空约束留给显式迁移。
+// 这些差异只报告，不因延后迁移而中止服务；实际执行的 SQL 错误仍正常返回。
 func (m postgresColumnMigrator) MigrateColumn(value interface{}, field *schema.Field, column gorm.ColumnType) error {
 	if field.IgnoreMigration {
 		return nil
@@ -84,14 +108,14 @@ func (m postgresColumnMigrator) MigrateColumn(value interface{}, field *schema.F
 		typeField.Comment, _ = column.Comment()
 		if existingSequence, _ := column.AutoIncrement(); field.AutoIncrement && existingSequence {
 			// serial 是创建语法，真实列类型仍为 integer/bigint；只比较底层类型，
-			// 真正需要改型时上游仍通过原始模型维护序列。
+			// 已有序列不是自动改型的理由；底层类型变化仍须显式迁移。
 			typeField.AutoIncrement = false
 		}
 		if nullable, ok := column.Nullable(); ok {
 			typeField.NotNull = !nullable
 		}
 		// 无精度 numeric 与 numeric(p,s) 是真实差异。上游只在模型声明 p/s 时比较，
-		// 反向解除数据库已有的精度限制也必须执行真实改型，不能把两者判为相同。
+		// 反向解除数据库已有的精度限制也属于需要显式迁移的真实改型。
 		if strings.EqualFold(strings.TrimSpace(m.DataTypeOf(&typeField)), "numeric") {
 			if err := m.RunWithValue(value, func(stmt *gorm.Statement) error {
 				current, err := m.postgresColumnState(stmt, field)
@@ -102,22 +126,37 @@ func (m postgresColumnMigrator) MigrateColumn(value interface{}, field *schema.F
 				if current.nativeType != "numeric" || current.typeMod < 0 {
 					return nil
 				}
-				col := clause.Column{Name: field.DBName}
-				return m.DB.Exec("ALTER TABLE ? ALTER COLUMN ? TYPE numeric USING ?::numeric", m.CurrentTable(stmt), col, col).Error
+				m.reportDeferredColumn(stmt, field, "TYPE", "numeric")
+				if nullable, ok := column.Nullable(); ok && nullable && (field.NotNull || field.AutoIncrement) {
+					m.reportDeferredColumn(stmt, field, "SET NOT NULL", "NOT NULL")
+				}
+				return errPostgresTypeMigrationDeferred
 			}); err != nil {
+				if errors.Is(err, errPostgresTypeMigrationDeferred) {
+					return nil
+				}
 				return err
 			}
 		}
 
 		// 使用 GORM 核心的类型/唯一约束比较，不调用 PostgreSQL 外层的注释更新。
 		if err := m.Migrator.Migrator.MigrateColumn(value, &typeField, postgresTypeColumn{column}); err != nil {
+			if errors.Is(err, errPostgresTypeMigrationDeferred) {
+				// 改型被延后时也报告同列的非空差异，不能因为提前返回漏掉待审阅项。
+				return m.RunWithValue(value, func(stmt *gorm.Statement) error {
+					if nullable, ok := column.Nullable(); ok && nullable && (field.NotNull || field.AutoIncrement) {
+						m.reportDeferredColumn(stmt, field, "SET NOT NULL", "NOT NULL")
+					}
+					return nil
+				})
+			}
 			return err
 		}
 	}
 	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
 		col := clause.Column{Name: field.DBName}
 		if !field.PrimaryKey {
-			// 类型变更可能已调整默认值或非空属性，因此读取当前状态，避免重复 DDL。
+			// 单独读取当前默认值与非空属性，避免凭旧元数据重复执行 DDL。
 			// 必须使用原始默认表达式：驱动的 DefaultValue 会截断字符串里的 ::，且不还原转义。
 			current, err := m.postgresColumnState(stmt, field)
 			if err != nil {
@@ -126,11 +165,9 @@ func (m postgresColumnMigrator) MigrateColumn(value interface{}, field *schema.F
 			// PostgreSQL 的 serial/identity 创建语义自带 NOT NULL。
 			wantedNotNull := field.NotNull || field.AutoIncrement
 			if current.notNull != wantedNotNull {
-				operation := "DROP NOT NULL"
 				if wantedNotNull {
-					operation = "SET NOT NULL"
-				}
-				if err := m.DB.Exec("ALTER TABLE ? ALTER COLUMN ? "+operation, m.CurrentTable(stmt), col).Error; err != nil {
+					m.reportDeferredColumn(stmt, field, "SET NOT NULL", "NOT NULL")
+				} else if err := m.DB.Exec("ALTER TABLE ? ALTER COLUMN ? DROP NOT NULL", m.CurrentTable(stmt), col).Error; err != nil {
 					return err
 				}
 			}
@@ -213,6 +250,11 @@ func postgresDefaultMatches(field *schema.Field, current postgresColumnState, wa
 	case schema.Int, schema.Uint, schema.Float:
 		// PostgreSQL 可把整数默认值表示为 '123'::bigint；只剥离该列自身的无长度类型 cast。
 		actual = strings.TrimSuffix(actual, "::"+current.typeSQL)
+		// PostgreSQL 会把 bigint 的负数缺省值规范化为 '-1'::integer。
+		// 只处理 catalog 中已合法的整数字面量 cast，不能剥离带精度或算术表达式。
+		if match := postgresIntegerDefaultCast.FindStringSubmatch(actual); match != nil {
+			actual = match[1]
+		}
 		return equalPostgresNumericDefaults(strings.Trim(actual, "'"), wantedSQL)
 	case schema.Time, schema.Bool:
 		// 未加引号的函数名/关键字不区分大小写；字符串参数和带引号的标识符必须逐字比较。
@@ -224,6 +266,8 @@ func postgresDefaultMatches(field *schema.Field, current postgresColumnState, wa
 		return false
 	}
 }
+
+var postgresIntegerDefaultCast = regexp.MustCompile(`^'([+-]?[0-9]+)'::(?:smallint|integer|bigint)$`)
 
 var postgresNumericLiteral = regexp.MustCompile(`^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$`)
 

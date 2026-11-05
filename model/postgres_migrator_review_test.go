@@ -174,8 +174,8 @@ func TestPostgresReviewAliasesAndMixedChanges(t *testing.T) {
 	if err := db.Raw("SELECT numeric_precision,numeric_scale FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='migration_probe' AND column_name='amount'").Row().Scan(&precision, &scale); err != nil {
 		t.Fatal(err)
 	}
-	if length != 128 || precision != 10 || scale != 2 {
-		t.Fatalf("同义类型不能掩盖真实长度或精度: %d (%d,%d) DDL=%v", length, precision, scale, queries.ddl)
+	if length != 64 || precision != 8 || scale != 1 {
+		t.Fatalf("已有长度和精度应等待显式迁移: %d (%d,%d) DDL=%v", length, precision, scale, queries.ddl)
 	}
 	defaultChanges, nullChanges := 0, 0
 	for _, query := range queries.ddl {
@@ -189,7 +189,7 @@ func TestPostgresReviewAliasesAndMixedChanges(t *testing.T) {
 			nullChanges++
 		}
 	}
-	if defaultChanges != 1 || nullChanges != 1 {
+	if defaultChanges != 0 || nullChanges != 0 {
 		t.Fatalf("混合变更不应因旧元数据重复 DDL: %v", queries.ddl)
 	}
 	queries.ddl = nil

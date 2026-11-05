@@ -52,20 +52,7 @@ CREATE TRIGGER knowledge_file_reference_guard BEFORE INSERT OR UPDATE OF file_id
 			}
 			queries.ddl = nil
 			err := migrate()
-			expected := ""
-			if kind == "real_type_with_trigger" {
-				expected = "0A000"
-			}
-			if kind == "null_row" {
-				expected = "23502"
-			}
-			if expected != "" {
-				var pgerr *pgconn.PgError
-				if !errors.As(err, &pgerr) || pgerr.Code != expected {
-					t.Fatalf("真实差异必须返回 %s: %v", expected, err)
-				}
-				return
-			}
+
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -78,8 +65,35 @@ CREATE TRIGGER knowledge_file_reference_guard BEFORE INSERT OR UPDATE OF file_id
 						t.Fatalf("元数据差异不能改型: %s", q)
 					}
 				}
-				if len(queries.ddl) != 2 {
-					t.Fatalf("必须修复默认值与非空: %v", queries.ddl)
+				if len(queries.ddl) != 1 {
+					t.Fatalf("只补默认值，非空等待显式迁移: %v", queries.ddl)
+				}
+			}
+			if strings.HasPrefix(kind, "real_type") || kind == "null_row" {
+				for _, q := range queries.ddl {
+					if strings.Contains(q, " TYPE ") || strings.Contains(q, "SET NOT NULL") {
+						t.Fatalf("不能自动执行改型或收紧非空: %v", queries.ddl)
+					}
+				}
+				query := "ALTER TABLE files_temp_contract ALTER COLUMN file_id TYPE bigint"
+				expected := ""
+				if kind == "real_type_with_trigger" {
+					expected = "0A000"
+				}
+				if kind == "null_row" {
+					query = "ALTER TABLE files_temp_contract ALTER COLUMN file_id SET NOT NULL"
+					expected = "23502"
+				}
+				err := db.Exec(query).Error
+				if expected != "" {
+					var pgerr *pgconn.PgError
+					if !errors.As(err, &pgerr) || pgerr.Code != expected {
+						t.Fatalf("显式迁移必须返回 %s: %v", expected, err)
+					}
+					return
+				}
+				if err != nil {
+					t.Fatal(err)
 				}
 			}
 			if err := db.Exec("INSERT INTO files_temp_contract(file_id) VALUES(4294967295)").Error; err != nil {

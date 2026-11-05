@@ -166,7 +166,7 @@ func TestPostgresMetadataMigrationDoesNotChangeType(t *testing.T) {
 							t.Fatalf("非类型差异不能触发改型: %s", query)
 						}
 					}
-					if run > 1 || change == "none" {
+					if run > 1 || (change == "none" || change == "not_null") {
 						if len(queries.ddl) != 0 {
 							t.Fatalf("重复迁移没有收敛: %v", queries.ddl)
 						}
@@ -182,7 +182,7 @@ func TestPostgresMetadataMigrationDoesNotChangeType(t *testing.T) {
 				if err := db.Raw(`SELECT column_default AS default, is_nullable AS nullable FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='migration_probe' AND column_name='token'`).Scan(&actual).Error; err != nil {
 					t.Fatal(err)
 				}
-				if actual.Nullable != "NO" || (actual.Default == nil) != (change == "drop_default") {
+				if (actual.Nullable == "YES") != (change == "not_null") || (actual.Default == nil) != (change == "drop_default") {
 					t.Fatalf("真实元数据未收敛: %+v", actual)
 				}
 			})
@@ -205,24 +205,30 @@ func TestPostgresRealTypeDifferenceAndErrors(t *testing.T) {
 				addMigrationDependency(t, db)
 			}
 			queries.ddl = nil
-			err := db.AutoMigrate(&PostgresMigrationProbe{})
+			if err := db.AutoMigrate(&PostgresMigrationProbe{}); err != nil {
+				t.Fatal(err)
+			}
+			if len(queries.ddl) != 0 {
+				t.Fatalf("已有列改型必须延后: %v", queries.ddl)
+			}
+			var length int
+			if err := db.Raw("SELECT character_maximum_length FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='migration_probe' AND column_name='token'").Scan(&length).Error; err != nil {
+				t.Fatal(err)
+			}
+			if length != 64 {
+				t.Fatalf("启动不得改变已有列长度: %d", length)
+			}
+			// 延后自动迁移不是吞掉数据库错误；显式 SQL 仍必须返回真实依赖错误。
+			err := db.Exec("ALTER TABLE migration_probe ALTER COLUMN token TYPE varchar(128)").Error
 			if trigger {
 				var pgErr *pgconn.PgError
 				if !errors.As(err, &pgErr) || pgErr.Code != "0A000" {
-					t.Fatalf("真实改型错误必须透传: %v", err)
+					t.Fatalf("显式改型错误必须透传: %v", err)
 				}
-				return
-			}
-			if err != nil {
+			} else if err != nil {
 				t.Fatal(err)
 			}
-			if len(queries.ddl) != 1 || !strings.Contains(queries.ddl[0], `ALTER COLUMN "token" TYPE varchar(128)`) {
-				t.Fatalf("真实长度差异必须改型: %v", queries.ddl)
-			}
-			queries.ddl = nil
-			if err := db.AutoMigrate(&PostgresMigrationProbe{}); err != nil || len(queries.ddl) != 0 {
-				t.Fatalf("真实改型后未收敛: error=%v DDL=%v", err, queries.ddl)
-			}
+
 		})
 	}
 }
@@ -237,14 +243,18 @@ func TestPostgresNotNullViolationIsNotIgnored(t *testing.T) {
 	}
 	addMigrationDependency(t, db)
 	queries.ddl = nil
-	err := db.AutoMigrate(&PostgresMigrationProbe{})
+	if err := db.AutoMigrate(&PostgresMigrationProbe{}); err != nil {
+		t.Fatal(err)
+	}
+	if len(queries.ddl) != 0 {
+		t.Fatalf("收紧非空只能报告，不能扫描表: %v", queries.ddl)
+	}
+	err := db.Exec("ALTER TABLE migration_probe ALTER COLUMN token SET NOT NULL").Error
 	var pgErr *pgconn.PgError
 	if !errors.As(err, &pgErr) || pgErr.Code != "23502" {
-		t.Fatalf("真实数据违反约束不能被吞掉: %v", err)
+		t.Fatalf("显式迁移必须暴露 NULL 数据: %v", err)
 	}
-	if len(queries.ddl) != 1 || !strings.Contains(queries.ddl[0], "SET NOT NULL") {
-		t.Fatalf("不应因数据违反约束尝试改型: %v", queries.ddl)
-	}
+
 }
 
 func TestPostgresAddColumnIndexAndPrecision(t *testing.T) {
@@ -264,8 +274,8 @@ func TestPostgresAddColumnIndexAndPrecision(t *testing.T) {
 	if err := db.Raw(`SELECT numeric_precision, numeric_scale FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='migration_probe' AND column_name='amount'`).Row().Scan(&precision, &scale); err != nil {
 		t.Fatal(err)
 	}
-	if precision != 10 || scale != 2 {
-		t.Fatalf("真实数值精度差异未处理: (%d,%d)", precision, scale)
+	if precision != 8 || scale != 1 {
+		t.Fatalf("自动迁移不应改变已有数值精度: (%d,%d)", precision, scale)
 	}
 	queries.ddl = nil
 	if err := db.AutoMigrate(&postgresAddedColumnProbe{}); err != nil || len(queries.ddl) != 0 {

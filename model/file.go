@@ -52,8 +52,8 @@ type Files struct {
 	FileType             consts.FileType  `json:"file_type" gorm:"column:file_type;not null;default:0;comment:文件类型;type:integer"`           //文件类型,0 未知，1 图片，2 JSON
 	Domain               string           `json:"domain" gorm:"column:domain;type:varchar(128);not null;default:'';comment:域名"`             //域名
 	UserSpace            string           `json:"user_space" gorm:"column:user_space;type:varchar(64);not null;default:'';comment:用户空间"`    //用户空间
-	Uid                  uint             `json:"uid" gorm:"column:uid;not null;default:0;comment:用户id;type:integer"`                       //用户id
-	Bid                  uint             `json:"bid" gorm:"column:bid;not null;default:0;comment:分区id;type:integer"`                       //分区id
+	Uid                  uint             `json:"uid" gorm:"column:uid;not null;default:0;comment:用户id;type:bigint"`                        //用户id
+	Bid                  uint             `json:"bid" gorm:"column:bid;not null;default:0;comment:分区id;type:bigint"`                        //分区id
 	From                 string           `json:"from" gorm:"column:from_path;type:text;default:'';comment:来源"`                             //来源
 	Name                 string           `json:"name" gorm:"column:name;type:text;not null;default:'';comment:文件名"`                        // 文件名
 	Url                  string           `json:"url" gorm:"column:url;type:text;not null;default:'';index:idx_lms_files_url;comment:文件地址"` // 文件地址

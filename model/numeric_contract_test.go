@@ -3,7 +3,6 @@ package model
 import (
 	"errors"
 	"github.com/jackc/pgx/v5/pgconn"
-	"strings"
 	"testing"
 )
 
@@ -27,26 +26,31 @@ func TestPostgresUnboundedNumericContract(t *testing.T) {
 				}
 			}
 			sql.ddl = nil
-			err := db.AutoMigrate(&unboundedAmountProbe{})
+			if err := db.AutoMigrate(&unboundedAmountProbe{}); err != nil {
+				t.Fatal(err)
+			}
+			if len(sql.ddl) != 0 {
+				t.Fatalf("numeric 精度差异必须延后，不能启动改型: %v", sql.ddl)
+			}
+			var typ string
+			if err := db.Raw("SELECT format_type(atttypid,atttypmod) FROM pg_attribute WHERE attrelid='unbounded_amount_probe'::regclass AND attname='amount'").Scan(&typ).Error; err != nil {
+				t.Fatal(err)
+			}
+			if typ != "numeric(10,2)" {
+				t.Fatalf("启动改变了精度: %s", typ)
+			}
+			err := db.Exec("ALTER TABLE unbounded_amount_probe ALTER COLUMN amount TYPE numeric USING amount::numeric").Error
 			if guard {
 				var pgerr *pgconn.PgError
 				if !errors.As(err, &pgerr) || pgerr.Code != "0A000" {
-					t.Fatalf("真实精度差异及依赖错误不能忽略: %v", err)
+					t.Fatalf("显式迁移依赖错误必须透传: %v", err)
 				}
 				return
 			}
 			if err != nil {
 				t.Fatal(err)
 			}
-			n := 0
-			for _, q := range sql.ddl {
-				if strings.Contains(q, " TYPE numeric ") {
-					n++
-				}
-			}
-			if n != 1 {
-				t.Fatalf("必须解除真实精度限制一次: %v", sql.ddl)
-			}
+
 			const wanted = "0.12345678901234567890123456789"
 			if err := db.Exec("INSERT INTO unbounded_amount_probe(amount) VALUES(?)", wanted).Error; err != nil {
 				t.Fatal(err)
