@@ -58,15 +58,31 @@ func (m postgresColumnMigrator) AlterColumn(value interface{}, name string) erro
 		if field == nil {
 			return gorm.ErrInvalidField
 		}
-		m.reportDeferredColumn(stmt, field, "TYPE", m.DataTypeOf(field))
+		current, err := m.postgresColumnState(stmt, field)
+		if err != nil {
+			return err
+		}
+		m.reportDeferredColumn(stmt, field, "TYPE", current.fullTypeSQL, m.DataTypeOf(field))
 		return errPostgresTypeMigrationDeferred
 	})
 }
 
-func (m postgresColumnMigrator) reportDeferredColumn(stmt *gorm.Statement, field *schema.Field, operation, desired string) {
+func (m postgresColumnMigrator) reportDeferredColumn(stmt *gorm.Statement, field *schema.Field, operation, actual, desired string) {
 	// 生产 GORM 日志是 Silent；结构差异必须用独立日志报告，且不能因文件日志失败退出。
 	// 仅记录结构标识，不执行默认表达式，也不输出数据或连接配置。
-	stdlog.Printf("[stage_trace] stage=postgres_migration_deferred table=%s column=%s operation=%s desired=%s action=explicit_migration_required", stmt.Table, field.DBName, operation, desired)
+	stdlog.Printf("[stage_trace] stage=postgres_migration_deferred table=%s column=%s operation=%s actual=%q desired=%q action=explicit_migration_required", stmt.Table, field.DBName, operation, actual, desired)
+	if batch, ok := m.DB.Statement.Context.Value(postgresMigrationBatchKey{}).(*postgresMigrationBatch); ok && !m.DB.DryRun {
+		location, ok := batch.locations[stmt.Table]
+		if !ok {
+			return
+		}
+		difference := PostgresMigrationDifference{Schema: location.schema, Table: location.table, Column: field.DBName, Operation: operation, Actual: actual, Desired: desired}
+		if !batch.seen[difference] {
+			batch.seen[difference] = true
+			batch.differences = append(batch.differences, difference)
+		}
+	}
+
 }
 
 func (m postgresColumnMigrator) ColumnTypes(value interface{}) ([]gorm.ColumnType, error) {
@@ -85,12 +101,15 @@ type postgresColumnType = gorm.ColumnType
 func (postgresTypeColumn) DefaultValue() (string, bool) { return "", false }
 
 type postgresColumnState struct {
-	notNull    bool
-	defaultSQL sql.NullString
-	typeSQL    string
-	nativeType string
-	literalSQL sql.NullString
-	typeMod    int32
+	notNull     bool
+	defaultSQL  sql.NullString
+	typeSQL     string
+	fullTypeSQL string
+	schemaName  string
+	tableName   string
+	nativeType  string
+	literalSQL  sql.NullString
+	typeMod     int32
 }
 
 // MigrateColumn 复用上游类型差异判定，但将已有列改型与收紧非空约束留给显式迁移。
@@ -126,9 +145,9 @@ func (m postgresColumnMigrator) MigrateColumn(value interface{}, field *schema.F
 				if current.nativeType != "numeric" || current.typeMod < 0 {
 					return nil
 				}
-				m.reportDeferredColumn(stmt, field, "TYPE", "numeric")
+				m.reportDeferredColumn(stmt, field, "TYPE", current.fullTypeSQL, "numeric")
 				if nullable, ok := column.Nullable(); ok && nullable && (field.NotNull || field.AutoIncrement) {
-					m.reportDeferredColumn(stmt, field, "SET NOT NULL", "NOT NULL")
+					m.reportDeferredColumn(stmt, field, "SET NOT NULL", "NULL allowed", "NOT NULL")
 				}
 				return errPostgresTypeMigrationDeferred
 			}); err != nil {
@@ -145,7 +164,7 @@ func (m postgresColumnMigrator) MigrateColumn(value interface{}, field *schema.F
 				// 改型被延后时也报告同列的非空差异，不能因为提前返回漏掉待审阅项。
 				return m.RunWithValue(value, func(stmt *gorm.Statement) error {
 					if nullable, ok := column.Nullable(); ok && nullable && (field.NotNull || field.AutoIncrement) {
-						m.reportDeferredColumn(stmt, field, "SET NOT NULL", "NOT NULL")
+						m.reportDeferredColumn(stmt, field, "SET NOT NULL", "NULL allowed", "NOT NULL")
 					}
 					return nil
 				})
@@ -166,7 +185,7 @@ func (m postgresColumnMigrator) MigrateColumn(value interface{}, field *schema.F
 			wantedNotNull := field.NotNull || field.AutoIncrement
 			if current.notNull != wantedNotNull {
 				if wantedNotNull {
-					m.reportDeferredColumn(stmt, field, "SET NOT NULL", "NOT NULL")
+					m.reportDeferredColumn(stmt, field, "SET NOT NULL", "NULL allowed", "NOT NULL")
 				} else if err := m.DB.Exec("ALTER TABLE ? ALTER COLUMN ? DROP NOT NULL", m.CurrentTable(stmt), col).Error; err != nil {
 					return err
 				}
@@ -220,14 +239,20 @@ func (m postgresColumnMigrator) postgresColumnState(stmt *gorm.Statement, field 
 	err := queryDB.Raw(`SELECT a.attnotnull, pg_catalog.pg_get_expr(d.adbin, d.adrelid),
 		pg_catalog.format_type(a.atttypid, NULL),
 		CASE WHEN t.typnamespace = 'pg_catalog'::regnamespace THEN t.typname ELSE pg_catalog.format_type(a.atttypid, NULL) END,
-		pg_catalog.quote_literal(CAST(? AS text)), a.atttypmod
+		pg_catalog.quote_literal(CAST(? AS text)), a.atttypmod, pg_catalog.format_type(a.atttypid, a.atttypmod), n.nspname, c.relname
 		FROM pg_catalog.pg_attribute a
 		JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
 		JOIN pg_catalog.pg_class c ON c.oid = a.attrelid
 		JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
 		LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
 		WHERE n.nspname = ? AND c.relname = ? AND a.attname = ? AND a.attnum > 0 AND NOT a.attisdropped`,
-		literal, currentSchema, table, field.DBName).Row().Scan(&current.notNull, &current.defaultSQL, &current.typeSQL, &current.nativeType, &current.literalSQL, &current.typeMod)
+		literal, currentSchema, table, field.DBName).Row().Scan(&current.notNull, &current.defaultSQL, &current.typeSQL, &current.nativeType, &current.literalSQL, &current.typeMod, &current.fullTypeSQL, &current.schemaName, &current.tableName)
+	if err == nil {
+		// 复用本次迁移已读取的catalog位置，告警收集本身不增加定位schema的SQL。
+		if batch, ok := m.DB.Statement.Context.Value(postgresMigrationBatchKey{}).(*postgresMigrationBatch); ok {
+			batch.locations[stmt.Table] = postgresMigrationLocation{schema: current.schemaName, table: current.tableName}
+		}
+	}
 	return current, err
 }
 
